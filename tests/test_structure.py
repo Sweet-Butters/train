@@ -220,3 +220,45 @@ def test_cli_legacy_file_argument_still_routes_to_check(capsys) -> None:
     code = cli.main(["없는파일.pdf"])
     assert code == 2
     assert "파일이 없습니다" in capsys.readouterr().err
+
+
+# ── 입력 정규화 배선 (inputs.prepare_image 는 B 소유, 여기서는 부르기만) ──────
+
+def test_recognize_feeds_prepared_image_and_carries_notes() -> None:
+    from PIL import Image
+
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", ASPIRIN)]
+    with tempfile.TemporaryDirectory() as tmp:
+        # 투명 배경 PNG - prepare_image 가 손을 대고 노트를 남길 입력
+        path = Path(tmp) / "demo_02.png"
+        Image.new("RGBA", (300, 200), (0, 0, 0, 0)).save(path)
+        rec = recognize(path, engines, Path(tmp) / "out")
+        assert rec.status == "agreed"
+        assert rec.prepared is not None and rec.prepared.exists()
+        assert rec.prepared.suffix == ".png" and rec.prepared.is_absolute()
+        assert rec.notes, "투명 PNG 를 다듬었으면 노트가 있어야 한다"
+        assert rec.answer.image.name == "demo_02.answer.png"   # 이름은 원본 그림을 따른다
+
+
+def test_recognize_unreadable_file_does_not_crash() -> None:
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", ASPIRIN)]
+    with tempfile.TemporaryDirectory() as tmp:
+        bad = Path(tmp) / "not_an_image.png"
+        bad.write_bytes(b"this is not a png")
+        rec = recognize(bad, engines, Path(tmp) / "out")
+        assert rec.status == "unreadable"
+        assert rec.candidates == [] and rec.answer is None
+
+
+def test_cli_prints_input_notes(monkeypatch, capsys) -> None:
+    from PIL import Image
+
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", ASPIRIN)]
+    monkeypatch.setattr(cli, "load_engines", lambda ckpt: engines)
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "demo.png"
+        Image.new("RGBA", (300, 200), (0, 0, 0, 0)).save(path)
+        code = cli.main(["recognize", str(path), "--out", tmp])
+        out = capsys.readouterr().out
+        assert code == 0
+        assert "   입력  " in out and "[ 합의 ]" in out
