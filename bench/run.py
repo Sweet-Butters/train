@@ -53,10 +53,33 @@ class OracleEngine(Engine):
         return Prediction(smiles, 0.99, self.name) if smiles else None
 
 
+class Hallucinating(OracleEngine):
+    """구조식은 제대로 읽고, 구조식이 아닌 그림에도 자신 있게 답하는 인식기.
+
+    실제 OCSR 이 이렇게 행동한다 - MolScribe 든 DECIMER 든 무엇을 주든 SMILES 를
+    낸다. 클립아트에 '모르겠다'고 말하는 경로가 없다. 오라클로는 이 상황을 잴 수
+    없어서(오라클은 클립아트에 답을 내지 않는다) 따로 둔다.
+
+    이것으로 재려는 것: 이름이 적힌 장에 장식 그림이 섞여 있을 때, 도구가 멀쩡한
+    자료를 '오류'라고 말하는가.
+    """
+
+    name = "hallucinating"
+
+    def recognize(self, image_path: Path) -> Prediction | None:
+        pred = super().recognize(image_path)
+        if pred is not None:
+            return pred
+        # 구조식이 아닌 그림에서 벤젠을 봤다고 우긴다. 신뢰도도 높게 준다.
+        return Prediction("c1ccccc1", 0.95, self.name)
+
+
 def engines_for(kind: str, checkpoint: Path | None,
                 by_slide: dict[int, str]) -> list[Engine]:
     if kind == "oracle":
         return [OracleEngine(by_slide)]
+    if kind == "hallucinating":
+        return [Hallucinating(by_slide)]
     if kind == "none":
         return []
     return load_engines(checkpoint if checkpoint and checkpoint.exists() else None)
@@ -64,7 +87,8 @@ def engines_for(kind: str, checkpoint: Path | None,
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="bench.run", description="chemcheck 평가 실행")
-    parser.add_argument("--engine", choices=("oracle", "real", "none"), default="oracle")
+    parser.add_argument("--engine", choices=("oracle", "hallucinating", "real", "none"),
+                        default="oracle")
     parser.add_argument("--checkpoint", type=Path, default=ROOT / "models" / "molscribe.pth")
     parser.add_argument("--deck", type=Path, default=None,
                         help="직접 만든 덱으로 돌린다 (라벨은 CORPUS 순서와 맞아야 함)")
@@ -114,10 +138,6 @@ def main(argv: list[str] | None = None) -> int:
     if args.detail:
         print()
         print(report.detail(mine))
-
-    if banner:
-        print()
-        print(banner)
 
     # 단서를 아래에도 한 번 더. 위만 잘라 붙이는 경우와 아래만 보는 경우 둘 다 막는다.
     if banner:

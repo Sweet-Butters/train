@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from bench.cases import Case, Truth  # noqa: E402
+from bench.cases import JUDGEABLE, Case, Truth  # noqa: E402
 from bench.score import Outcome, Scorecard, classify  # noqa: E402
 from chemcheck.verdict import Finding, Verdict  # noqa: E402
 
@@ -35,6 +35,13 @@ TRUTH_TABLE = {
     (Truth.STEREO_DIFF, Verdict.ERROR): Outcome.FALSE_ALARM,  # 골격이 같은데 다르다고 함
     (Truth.STEREO_DIFF, Verdict.WARN): Outcome.CAUGHT,
     (Truth.STEREO_DIFF, Verdict.ABSTAIN): Outcome.SILENT,
+
+    # 구조식이 아닌 그림. 물러나는 것이 정답이고, 오류라 단정하면 멀쩡한 자료를
+    # 틀렸다고 말하는 것이다.
+    (Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN): Outcome.DECLINED,
+    (Truth.NOT_A_STRUCTURE, Verdict.ERROR): Outcome.FALSE_ALARM,
+    (Truth.NOT_A_STRUCTURE, Verdict.OK): Outcome.MISGRADED,
+    (Truth.NOT_A_STRUCTURE, Verdict.WARN): Outcome.MISGRADED,
 }
 
 
@@ -48,7 +55,7 @@ def _card(pairs: list[tuple[Truth, Verdict]], arm: str = "test") -> Scorecard:
 def test_truth_table_is_complete() -> None:
     """12 칸 전부. 빠진 칸이 없어야 하고 값이 어긋나서도 안 된다."""
     cells = [(t, v) for t in Truth for v in Verdict]
-    assert len(cells) == 12, f"칸 수가 12 가 아니다: {len(cells)}"
+    assert len(cells) == 16, f"칸 수가 16 이 아니다: {len(cells)}"
     assert set(cells) == set(TRUTH_TABLE), "진리표에 빠진 칸이 있다"
 
     for (truth, verdict), expected in TRUTH_TABLE.items():
@@ -58,11 +65,32 @@ def test_truth_table_is_complete() -> None:
     print("통과: 채점 진리표가 온전하다.")
 
 
-def test_abstain_is_always_silent() -> None:
-    """판정불가는 라벨이 무엇이든 침묵이다. 침묵을 성적으로 바꿔 세면 안 된다."""
-    for truth in Truth:
+def test_abstain_is_silent_except_when_it_is_the_right_answer() -> None:
+    """판정할 대상에서 침묵하면 못 본 것이고, 구조식이 아닌 것에서는 잘한 것이다."""
+    for truth in JUDGEABLE:
         assert classify(truth, Verdict.ABSTAIN) is Outcome.SILENT, truth
-    print("통과: 침묵은 어떤 라벨에서도 성적이 되지 않는다.")
+    assert classify(Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN) is Outcome.DECLINED
+    print("통과: 옳게 물러난 것을 못 본 것으로 세지 않는다.")
+
+
+def test_declining_is_not_counted_against_coverage() -> None:
+    """구조식이 아닌 그림에 물러난 것이 판정률을 깎으면, 잘한 일에 벌점을 매기는 것이다."""
+    card = _card([(Truth.SAME, Verdict.OK),
+                  (Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN),
+                  (Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN)])
+    assert card.n_judgeable == 1, card.n_judgeable
+    assert card.coverage == 1.0, f"물러남이 판정률을 깎았다: {card.coverage}"
+    assert card.decline_rate == 1.0, card.decline_rate
+    print("  판정 대상 1건 + 구조식 아님 2건 -> 판정률 100%, 물러남 100%")
+    print("통과: 분모가 '판정했어야 할 것'이다.")
+
+
+def test_error_on_non_structure_is_a_false_alarm() -> None:
+    """장식 그림에서 읽은 것을 근거로 멀쩡한 슬라이드를 '오류'라 하면 오탐이다."""
+    card = _card([(Truth.NOT_A_STRUCTURE, Verdict.ERROR)] * 2)
+    assert card.count(Outcome.FALSE_ALARM) == 2
+    assert card.false_alarm_rate == 1.0, card.false_alarm_rate
+    print("통과: 구조식이 아닌 그림에서 난 오류도 오탐으로 센다.")
 
 
 def test_false_alarm_denominator_covers_stereo() -> None:
@@ -122,7 +150,10 @@ def test_silence_reasons_are_counted() -> None:
 
 
 if __name__ == "__main__":
-    for fn in (test_truth_table_is_complete, test_abstain_is_always_silent,
+    for fn in (test_truth_table_is_complete,
+               test_abstain_is_silent_except_when_it_is_the_right_answer,
+               test_declining_is_not_counted_against_coverage,
+               test_error_on_non_structure_is_a_false_alarm,
                test_false_alarm_denominator_covers_stereo, test_rates_stay_within_bounds,
                test_silence_is_visible_not_free, test_empty_card_has_no_rates,
                test_silence_reasons_are_counted):

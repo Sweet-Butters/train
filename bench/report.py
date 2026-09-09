@@ -15,6 +15,7 @@ LABEL = {
     Outcome.MISSED: "놓침 (틀린 것을 맞다고 함)",
     Outcome.MISGRADED: "등급 어긋남",
     Outcome.SILENT: "판정 안 함",
+    Outcome.DECLINED: "구조식이 아닌 것에 옳게 물러남",
 }
 
 
@@ -31,6 +32,8 @@ def caveat(engine: str, synthetic_deck: bool) -> str:
         why.append("인식기가 oracle 이다 - 그림을 100% 읽는다고 가정한 가상 인식기다")
     if engine == "none":
         why.append("인식기가 없다 - 전부 침묵하는 것이 정상이다")
+    if engine == "hallucinating":
+        why.append("인식기가 구조식이 아닌 그림에도 자신 있게 답하는 가상 인식기다")
     if not why:
         return ""
     lines = ["!! 아래 숫자는 성능이 아니다 !!"]
@@ -58,17 +61,22 @@ def labels(checks: list[LabelCheck]) -> str:
 
 
 def scorecard(card: Scorecard) -> str:
-    judged = card.total - card.count(Outcome.SILENT)
+    judged = card.n_judgeable - card.count(Outcome.SILENT)
     out = [
         f"[{card.arm}]",
-        f"  판정률   {_pct(card.coverage)}   ({judged}/{card.total} 건 판정)",
+        f"  판정률   {_pct(card.coverage)}   "
+        f"({judged}/{card.n_judgeable} 건, 분모는 판정했어야 할 케이스)",
         f"  오탐률   {_pct(card.false_alarm_rate)}   "
         f"({card.count(Outcome.FALSE_ALARM)}/{card.n_skeleton_same} 건, "
         f"분모는 골격이 같은 케이스)",
         f"  검출률   {_pct(card.detection_rate)}   "
         f"({card.count(Outcome.CAUGHT)}/{card.n_wrong} 건, 분모는 '틀린' 케이스)",
-        "",
     ]
+    if card.n_not_structure:
+        out.append(f"  물러남   {_pct(card.decline_rate)}   "
+                   f"({card.count(Outcome.DECLINED)}/{card.n_not_structure} 건, "
+                   f"구조식이 아닌 그림)")
+    out.append("")
     for outcome in Outcome:
         n = card.count(outcome)
         if n:
@@ -83,8 +91,8 @@ def scorecard(card: Scorecard) -> str:
 def contrast(chemcheck: Scorecard, baseline: Scorecard) -> str:
     """보류 규칙이 무엇을 사고 무엇을 팔았는가."""
     saved = baseline.count(Outcome.FALSE_ALARM) - chemcheck.count(Outcome.FALSE_ALARM)
-    given_up = ((chemcheck.total - chemcheck.count(Outcome.SILENT))
-                - (baseline.total - baseline.count(Outcome.SILENT)))
+    given_up = ((chemcheck.n_judgeable - chemcheck.count(Outcome.SILENT))
+                - (baseline.n_judgeable - baseline.count(Outcome.SILENT)))
     return "\n".join([
         "대조 - 보류 규칙의 값어치",
         f"  막은 오탐   {saved:+d} 건",
