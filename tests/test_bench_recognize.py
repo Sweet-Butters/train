@@ -230,6 +230,38 @@ def test_replay_reproduces_cards(items: list[Item]) -> None:
     print("통과: 재생한 리포트가 원본과 글자까지 같다.")
 
 
+def test_grill_aggregates(items: list[Item]) -> None:
+    """담합률 · 문턱 효과 · 회수 상한 · 신뢰도 판별력 - 전부 있는 데이터의 집계다."""
+    shaky = recog.evaluate(items, recog.stub_engines("shaky", items))[0]
+    coll = recog.evaluate(items, recog.stub_engines("colluding", items))[0]
+    orac = recog.evaluate(items, recog.stub_engines("oracle", items))[0]
+
+    # 담합: colluding 은 15장 같은 오답, oracle 은 0.
+    text = recog.collusion_table(coll.rows)
+    assert "같이 틀림 15 장" in text and "같은 오답 (골격 일치 -> 합의 게이트 통과)  15 장" in text, text
+    assert "같이 틀림 0 장" in recog.collusion_table(orac.rows)
+
+    # 문턱 효과: 스텁 신뢰도는 0.93/0.99 라 문턱 밑이 없다 -> 무해.
+    assert "0 장 (정답 0 · 오답 0)" in recog.threshold_effect(orac.rows)
+    low = [_read("a", "c1ccccc1", 0.7), _read("b", "c1ccccc1")]
+    card = recog.Card("t"); card.add(items[7], low, recog.consensus_gate(low))  # 8 = 벤젠
+    assert "1 장 (정답 1 · 오답 0)" in recog.threshold_effect(card.rows), recog.threshold_effect(card.rows)
+
+    # 회수 상한: shaky 혼자는 인식기가 하나라 '한 엔진만 틀림' 이 성립하지 않는다 -> 0/50.
+    assert "0/50 장" in recog.recoverable(shaky)
+    pair = recog.evaluate(items, [recog.TruthEngine({it.index: it.molecule.smiles for it in items}),
+                                  recog.ShakyEngine({it.index: it.molecule.smiles for it in items})])[0]
+    assert "15/15 장" in recog.recoverable(pair), recog.recoverable(pair)
+
+    # 판별력: shaky 는 정답도 오답도 0.93 -> 겹친다.
+    disc = recog.confidence_discrimination(shaky.rows)
+    assert "겹친다" in disc, disc
+    assert "50장에서 자신 있게 틀림 0건 = 상한 오탐률 약 6% 이하" in recog.success_criterion(50)
+    full = recog.report(recog.evaluate(items, recog.stub_engines("oracle", items)), "oracle", ["o", "m"])
+    assert full.index("성공 기준") < full.index("자신 있게 틀림"), "성공 기준은 첫 줄 위에"
+    print("통과: 담합률·문턱 효과·회수 상한·판별력이 스텁에서 예상값과 같다.")
+
+
 if __name__ == "__main__":
     import tempfile
 

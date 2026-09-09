@@ -515,6 +515,123 @@ def diagnose(card: Card) -> str:
     return "\n".join(out)
 
 
+def _best_per_family(row: Row) -> dict[str, Read]:
+    """장 하나에서 인식기 종류별 대표 답(읽을 수 있는 것 중 신뢰도 최고)."""
+    per: dict[str, list[Read]] = {}
+    for r in row.reads:
+        if r.skeleton is not None:
+            per.setdefault(family(r.engine), []).append(r)
+    return {f: max(rs, key=lambda r: r.confidence if r.has_confidence else -1.0)
+            for f, rs in per.items()}
+
+
+def collusion_table(rows: list[Row]) -> str:
+    """담합률 - 두 엔진이 같은 장에서 같이 틀린 횟수. 합의 게이트의 생사가 이 숫자다.
+
+    같은 오답(골격까지 같음)은 합의 게이트가 그대로 통과시키는 것이고, 다른 오답은
+    골격이 갈려 물러나는 것이다. 분모는 두 종류 이상이 답을 낸 장.
+    """
+    both = same = different = 0
+    same_rows: list[Row] = []
+    for row in rows:
+        best = _best_per_family(row)
+        if len(best) < 2:
+            continue
+        both += 1
+        wrong = [r for r in best.values() if r.skeleton != row.item.skeleton]
+        if len(wrong) < len(best):
+            continue  # 하나라도 맞았다 - 담합이 아니다
+        if len({r.skeleton for r in wrong}) == 1:
+            same += 1
+            same_rows.append(row)
+        else:
+            different += 1
+    out = ["담합률 - 두 엔진이 같은 장에서 같이 틀림 (분모: 둘 다 답을 낸 장)",
+           f"  둘 다 답함 {both} 장 · 같이 틀림 {same + different} 장 "
+           f"({_pct(None if not both else (same + different) / both).strip()})",
+           f"    같은 오답 (골격 일치 -> 합의 게이트 통과) {same:3d} 장   <- 게이트의 생사",
+           f"    다른 오답 (골격 갈림 -> 물러남)          {different:3d} 장"]
+    for row in same_rows:
+        out.append(f"      {row.item.index:2d}. {row.item.molecule.name} ({row.item.variant.name})")
+    return "\n".join(out)
+
+
+def threshold_effect(rows: list[Row]) -> str:
+    """합의했는데 신뢰도 <0.8 이었던 장. 합의 팔에 문턱을 얹었다면 물러났을 건수다.
+
+    0 이면 문턱이 무해했던 것이고, 정답 쪽에 1 이상이면 문턱이 정답을 버리고 있던 것.
+    """
+    hit = miss = 0
+    lines: list[str] = []
+    for row in rows:
+        decision = consensus_gate(row.reads)
+        if not decision.committed:
+            continue
+        scored = [r.confidence for r in row.reads if r.has_confidence and r.skeleton is not None]
+        if not scored or max(scored) >= MIN_CONFIDENCE:
+            continue
+        ok = skeleton(decision.answer) == row.item.skeleton
+        hit, miss = hit + ok, miss + (not ok)
+        lines.append(f"      {row.item.index:2d}. {row.item.molecule.name} ({row.item.variant.name})"
+                     f" 최고 신뢰도 {max(scored):.2f} - {'정답' if ok else '오답'}")
+    out = [f"합의했는데 신뢰도 <{MIN_CONFIDENCE} - 문턱을 합의 팔에 얹었다면 물러났을 건수",
+           f"  {hit + miss} 장 (정답 {hit} · 오답 {miss})   "
+           + ("<- 문턱이 무해했다" if hit == 0 else "<- 문턱이 정답을 버린다")]
+    return "\n".join(out + lines)
+
+
+def recoverable(card: Card) -> str:
+    """물러남 중 '한 엔진만 틀린' 비율 - 세 번째 엔진이 회수할 수 있는 양의 상한."""
+    declined = [r for r in card.rows if r.outcome is Outcome.DECLINED]
+    one_wrong = 0
+    for row in declined:
+        best = _best_per_family(row)
+        wrong = [f for f, r in best.items() if r.skeleton != row.item.skeleton]
+        if len(best) >= 2 and len(wrong) == 1:
+            one_wrong += 1
+    return "\n".join([
+        "물러남 중 한 엔진만 틀림 - 세 번째 엔진이 회수할 수 있는 양의 상한",
+        f"  {one_wrong}/{len(declined)} 장 "
+        f"({_pct(None if not declined else one_wrong / len(declined)).strip()})",
+    ])
+
+
+def _dist(values: list[float]) -> str:
+    if not values:
+        return "  --  "
+    v = sorted(values)
+    return f"최소 {v[0]:.2f} 중앙 {v[len(v) // 2]:.2f} 최대 {v[-1]:.2f} (n={len(v)})"
+
+
+def confidence_discrimination(rows: list[Row]) -> str:
+    """신뢰도의 판별력 - 정답일 때와 오답일 때의 분포. 겹치면 문턱은 아무것도 안 거른다."""
+    per: dict[str, dict[str, list[float]]] = {}
+    for row in rows:
+        for r in row.reads:
+            if r.skeleton is None or not r.has_confidence:
+                continue
+            key = "정답" if r.skeleton == row.item.skeleton else "오답"
+            per.setdefault(family(r.engine), {"정답": [], "오답": []})[key].append(r.confidence)
+    out = ["신뢰도의 판별력 - 정답일 때 vs 오답일 때 (겹치면 문턱은 아무것도 안 거른다)"]
+    if not per:
+        out.append("  (신뢰도를 준 인식기가 없다)")
+    for fam, d in sorted(per.items()):
+        out.append(f"  {fam}")
+        out.append(f"    정답  {_dist(d['정답'])}")
+        out.append(f"    오답  {_dist(d['오답'])}")
+        if d["정답"] and d["오답"]:
+            sep = min(d["정답"]) > max(d["오답"])
+            out.append("    " + ("갈린다 - 오답 최대 < 정답 최소. 문턱을 그 사이에 둘 수 있다" if sep
+                                 else "겹친다 - 이 신뢰도로는 오답을 걸러낼 수 없다"))
+    return "\n".join(out)
+
+
+def success_criterion(n: int) -> str:
+    """숫자를 보기 전에 적는 성공 기준. 0건이 뜻하는 상한을 미리 못 박는다 (rule of three)."""
+    return (f"성공 기준 (숫자를 보기 전에 적음): 합성 렌더 {n}장에서 자신 있게 틀림 0건 = "
+            f"상한 오탐률 약 {300 / n:.0f}% 이하 (95% 신뢰). 실제 그림에 대해선 아무 말도 아님")
+
+
 def rows_to_json(rows: list[Row], engine_kind: str, engine_names: list[str]) -> dict:
     """인식 결과를 그대로 저장한다. 리포트는 바뀌어도 인식은 다시 돌리지 않기 위해서다."""
     return {
@@ -584,14 +701,18 @@ def report(cards: list[Card], engine_kind: str, engine_names: list[str],
         parts.append(banner)
     parts.append(f"recognize 평가 · 그림 {product.total}장 · 변주 {len(VARIANT_NAMES)}종 · "
                  f"인식기 {', '.join(engine_names) or '없음'}")
-    parts.append(scorecard(product))
+    parts.append(success_criterion(product.total) + "\n\n" + scorecard(product))
     diag = diagnose(product)
     if diag:
         parts.append(diag)
     parts.append(scorecard(baseline))
     parts.append(contrast(product, baseline))
+    parts.append(collusion_table(product.rows))
+    parts.append(threshold_effect(product.rows))
+    parts.append(recoverable(product))
     parts.append(engines_table(engine_stats(product.rows), product.total))
     parts.append(confidence_table(product.rows))
+    parts.append(confidence_discrimination(product.rows))
     parts.append(variants_table(product))
     parts.append(variant_engine_table(product.rows))
     if show_detail:
