@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 import queue
 import subprocess
 import threading
@@ -83,9 +84,13 @@ class Worker:
     # -- 수명 -------------------------------------------------------------
 
     def _pump(self, stdout) -> None:
-        for line in stdout:
-            self._replies.put(line)
-        self._replies.put(None)  # 워커가 죽었다
+        try:
+            for line in stdout:
+                self._replies.put(line)
+        finally:
+            # 어떤 이유로 읽기가 끝나든 신호는 반드시 남긴다. 여기서 조용히
+            # 죽으면 부르는 쪽은 죽은 워커를 타임아웃까지 기다린다.
+            self._replies.put(None)
 
     def start(self) -> bool:
         if self._proc is not None:
@@ -93,6 +98,13 @@ class Worker:
         if not self.available():
             return False
         cmd = [str(self.python), "-u", str(self.script), *self.args]
+        # 자식도 UTF-8 로 읽고 쓰게 만든다. 윈도우 자식의 기본 stdio 인코딩은
+        # 로케일(여기서는 cp949)이라, 그냥 두면 부모가 UTF-8 로 보낸 요청을
+        # 자식이 다른 글자로 읽는다. 경로에 한글이 하나라도 있으면 - 이 기계는
+        # 임시 폴더 경로부터 한글이다 - 자식이 없는 폴더를 만들려다 죽는다.
+        # 응답 쪽도 같다. 워커들은 ensure_ascii=False 로 사유를 쓰므로 자식이
+        # cp949 로 인코딩한 것을 부모가 UTF-8 로 읽는 일이 생긴다.
+        env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
         try:
             self._proc = subprocess.Popen(
                 cmd,
@@ -100,8 +112,10 @@ class Worker:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
                 cwd=str(ROOT),
+                env=env,
                 text=True,
                 encoding="utf-8",
+                errors="replace",
             )
         except OSError as exc:
             self.unavailable_reason = f"워커를 띄우지 못함: {exc}"
