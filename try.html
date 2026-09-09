@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chemcheck - 해보기</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="wordmark" href="index.html">chemcheck</a>
+  <nav><a href="index.html">← 소개로</a></nav>
+</header>
+
+<main>
+  <div class="tool-intro">
+    <h1>이름이나 SMILES, 또는 이미지</h1>
+    <p>아무거나 넣으세요. 정본은 곧바로 뜨고, 이미지를 주면 서버가 그림도 대조합니다.</p>
+  </div>
+
+  <div class="dropzone" id="dropzone" tabindex="0">
+    <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요</p>
+    <button type="button" class="btn btn-ghost btn-sm" id="fileBtn">파일 선택</button>
+    <input type="file" id="fileInput" accept="image/*" hidden>
+  </div>
+  <div class="image-preview" id="imagePreview" hidden></div>
+  <p class="field-note" id="imageNote"></p>
+  <p class="field-note" id="serverStatus"></p>
+
+  <div class="query-field">
+    <input id="queryInput" placeholder="이름 또는 SMILES - 아스피린 / aspirin / CC(=O)Oc1ccccc1C(=O)O" autocomplete="off">
+    <div class="suggestions" id="suggestions" hidden></div>
+  </div>
+  <p class="status-line" id="status">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</p>
+
+  <section class="result" id="result" hidden>
+    <div class="result-mol">
+      <div class="mol-draw" id="molDraw"></div>
+      <div>
+        <p class="mol-name" id="molTitle"></p>
+        <dl class="mol-facts" id="molFacts"></dl>
+        <div class="copy-row">
+          <button type="button" class="btn btn-ghost btn-sm" id="copyPng">PNG 복사</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="copySvg">SVG 다운로드</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="copySmiles">SMILES 복사</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="copyKey">InChIKey 복사</button>
+        </div>
+        <p class="copy-note" id="copyNote"></p>
+      </div>
+    </div>
+    <div class="verdict" id="verdict" hidden></div>
+  </section>
+
+  <p class="err" id="err"></p>
+</main>
+
+<footer class="site-footer" id="foot"></footer>
+
+<script src="compounds.js"></script>
+<script src="https://unpkg.com/@rdkit/rdkit@2025.3.4-1.0.0/dist/RDKit_minimal.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
