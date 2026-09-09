@@ -112,7 +112,8 @@ async function identifyByKey(inchikey) {
   // Title(관용명)과 IUPACName 을 함께 받는다 - 새로 만난 분자는 관용명이 없고
   // IUPAC 명만 있는 경우가 많다. 둘 다 없으면 진짜 미등재다.
   const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title,IUPACName/JSON`);
-  if (res.status === 404) return null;
+  if (res.status === 404) return null;                     // 미등재 - 실패가 아니다
+  if (res.status === 429 || res.status === 503) throw new Error("PubChem 이 잠시 응답하지 않습니다");
   if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
   const p = (await res.json()).PropertyTable.Properties[0];
   return { title: p.Title, iupac: p.IUPACName, cid: p.CID, source: "PubChem" };
@@ -555,7 +556,7 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100558");
+    const mod = await import("./crop.js?v=202609100620");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: onImageLoaded }) || null;
       // crop.js 가 자기 영역 안에 [사진 찍기]/[파일 선택] 을 이미 갖고 있다.
@@ -651,7 +652,7 @@ async function handleImageInner(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100558");
+    const mod = await import("./ocr.js?v=202609100620");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
@@ -938,7 +939,7 @@ function appendIdentification(card, json) {
         if (iupac && iupac !== common) iupacEl.textContent = "IUPAC · " + iupac;
         else if (hit.source) iupacEl.textContent = "출처 · " + hit.source;
       })
-      .catch(() => { nameEl.textContent = "이름 조회 실패 (네트워크)"; });
+      .catch((e) => { nameEl.textContent = "이름을 조회하지 못했습니다 - " + ((e && e.message) || "네트워크"); });
   }
   return true;
 }
@@ -982,7 +983,7 @@ function renderReadAsMain(read) {
           if (src) src.textContent = "그림에서 읽음 · PubChem CID " + hit.cid;
         }
       })
-      .catch(() => { const t = $("molTitle"); if (t) t.textContent = "이름 조회 실패"; });
+      .catch((e) => { const t = $("molTitle"); if (t) t.textContent = "이름 조회 실패 - " + ((e && e.message) || "네트워크"); });
   }
 }
 
