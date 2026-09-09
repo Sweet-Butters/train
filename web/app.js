@@ -555,9 +555,16 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100522");
+    const mod = await import("./crop.js?v=202609100547");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: onImageLoaded }) || null;
+      // crop.js 가 자기 영역 안에 [사진 찍기]/[파일 선택] 을 이미 갖고 있다.
+      // 페이지 쪽 중복 버튼(촬영·파일)은 감춘다 - 셋이 서로 다르게 동작해
+      // 어느 것을 눌렀는지에 따라 결과가 달라졌다.
+      for (const id of ["cameraBtn", "fileBtn"]) {
+        const dup = $(id);
+        if (dup) dup.hidden = true;
+      }
       usingCropper = true;
       return;
     }
@@ -622,7 +629,7 @@ async function handleImageInner(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100522");
+    const mod = await import("./ocr.js?v=202609100547");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
