@@ -145,7 +145,16 @@ def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
 
     if ref is None:
         # 읽기는 했으나 대조할 정본이 없다. 대조하지 않은 것을 판정이라 부르지 않는다.
-        return {"verdict": "unreadable", "grade": None,
+        # 다만 **읽기에 대한 확신**은 별개다 - 두 인식기가 독립적으로 같은 골격을
+        # 읽었다면 그것은 정보이고, 버리면 안 된다. grade 는 판정이 아니라 읽기의 등급이다.
+        if grade == GRADE_CONSENSUS:
+            names = " · ".join(x[0].engine for x in valid)
+            reasons.append(
+                f"다만 인식기 {len(valid)}개({names})가 서로 다른 구조로 학습됐는데도 "
+                f"같은 골격({skeleton(read_key)})을 독립적으로 읽었습니다")
+        else:
+            reasons.append("인식기 하나가 읽은 것이고, 대조할 두 번째 정보원이 없어 확인되지 않았습니다")
+        return {"verdict": "unreadable", "grade": grade,
                 "reference": None, "read": read_block, "reasons": reasons}
 
     # ── 대조: 골격 14자 문자열 비교뿐 ───────────────────────────────────
