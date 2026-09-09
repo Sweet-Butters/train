@@ -95,3 +95,54 @@ footer { color: var(--mute); font-size: 12px; margin-top: 34px; border-top: 1px 
 @media (max-width: 640px) {
   .fields, .canon-card, .wildcatch-body { grid-template-columns: 1fr; }
 }
+
+/* ── 피치: 히어로·단계·API·요금제·로드맵 ─────────────────────────── */
+.tagline { font-size: 1.05rem; line-height: 1.55; margin: .2rem 0 1rem; }
+.tagline strong { color: #b3261e; }
+
+.hero { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap;
+        background: #fafafa; border: 1px solid #e6e6e6; border-radius: 10px; padding: 1rem; }
+.hero-img { width: min(100%, 380px); border-radius: 6px; border: 1px solid #ddd; }
+.hero-text { flex: 1 1 320px; }
+.hero-text p { margin: 0 0 .6rem; line-height: 1.55; }
+.hero-claim { border-left: 3px solid #4a7dbc; padding-left: .6rem; }
+.hero-note { font-size: .8rem; opacity: .7; margin-top: .4rem; }
+.cta { padding: .55rem 1rem; font-size: .95rem; font-weight: 600; cursor: pointer;
+       background: #b3261e; color: #fff; border: 0; border-radius: 6px; }
+.cta:hover { background: #931d17; }
+.cta:disabled { opacity: .5; cursor: default; }
+
+.steps { display: flex; gap: .6rem; list-style: none; padding: 0; margin: 1rem 0;
+         flex-wrap: wrap; font-size: .88rem; }
+.steps li { flex: 1 1 220px; background: #f4f6f8; border-radius: 8px; padding: .55rem .7rem; }
+.steps span { display: inline-block; width: 1.3rem; height: 1.3rem; line-height: 1.3rem;
+              text-align: center; border-radius: 50%; background: #4a7dbc; color: #fff;
+              font-size: .78rem; margin-right: .35rem; }
+
+.pitch { margin: 2rem 0; padding-top: 1.2rem; border-top: 1px solid #e6e6e6; }
+.pitch h2 { margin-bottom: .3rem; }
+.code { background: #1e2127; color: #e6e6e6; border-radius: 8px; padding: .7rem .85rem;
+        overflow-x: auto; font-size: .8rem; line-height: 1.5; margin: .5rem 0; }
+.code.out { background: #f4f6f8; color: #24292f; border: 1px solid #e0e0e0; }
+
+.tag { font-size: .7rem; font-weight: 600; vertical-align: middle; padding: .12rem .4rem;
+       border-radius: 4px; background: #ececec; color: #555; }
+.tag.ok { background: #1f7a3d; color: #fff; }
+
+.tiers { display: flex; gap: .7rem; flex-wrap: wrap; margin: .7rem 0; }
+.tier { flex: 1 1 200px; border: 1px solid #e0e0e0; border-radius: 10px; padding: .8rem; }
+.tier.hi { border-color: #4a7dbc; box-shadow: 0 0 0 1px #4a7dbc inset; }
+.tier h3 { margin: 0 0 .2rem; font-size: 1rem; }
+.tier p { margin: .25rem 0; font-size: .86rem; }
+.price { font-size: 1.25rem; font-weight: 700; }
+.tier-why { opacity: .75; font-size: .8rem !important; }
+.unit { font-size: .84rem; background: #f4f6f8; border-radius: 8px; padding: .6rem .8rem; }
+
+.road { display: flex; gap: .7rem; flex-wrap: wrap; }
+.road-col { flex: 1 1 240px; border: 1px solid #e0e0e0; border-radius: 10px; padding: .8rem; }
+.road-col.now { border-color: #1f7a3d; }
+.road-col h3 { margin: 0 0 .35rem; font-size: .98rem; }
+.road-col p { margin: .3rem 0; font-size: .86rem; line-height: 1.5; }
+.road-num { opacity: .78; font-size: .8rem !important; }
+
+@media (max-width: 640px) { .hero, .tiers, .road, .steps { flex-direction: column; } }
