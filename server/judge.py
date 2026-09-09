@@ -77,6 +77,42 @@ def _formula_reason(ref_smiles: str | None, read_formula: str | None) -> str | N
     return f"중원자 조성 {read_formula} vs {ref_formula}"
 
 
+# 읽은 구조가 정본보다 이만큼 크면 "다른 분자" 가 아니라 "못 읽은 것" 으로 본다.
+# 근거(실측 6·8): 슬라이드를 통째로 먹이면 제목·3D 렌더·설명이 섞여 인식기가
+# 탄소 100~256 개짜리 사슬을 지어낸다. GPT 가 **맞게** 그린 카페인도 통째로 넣으면
+# C256 을 읽고 '오류' 로 판정됐다 - 이 프로젝트가 가장 하면 안 되는 실패다.
+# 판단은 추론이 아니라 원자 수 비교다.
+NONSENSE_ATOM_RATIO = 3.0
+NONSENSE_ATOM_FLOOR = 40
+
+
+def _heavy_atom_count(formula: str | None) -> int | None:
+    """'C9N4O2' -> 15. 못 세면 None."""
+    if not formula:
+        return None
+    import re
+    total = 0
+    for sym, num in re.findall(r"([A-Z][a-z]?)(\d*)", formula):
+        if not sym:
+            continue
+        total += int(num) if num else 1
+    return total or None
+
+
+def _nonsense_reason(ref_smiles: str | None, read_formula: str | None) -> str | None:
+    """읽은 것이 정본보다 터무니없이 크면 그 사유를 돌려준다. 아니면 None."""
+    if not ref_smiles or not read_formula:
+        return None
+    ref_n = _heavy_atom_count(heavy_atom_formula(ref_smiles))
+    read_n = _heavy_atom_count(read_formula)
+    if not ref_n or not read_n:
+        return None
+    if read_n >= NONSENSE_ATOM_FLOOR and read_n >= ref_n * NONSENSE_ATOM_RATIO:
+        return (f"읽은 구조가 중원자 {read_n} 개로 정본({ref_n} 개)보다 지나치게 큽니다 - "
+                f"그림에서 구조를 제대로 읽지 못한 것으로 봅니다")
+    return None
+
+
 def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
     """동결 계약대로의 응답 하나. 여기서 예외를 올리지 않는다.
 
@@ -124,6 +160,16 @@ def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
 
     if ref is None:
         reasons.append(f"이름 '{name}' 에 해당하는 정본을 표에서 찾지 못했습니다")
+
+    # ── 터무니없는 크기: 판정하지 않는다 ──────────────────────────────────
+    # 슬라이드를 통째로 넣으면 인식기가 거대한 사슬을 지어낸다. 그것을 '오류' 라
+    # 부르면 맞게 그린 그림을 틀렸다고 말하게 된다.
+    nonsense = _nonsense_reason(ref.smiles if ref else None, read_formula)
+    if nonsense:
+        reasons.append(nonsense)
+        reasons.append("구조 부분만 잘라서 다시 시도해 보세요")
+        return {"verdict": "unreadable", "grade": None,
+                "reference": _reference_block(ref), "read": read_block, "reasons": reasons}
 
     # ── 읽지 못한 경우: 판정이 아니라 unreadable ──────────────────────────
     if primary is None:
