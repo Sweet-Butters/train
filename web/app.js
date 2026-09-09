@@ -590,11 +590,67 @@ async function checkServerImage(blob, name) {
   }
 }
 
+
+// 그림에서 읽어낸 구조 자체를 보여준다 - 대조 결과와 별개로, 읽었으면 언제나 준다.
+// 이름이 없거나 못 찾아도 이건 나온다: 그림 -> SMILES 변환기로서의 출력이다.
+function appendReadStructure(card, read) {
+  if (!read || !read.smiles) return false;
+
+  const h = document.createElement("h3");
+  h.textContent = "그림에서 읽은 구조";
+  h.style.cssText = "margin:.9rem 0 .3rem;font-size:.95rem";
+  card.appendChild(h);
+
+  let svg = "";
+  try { svg = RDKit ? svgWithHighlight(read.smiles, null, 260, 200) : ""; } catch (e) { svg = ""; }
+  if (svg) {
+    const box = document.createElement("div");
+    box.style.cssText = "background:#fff;border:1px solid #e0e0e0;border-radius:6px;display:inline-block;padding:.2rem";
+    box.innerHTML = svg;
+    card.appendChild(box);
+  }
+
+  const rows = [];
+  rows.push(["SMILES", escapeHtml(read.smiles)]);
+  if (read.inchikey) rows.push(["InChIKey", escapeHtml(read.inchikey)]);
+  if (read.heavy_formula) rows.push(["중원자 조성", escapeHtml(read.heavy_formula)]);
+  card.appendChild(buildEvidenceBox(rows));
+
+  const bar = document.createElement("div");
+  bar.style.cssText = "margin:.4rem 0";
+  const mk = (label, text) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = label;
+    b.style.cssText = "margin:.15rem .3rem .15rem 0;padding:.25rem .55rem;font-size:.82rem;cursor:pointer";
+    b.addEventListener("click", () => copyText(text, label.replace("복사", "").trim()));
+    return b;
+  };
+  bar.appendChild(mk("SMILES 복사", read.smiles));
+  if (read.inchikey) bar.appendChild(mk("InChIKey 복사", read.inchikey));
+  card.appendChild(bar);
+  return true;
+}
+
 function renderImageVerdict(json) {
   stopVerdictTimer();
   const card = $("imageVerdictCard"); card.innerHTML = "";
 
   if (json.verdict === "unreadable") {
+    const read0 = json.read || {};
+    if (read0.smiles) {
+      // 읽기는 성공했다. 대조할 이름이 없거나 이름을 못 찾았을 뿐이다 - 그렇다고 "못 읽었다" 고 하면 거짓말이다.
+      const pill = document.createElement("p"); pill.className = "verdict-pill unreadable";
+      pill.textContent = "🔵 읽었습니다 - 대조는 하지 않았습니다";
+      card.appendChild(pill);
+      const note = document.createElement("p"); note.className = "result-placeholder";
+      note.textContent = "대조할 이름이 없어(또는 이름을 표·PubChem 에서 찾지 못해) 맞고 틀림을 판정하지 않았다. " +
+        "아래는 인식기 하나가 읽은 것이고 확인되지 않았다 - 두 번째 독립 정보원(이름)이 없으면 이 도구는 옳다고 말하지 않는다. " +
+        "이름을 위 칸에 넣으면 정본과 대조한다.";
+      card.appendChild(note);
+      appendReadStructure(card, read0);
+      appendReasons(card, json.reasons);
+      return;
+    }
     const pill = document.createElement("p"); pill.className = "verdict-pill unreadable"; pill.textContent = "⚪ 읽지 못함";
     card.appendChild(pill);
     const note = document.createElement("p"); note.className = "result-placeholder";
@@ -625,6 +681,7 @@ function renderImageVerdict(json) {
   }
   if (rows.length) card.appendChild(buildEvidenceBox(rows));
 
+  appendReadStructure(card, read);
   appendReasons(card, json.reasons);
 
   if (read && read.engines && read.engines.length) {
