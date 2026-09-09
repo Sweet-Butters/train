@@ -33,7 +33,8 @@ class Case:
     smiles: str    # 슬라이드에 실제로 그려지는 구조 (구조식이 아니면 빈 문자열)
     truth: Truth
     note: str = ""
-    art: str = ""  # 구조식이 아닌 그림의 종류. NOT_A_STRUCTURE 에서만 쓴다
+    art: str = ""    # 구조식이 아닌 그림의 종류. NOT_A_STRUCTURE 에서만 쓴다
+    extra: str = ""  # 이름 옆에 함께 적히는 다른 글자. 참조를 흐리는 말들
 
 
 # 합성 코퍼스: RDKit 이 그린 그림이다.
@@ -72,6 +73,18 @@ CORPUS: list[Case] = [
     Case("Methane", "", Truth.NOT_A_STRUCTURE, "장식용 도형", art="shapes"),
     Case("Ethane", "", Truth.NOT_A_STRUCTURE, "글자만 있는 그림", art="text"),
     Case("Benzene", "", Truth.NOT_A_STRUCTURE, "사진 비슷한 잡음", art="noise"),
+
+    # --- 참조를 흐리는 글자가 함께 있는 장 (오탐 측정용) ---------------------
+    # 실제 자료에서 판정 후보 장 128개 중 24개(그림 77건)는 잡힌 참조가 전부
+    # 분류명이나 잡음이었다. 'Alkenes' 가 47번, 'Sol' 14번, 'Challenge' 9번,
+    # 'ene' 6번. PubChem 은 분류명과 상표명을 정식으로 들고 있어서 해석해 준다.
+    # 그림은 맞게 그려졌는데 참조가 엉뚱하면 '오류'가 난다 - 오탐이다.
+    Case("But-2-ene", "CC=CC", Truth.SAME,
+         "장에 분류명 Alkenes 가 함께 있다. 참조가 그쪽으로 잡히면 오탐이 난다",
+         extra="Alkenes"),
+    Case("Propane", "CCC", Truth.SAME,
+         "장에 Challenge 와 Sol 이 함께 있다. 둘 다 PubChem 이 화합물로 준다",
+         extra="Challenge Sol"),
 ]
 
 
@@ -156,7 +169,7 @@ def build_deck(cases: list[Case], dest: Path) -> Path:
         slide = deck.slides.add_slide(blank)
         box = slide.shapes.add_textbox(Inches(0.6), Inches(0.4), Inches(8.8), Inches(1.0))
         para = box.text_frame.paragraphs[0]
-        para.text = case.name
+        para.text = f"{case.name} {case.extra}".strip()
         para.font.size = Pt(40)
         para.font.bold = True
         slide.shapes.add_picture(str(png), Inches(2.6), Inches(1.6), height=Inches(4.2))
