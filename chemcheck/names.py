@@ -375,7 +375,12 @@ class PubChemResolver:
 
         if key in self._cache:
             hit = self._cache[key]
-            return self._reference(name, hit, "cache") if hit else None
+            if not hit:
+                return None
+            # 옛 캐시에는 SMILES 가 없다(키·분자식만 저장하던 시절). 구조를 그리려면
+            # SMILES 가 있어야 하므로 그런 항목은 적중으로 치지 않고 표·망으로 내려간다.
+            if hit.get("smiles"):
+                return self._reference(name, hit, "cache")
 
         shipped = self.offline.get(key)
         if shipped:
