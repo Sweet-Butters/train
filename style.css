@@ -132,11 +132,37 @@ main.container { padding-bottom: var(--s-9); }
 }
 .api code { font-size: inherit; }
 
-.plans { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
-.plan { border-top: var(--hairline); padding-top: var(--s-4); }
-.plan .price { margin-top: var(--s-2); font-size: var(--fs-title); font-weight: 650; letter-spacing: -.01em; }
-.plan p, .plan li { margin-top: var(--s-2); font-size: var(--fs-caption); color: var(--ink-2); }
-.plan ul { padding-left: 1.1em; }
+/* 요금제 - 카드 셋. 강조 카드 하나만 잉크 테두리로 세운다(색은 판정 3상태에만 쓴다). */
+.plans { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); margin-top: var(--s-5); }
+.plan { position: relative; border: 1px solid var(--line); border-radius: 10px;
+        padding: var(--s-5); display: flex; flex-direction: column; }
+.plan-featured { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.plan-badge { position: absolute; top: -.62rem; left: var(--s-5); background: var(--ink); color: #fff;
+              font-size: .68rem; letter-spacing: .02em; padding: .15rem .5rem; border-radius: 999px; }
+.plan h3 { font-size: var(--fs-caption); text-transform: uppercase; letter-spacing: .08em;
+           color: var(--ink-3); margin: 0; }
+.plan .price { margin-top: var(--s-2); font-size: 1.9rem; font-weight: 680; letter-spacing: -.02em;
+               color: var(--ink); line-height: 1.1; }
+.plan .price .per { font-size: var(--fs-caption); font-weight: 400; color: var(--ink-3); }
+.plan-lead { margin-top: var(--s-2); font-size: var(--fs-body); color: var(--ink); }
+.plan ul { margin-top: var(--s-4); padding-left: 1.05em; }
+.plan li { margin-top: var(--s-2); font-size: var(--fs-caption); color: var(--ink-2); }
+.plan .soon { font-family: var(--mono); font-size: .7rem; color: var(--ink-3);
+              border: 1px solid var(--line-2); border-radius: 4px; padding: 0 .25rem; }
+.plan-why { margin-top: auto; padding-top: var(--s-4); font-size: var(--fs-caption);
+            color: var(--ink-3); border-top: var(--hairline); }
+.unit-cost { margin-top: var(--s-5); padding: var(--s-4); background: var(--bg-2);
+             border-radius: 8px; font-size: var(--fs-caption); color: var(--ink-2); }
+
+/* 어디에 쓰이나 - 시장 셋 */
+.markets { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-5); margin-top: var(--s-5); }
+.market { border-top: 2px solid var(--ink); padding-top: var(--s-4); }
+.market h3 { margin: 0; font-size: var(--fs-body); }
+.market p { margin-top: var(--s-3); font-size: var(--fs-caption); color: var(--ink-2); }
+.market .mono { font-family: var(--mono); font-size: .82em; }
+.market-why { color: var(--ink-3); }
+.market-timing { margin-top: var(--s-6); padding-top: var(--s-4); border-top: var(--hairline);
+                 font-size: var(--fs-caption); color: var(--ink-2); }
 
 .roadmap { list-style: none; padding: 0; }
 .roadmap li { display: grid; grid-template-columns: 4.5rem 1fr; gap: var(--s-3); padding: var(--s-3) 0; border-top: var(--hairline); font-size: var(--fs-caption); }
@@ -224,7 +250,8 @@ main.container { padding-bottom: var(--s-9); }
   .hero { padding-top: var(--s-8); }
   .story-grid { grid-template-columns: 16rem minmax(0, 1fr); align-items: start; }
   .steps { grid-template-columns: repeat(3, 1fr); }
-  .plans { grid-template-columns: repeat(2, 1fr); }
+  .plans { grid-template-columns: repeat(3, 1fr); }
+  .markets { grid-template-columns: repeat(3, 1fr); }
   .canon { grid-template-columns: 15rem minmax(0, 1fr); align-items: start; }
   .evidence .row { grid-template-columns: 9rem minmax(0, 1fr); }
   .facts { grid-template-columns: 5.5rem 1fr; }

@@ -30,7 +30,6 @@
           <a href="https://github.com/Sweet-Butters/train/tree/main/bench/aiimages">bench/aiimages</a> 에 그대로 있습니다.</p>
       </div>
     </div>
-    </div>
 
     <div class="cta-row">
       <a class="btn btn-primary" href="try.html">직접 해보기 →</a>
@@ -117,22 +116,79 @@ Content-Type: multipart/form-data
 
   <section class="section">
     <h2>요금제</h2>
+    <p class="sub2">베타 기간입니다. 아래는 <strong>실측된 원가</strong> 위에 세운 계획이고, 지금은 결제를 받지 않습니다.</p>
     <div class="plans">
+
       <div class="plan">
-        <h3>웹 데모</h3>
-        <p class="price">무료</p>
-        <p>심사 기간 데모입니다. 이름·SMILES 대조는 언제나 무료고, 이미지 대조는 서버가 떠 있는 동안 무료입니다.</p>
-      </div>
-      <div class="plan">
-        <h3>로컬 CLI</h3>
-        <p class="price">무료 · 오픈소스</p>
+        <h3>Free</h3>
+        <p class="price">&#8361;0</p>
+        <p class="plan-lead">하루 10 건. 교육 · 개인.</p>
         <ul>
-          <li>인식기 둘(합의 판정)을 그대로 씁니다</li>
-          <li>3GB 급 모델이 필요합니다</li>
-          <li>그림까지 가장 확실하게 검사하는 경로입니다</li>
+          <li>이름 &middot; SMILES 대조 (브라우저에서 완결)</li>
+          <li>이미지 대조 하루 10 건</li>
+          <li>정본 구조 내려받기 (PNG &middot; SVG &middot; SMILES &middot; InChIKey)</li>
         </ul>
+        <p class="plan-why">쐐기입니다 &mdash; 강의자료를 만드는 사람이 먼저 씁니다.</p>
+      </div>
+
+      <div class="plan plan-featured">
+        <span class="plan-badge">가장 많이 쓰는</span>
+        <h3>Pro</h3>
+        <p class="price">$29 <span class="per">/ 월</span></p>
+        <p class="plan-lead">월 2,000 건. 배치 업로드.</p>
+        <ul>
+          <li>Free 의 전부</li>
+          <li>여러 장 한 번에 &middot; 결과 CSV 내려받기</li>
+          <li>PDF &middot; PPTX 통째 검사 <span class="soon">예정</span></li>
+        </ul>
+        <p class="plan-why">강의자료 &middot; 논문 &middot; 포스터를 정기적으로 만드는 개인과 연구실.</p>
+      </div>
+
+      <div class="plan">
+        <h3>Enterprise</h3>
+        <p class="price">건당 과금</p>
+        <p class="plan-lead">전용 엔드포인트 &middot; SLA &middot; 온프레미스.</p>
+        <ul>
+          <li>전용 엔드포인트와 처리량 보장</li>
+          <li>온프레미스 배포 (자료가 밖으로 나가지 않습니다)</li>
+          <li>감사 로그 &middot; 판정 근거 보존</li>
+        </ul>
+        <p class="plan-why">화학을 다루는 LLM 제품에 넣는 출력 가드레일. <strong>여기가 본 시장입니다.</strong></p>
+      </div>
+
+    </div>
+
+    <p class="unit-cost"><strong>단위 원가 판정 1 건당 약 $0.002</strong>
+      &mdash; Cloud Run 실측(CPU 2 코어, 따뜻할 때 2~5 초). 추론 모델을 부르지 않으므로
+      <strong>토큰 비용이 없고</strong>, 원가가 트래픽에 선형입니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>어디에 쓰이나</h2>
+    <p class="sub2">공통점 하나입니다 &mdash; <strong>남이 만든 그림을 받는 쪽</strong>. 자기가 그릴 수 있으면 검사가 필요 없습니다.</p>
+    <div class="markets">
+      <div class="market">
+        <h3>학술 출판 &middot; 피어 리뷰</h3>
+        <p>캡션에는 <span class="mono">4a (Aspirin)</span> 이라 적고 그림에는 메틸기가 빠진 구조를 그리는 일이 흔합니다.
+          리뷰어가 수십 개를 눈으로 대조하는 것은 고통이고, 놓치면 그대로 실립니다.</p>
+        <p class="market-why">투고 전 &lsquo;맞춤법 검사&rsquo;. 표절 검사가 그렇게 들어갔습니다.</p>
+      </div>
+      <div class="market">
+        <h3>특허 &middot; 지식재산</h3>
+        <p>청구항의 긴 IUPAC 이름과 도면의 구조식이 어긋나면 치명적인 결함이 됩니다.
+          변리사와 심사관은 둘이 일치한다는 것을 확신해야 합니다.</p>
+        <p class="market-why">InChIKey 문자열 비교라 &ldquo;확신했다&rdquo; 는 말에 근거가 남습니다.</p>
+      </div>
+      <div class="market">
+        <h3>제약 데이터 정제</h3>
+        <p>전자연구노트(ELN)와 레거시 DB 에는 손으로 친 이름과 캡처한 구조 그림이 뒤섞여 있고,
+          그중 상당수가 서로 맞지 않습니다.</p>
+        <p class="market-why">불일치만 솎아내는 자동화. 사람이 볼 것을 줄여 줍니다.</p>
       </div>
     </div>
+    <p class="market-timing"><strong>왜 지금인가.</strong> 예전에는 그림을 사람이 그렸고 오류가 드물어 검증 도구를 각 잡고 만들 시장이 아니었습니다.
+      지금은 생성형 AI 가 구조를 쏟아내고, <strong>사람보다 훨씬 자주 그리고 훨씬 당당하게</strong> 틀린 그림과 이름을 짝지어 놓습니다.
+      위 헤드라인의 6/10 이 그 증거입니다.</p>
   </section>
 
   <section class="section">
