@@ -425,8 +425,97 @@ def test_resolver_reports_the_spelling_it_actually_found() -> None:
     print("통과: 실제로 해석된 표기를 이름으로 돌려준다.")
 
 
+ASPIRIN = "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+
+
+def test_reverse_lookup_names_a_key() -> None:
+    """InChIKey -> PubChem 이 붙인 IUPAC 명·대표명, 한글 표에 있으면 한글까지.
+
+    recognize 는 SMILES/InChIKey 까지만 낸다. 사람은 '아스피린' 을 읽고 싶다.
+    """
+    calls: list[str] = []
+    payload = {"PropertyTable": {"Properties": [
+        {"CID": 2244, "IUPACName": "2-acetyloxybenzoic acid", "Title": "Aspirin"}
+    ]}}
+
+    def fake(url, **kwargs):
+        calls.append(url)
+        assert "/compound/inchikey/" in url, url
+        return FakeResponse(200, payload) if ASPIRIN in url else FakeResponse(404)
+
+    resolver = PubChemResolver(cache_path=_scratch_cache(), min_interval=0.0, offline={})
+    real_get = names.requests.get
+    names.requests.get = fake
+    try:
+        got = resolver.names_for(ASPIRIN)
+        again = resolver.names_for(ASPIRIN.lower())          # 캐시. 대소문자는 정규화
+        nothing = resolver.names_for("AAAAAAAAAAAAAA-UHFFFAOYSA-N")
+        nothing_again = resolver.names_for("AAAAAAAAAAAAAA-UHFFFAOYSA-N")  # 404 도 캐시
+        garbage = resolver.names_for("not-a-key")
+    finally:
+        names.requests.get = real_get
+
+    assert got is not None
+    assert (got.iupac, got.common, got.korean, got.source) == (
+        "2-acetyloxybenzoic acid", "Aspirin", "아스피린", "pubchem")
+    assert again is not None and again.source == "cache" and again.common == "Aspirin"
+    assert nothing is None and nothing_again is None and garbage is None
+    assert len(calls) == 2, f"요청 {len(calls)}회 (아스피린 1 + 없는 키 1 이어야 한다): {calls}"
+    print(f"  {ASPIRIN} -> iupac={got.iupac!r} common={got.common!r} korean={got.korean!r}")
+    print("통과: 키에서 이름으로 돌아온다. 없는 키는 None, 요청은 키당 한 번.")
+
+
+def test_reverse_lookup_works_offline() -> None:
+    """망 없이도 동봉한 표에 있는 구조는 이름이 붙는다. 표는 이름->키 방향이라 뒤집어 쓴다."""
+    import requests as real_requests
+
+    def dead(url, **kwargs):
+        raise real_requests.RequestException("망 없음")
+
+    resolver = PubChemResolver(cache_path=_scratch_cache())
+    real_get = names.requests.get
+    names.requests.get = dead
+    try:
+        got = resolver.names_for(ASPIRIN)
+        unknown = resolver.names_for("AAAAAAAAAAAAAA-UHFFFAOYSA-N")
+    finally:
+        names.requests.get = real_get
+
+    assert got is not None and got.source == "offline", got
+    assert got.common, "대표명이 비었다"
+    assert got.korean == "아스피린"
+    assert unknown is None, "표에 없는 키를 망 없이 지어냈다"
+    print(f"  망 차단 상태에서 {ASPIRIN} -> common={got.common!r} korean={got.korean!r} ({got.source})")
+    print("통과: 망 없이도 흔한 구조에는 이름이 붙는다.")
+
+
+def test_reverse_lookup_does_not_borrow_a_stereoisomer_name() -> None:
+    """골격은 같고 입체 블록만 다른 키에 다른 이성질체의 이름을 빌려주지 않는다.
+
+    'L-alanine' 그림을 인식했는데 'D-alanine' 이라고 말하면 틀린 도구다.
+    정확히 같은 키만 PubChem 에 묻고, 없으면 None 이다.
+    """
+    twisted = ASPIRIN[:15] + "ABCDEFGHIJ" + ASPIRIN[25:]   # 골격 같음, 입체 블록 다름
+
+    def fake(url, **kwargs):
+        return FakeResponse(404)
+
+    resolver = PubChemResolver(cache_path=_scratch_cache(), min_interval=0.0)
+    real_get = names.requests.get
+    names.requests.get = fake
+    try:
+        assert resolver.names_for(twisted) is None
+    finally:
+        names.requests.get = real_get
+    print(f"  {twisted} (아스피린 골격, 다른 입체 블록) -> None")
+    print("통과: 같은 골격의 다른 이성질체 이름을 빌려 오지 않는다.")
+
+
 if __name__ == "__main__":
     for test in [
+        test_reverse_lookup_names_a_key,
+        test_reverse_lookup_works_offline,
+        test_reverse_lookup_does_not_borrow_a_stereoisomer_name,
         test_lecture_compounds_resolve_offline,
         test_whole_query_words_stay_out_of_slide_text,
         test_korean_spelling_variants,

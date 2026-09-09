@@ -78,6 +78,8 @@ def fetch(session: requests.Session, name: str) -> dict | None:
                 "inchikey": props["InChIKey"],
                 "formula": props.get("MolecularFormula", ""),
                 "smiles": props.get("SMILES") or props.get("ConnectivitySMILES") or "",
+                "iupac": props.get("IUPACName", ""),
+                "title": props.get("Title", ""),
                 "cid": props.get("CID"),
             }
         time.sleep(min(0.5 * 2**attempt, 8.0))
@@ -156,7 +158,7 @@ def main() -> int:
     OUT.write_text(
         json.dumps(
             {
-                "source": "PubChem PUG REST /compound/name/{}/property/InChIKey,MolecularFormula",
+                "source": "PubChem PUG REST /compound/name/{}/property/InChIKey,MolecularFormula,SMILES,IUPACName,Title",
                 "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 "note": "PubChem 응답을 그대로 받아 적은 것. 여기서 구조를 추론하지 않는다.",
                 "count": len(entries),

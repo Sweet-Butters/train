@@ -20,7 +20,10 @@ import requests
 
 from .keys import principal_smiles, smiles_to_inchikey
 
-PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/property/InChIKey,MolecularFormula,SMILES/JSON"
+PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/property/InChIKey,MolecularFormula,SMILES,IUPACName,Title/JSON"
+# 역방향. InChIKey 로 PubChem 이 그 구조에 붙인 IUPAC 명과 대표명(Title)을 받는다.
+PUBCHEM_KEY = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/inchikey/{}/property/IUPACName,Title/JSON"
+_INCHIKEY = re.compile(r"^[A-Z]{14}-[A-Z]{10}-[A-Z]$")
 CACHE_PATH = Path.home() / ".cache" / "chemcheck" / "pubchem.json"
 # 망이 없을 때 쓰는 표. scripts/build_offline_table.py 가 PubChem 응답으로 만든다.
 OFFLINE_PATH = Path(__file__).resolve().parent / "data" / "compounds.json"
@@ -304,6 +307,11 @@ def _ko_key(text: str) -> str:
 
 _KO_TABLE = {_ko_key(k): v for k, v in KO_ALIASES.items()}
 _KO_WHOLE_TABLE = {_ko_key(k): v for k, v in KO_WHOLE_ONLY.items()}
+# 영문 -> 한글 (역방향 조회용). 한 영문 이름에 한글 표기가 여럿이면 표에 먼저 적힌
+# 것(옛 표기, 예: '메탄')을 쓴다. 표 순서가 곧 선택이다.
+_KO_REVERSE: dict[str, str] = {}
+for _ko, _en in {**KO_ALIASES, **KO_WHOLE_ONLY}.items():
+    _KO_REVERSE.setdefault(_en.lower(), _ko)
 
 
 def korean_name(run: str, *, in_text: bool = False) -> str | None:
@@ -362,6 +370,16 @@ def candidates(text: str, max_words: int = 4) -> list[str]:
 
     ordered = sorted(best.values(), key=lambda pair: -pair[0])
     return [phrase for _, phrase in ordered]
+
+
+@dataclass(frozen=True)
+class Names:
+    """PubChem 이 한 InChIKey 에 붙인 이름들. recognize 결과에 이름을 붙일 때 쓴다."""
+    inchikey: str
+    iupac: str              # PubChem IUPACName. PubChem 에 없으면 ""
+    common: str             # PubChem 대표명(Title). 예: 'Aspirin', 'DL-alanine'
+    korean: str | None      # 이 모듈의 한글 표에 있을 때만. 없으면 None
+    source: str = "pubchem"  # pubchem | cache | offline
 
 
 @dataclass(frozen=True)
@@ -451,6 +469,7 @@ class PubChemResolver:
         self.timeout = timeout
         self.max_retries = max_retries
         self.offline = _load_offline() if offline is None else offline
+        self._offline_by_key: dict[str, list[tuple[str, dict]]] | None = None
         self._last_call = 0.0
         self._dirty = False
         self._last_save = 0.0
@@ -498,12 +517,12 @@ class PubChemResolver:
                 pass
         return min(0.5 * (2**attempt), 8.0)
 
-    def _fetch(self, key: str) -> requests.Response | None:
+    def _fetch(self, key: str, url: str = PUBCHEM) -> requests.Response | None:
         """PubChem 한 건. 일시적 오류(503 등)는 물러섰다가 다시 시도한다."""
         for attempt in range(self.max_retries + 1):
             self._throttle()
             try:
-                resp = requests.get(PUBCHEM.format(quote(key, safe="")), timeout=self.timeout)
+                resp = requests.get(url.format(quote(key, safe="")), timeout=self.timeout)
             except requests.RequestException:
                 return None  # 네트워크 실패는 캐시하지 않는다
             if resp.status_code in RETRY_STATUS and attempt < self.max_retries:
@@ -559,6 +578,8 @@ class PubChemResolver:
                 "inchikey": props["InChIKey"],
                 "formula": props.get("MolecularFormula", ""),
                 "smiles": props.get("SMILES") or props.get("ConnectivitySMILES") or "",
+                "iupac": props.get("IUPACName", ""),
+                "title": props.get("Title", ""),
             }
         except (KeyError, IndexError, ValueError):
             return None
@@ -584,3 +605,100 @@ class PubChemResolver:
                 if recomputed:
                     key = recomputed
         return Reference(name, key, record.get("formula", ""), source, smiles)
+
+    # ── 역방향: InChIKey -> 이름 ─────────────────────────────────────────
+
+    def names_for(self, inchikey: str) -> Names | None:
+        """InChIKey -> PubChem 이 그 키에 붙인 이름들. PubChem 에 없는 분자면 None.
+
+        recognize 가 낸 구조에 이름을 붙이는 용도다. 정확히 같은 키만 묻는다 -
+        골격만 같은 다른 입체이성질체의 이름을 빌려 오지 않는다. 그건 추측이다.
+        조회 순서는 캐시 -> 동봉한 표 -> 망. 한글은 이 모듈의 표(KO_ALIASES)에 있을 때만.
+        """
+        key = inchikey.strip().upper()
+        if not _INCHIKEY.match(key):
+            return None
+
+        cache_key = f"inchikey:{key}"
+        if cache_key in self._cache:
+            hit = self._cache[cache_key]
+            return self._names(key, hit, "cache") if hit else None
+
+        shipped = self._offline_names(key)
+        if shipped:
+            return self._names(key, shipped, "offline")
+
+        resp = self._fetch(key, PUBCHEM_KEY)
+        if resp is None:
+            return None
+        if resp.status_code == 404:
+            self._cache[cache_key] = None
+            self._touch()
+            return None
+        if resp.status_code != 200:
+            return None
+        try:
+            # 같은 키에 레코드가 여럿일 수 있다(호변이성체 등). 첫 것이 가장 낮은 CID 다.
+            props = resp.json()["PropertyTable"]["Properties"][0]
+            record = {"iupac": props.get("IUPACName", ""), "title": props.get("Title", "")}
+        except (KeyError, IndexError, ValueError):
+            return None
+        self._cache[cache_key] = record
+        self._touch()
+        return self._names(key, record, "pubchem")
+
+    def _offline_names(self, key: str) -> dict | None:
+        """동봉한 표에서 같은 키를 가진 항목의 이름들. 표는 이름 -> 키 방향이라 뒤집어 둔다."""
+        if self._offline_by_key is None:
+            index: dict[str, list[tuple[str, dict]]] = {}
+            for name, entry in self.offline.items():
+                index.setdefault(entry.get("inchikey", ""), []).append((name, entry))
+            self._offline_by_key = index
+        found = self._offline_by_key.get(key)
+        if not found:
+            return None
+        # PubChem 대표명·IUPAC 명이 기록된 항목이 있으면 그것을, 없으면(옛 표) 이름 중
+        # 가장 짧은 것을 대표명으로 쓴다. 어느 쪽이든 PubChem 이 이 키에 붙인 이름이다.
+        with_title = [e for _, e in found if e.get("title")]
+        if with_title:
+            entry = with_title[0]
+            return {"iupac": entry.get("iupac", ""), "title": entry["title"]}
+        shortest = min((n for n, _ in found), key=len)
+        return {"iupac": "", "title": shortest}
+
+    def _names(self, key: str, record: dict, source: str) -> Names:
+        iupac = record.get("iupac") or ""
+        common = record.get("title") or ""
+        return Names(key, iupac, common, self._korean_for(key, common, iupac), source)
+
+    def _korean_for(self, key: str, *english: str) -> str | None:
+        """한글 표에 있는 이름이면 한글. PubChem 대표명·IUPAC 명, 그리고 동봉한 표에서
+        같은 키를 가진 영문 이름 전부를 표와 대조한다."""
+        names = [e.lower() for e in english if e]
+        if self._offline_by_key is None:
+            self._offline_names(key)
+        # 표의 이름은 짧은 것부터 - 'aspirin' 이 'acetylsalicylic acid' 보다 먼저.
+        # 관용명이 계통명보다 짧은 것이 보통이고, 사람이 읽고 싶은 것도 그쪽이다.
+        names += sorted((n for n, _ in (self._offline_by_key or {}).get(key, [])),
+                        key=lambda n: (len(n), n))
+        for name in names:
+            if name in _KO_REVERSE:
+                return _KO_REVERSE[name]
+        return None
+
+
+_default_resolver: PubChemResolver | None = None
+
+
+def name_for_inchikey(inchikey: str, resolver: PubChemResolver | None = None) -> Names | None:
+    """InChIKey -> Names(iupac, common, korean). PubChem 에 없으면 None. 추측하지 않는다.
+
+    recognize 출력에 이름을 붙일 때 부른다. resolver 를 주지 않으면 모듈 공용
+    resolver 를 쓴다(캐시·레이트리밋 공유).
+    """
+    global _default_resolver
+    if resolver is None:
+        if _default_resolver is None:
+            _default_resolver = PubChemResolver()
+        resolver = _default_resolver
+    return resolver.names_for(inchikey)
