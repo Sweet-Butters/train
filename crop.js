@@ -66,13 +66,27 @@ export function mountCropper(container, { onCrop }) {
   // ---- drop zone ----
   const drop = el("div", "cropx-drop", root);
   const p1 = el("p", null, drop);
-  p1.textContent = "이미지를 붙여넣거나(Ctrl+V) 여기로 드래그하세요";
+  p1.textContent = "이미지를 붙여넣거나(Ctrl+V) 끌어오세요 - 폰이면 카메라로 바로 찍어도 됩니다";
   const fileBtn = el("button", null, drop);
   fileBtn.type = "button";
   fileBtn.textContent = "또는 파일 선택";
   const fileInput = el("input", "cropx-input-file", drop);
   fileInput.type = "file";
   fileInput.accept = "image/*";
+
+  // 카메라 - 폰에서는 뒷면 카메라가 바로 열린다(capture). 데스크탑에서는 파일 선택으로 떨어진다.
+  const camBtn = el("button", null, drop);
+  camBtn.type = "button";
+  camBtn.textContent = "카메라로 찍기";
+  const camInput = el("input", "cropx-input-file", drop);
+  camInput.type = "file";
+  camInput.accept = "image/*";
+  camInput.setAttribute("capture", "environment");
+  camBtn.addEventListener("click", () => camInput.click());
+  camInput.addEventListener("change", () => {
+    const f = camInput.files && camInput.files[0];
+    if (f) loadBlob(f);
+  });
 
   fileBtn.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", () => {
