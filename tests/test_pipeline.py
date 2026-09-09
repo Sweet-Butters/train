@@ -36,12 +36,12 @@ class OracleEngine(Engine):
 
 
 def test_detects_planted_errors() -> None:
-    deck = build()
     oracle = OracleEngine({i: smiles for i, (_, smiles, _) in enumerate(CASES, start=1)})
     expected = [Verdict.OK if correct else Verdict.ERROR for _, _, correct in CASES]
 
     with tempfile.TemporaryDirectory() as tmp:
-        results = run(deck, Path(tmp), [oracle])
+        deck = build(Path(tmp) / "deck")
+        results = run(deck, Path(tmp) / "work", [oracle])
 
     got = [finding.verdict for r in results for _, finding in r.findings]
     assert got == expected, f"기대 {expected}, 실제 {got}"
@@ -77,11 +77,11 @@ def test_self_consistency_forces_abstain() -> None:
     """인식이 흔들리면 '오류'라고 말하지 않고 보류해야 한다."""
     from chemcheck.ocsr import SelfConsistent
 
-    deck = build()
     engine = SelfConsistent(FlakyEngine())
 
     with tempfile.TemporaryDirectory() as tmp:
-        results = run(deck, Path(tmp), [engine])
+        deck = build(Path(tmp) / "deck")
+        results = run(deck, Path(tmp) / "work", [engine])
 
     verdicts = [f.verdict for r in results for _, f in r.findings]
     assert all(v is Verdict.ABSTAIN for v in verdicts), f"보류가 아님: {verdicts}"
