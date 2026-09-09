@@ -49,6 +49,35 @@ def _bake_weights() -> None:
     """
     import sys, traceback
     sys.path.insert(0, "/root")
+
+    # DECIMER 는 zenodo 에서 models.zip(285MB)을 urllib 로 한 번에 받는데, 오늘 빌드에서
+    # 두 번 다 끊겼다. 실패하면 컨테이너가 뜰 때마다 다시 받아 콜드스타트가 60초가 된다.
+    # 그래서 여기서 재시도를 붙여 직접 받아 제자리에 둔다. DECIMER 는 파일이 있으면 건너뛴다.
+    def _fetch(url: str, dest: Path, tries: int = 6) -> bool:
+        import shutil, time, urllib.request
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.exists() and dest.stat().st_size > 200_000_000:
+            print("BAKE: 가중치가 이미 있다")
+            return True
+        for i in range(1, tries + 1):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "chemcheck/1.0"})
+                with urllib.request.urlopen(req, timeout=180) as r, open(dest, "wb") as f:
+                    shutil.copyfileobj(r, f, 1024 * 1024)
+                size = dest.stat().st_size
+                if size < 200_000_000:
+                    raise IOError(f"너무 작다: {size}")
+                print(f"BAKE: 가중치 내려받음 {size/1e6:.0f}MB ({i}회차)")
+                return True
+            except Exception as exc:
+                print(f"BAKE: 내려받기 실패 {i}/{tries}: {exc}")
+                dest.unlink(missing_ok=True)
+                time.sleep(5 * i)
+        return False
+
+    _fetch("https://zenodo.org/record/8300489/files/models.zip",
+           Path(PYSTOW_HOME) / "DECIMER-V2" / "models.zip")
+
     try:
         from PIL import Image, ImageDraw
         from chemcheck.ocsr import DecimerEngine
@@ -156,7 +185,7 @@ class Api:
     def web(self):
         import sys, time
         sys.path.insert(0, "/root")
-        from fastapi import FastAPI, Request
+        from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
         from fastapi.responses import JSONResponse
 
@@ -173,11 +202,13 @@ class Api:
 
         @api.get("/api/health")
         def health():
-            return {"ok": True, "engine": "decimer", "build": "form-direct-2", "ready": bool(self.ready),
+            return {"ok": True, "engine": "decimer", "build": "baked-weights-4", "ready": bool(self.ready),
                     "error": self.engine_error}
 
-        @api.post("/api/check")
-        async def check(request: Request):
+        # FastAPI 의 의존성 주입을 쓰지 않는다. 이 라우트가 메서드 안에서 정의되므로
+        # pydantic 이 어노테이션(UploadFile, Request)을 모듈 전역에서 찾다가 실패한다.
+        # starlette 라우트로 직접 붙이면 어노테이션 해석이 아예 일어나지 않는다.
+        async def check(request):
             # 타입 힌트로 UploadFile/Form 을 받지 않는다. 이 라우트가 메서드 안에서
             # 정의되기 때문에 pydantic 이 어노테이션을 모듈 전역에서 찾다가 실패한다
             # (PydanticUserError: UploadFile is not fully defined). 폼을 직접 읽으면
@@ -209,4 +240,5 @@ class Api:
             result["elapsed_ms"] = int((time.monotonic() - started) * 1000)
             return JSONResponse(result)
 
+        api.add_route("/api/check", check, methods=["POST"])
         return api
