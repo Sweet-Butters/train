@@ -651,6 +651,47 @@ $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (w
 
 setupImageInput();
 
+// ============================================================ 예제
+// web/evidence/crops 의 실제 AI 생성 그림을 사용자가 올린 것과 **같은 경로**로 통과시킨다.
+// 미리 채우는 것은 입력(그림·이름)뿐이고, 판정은 서버가 그때 낸다 - 결과를 심어두지 않는다.
+const EXAMPLES = [
+  { file: "caffeine_gemini_crop.png", name: "Caffeine",  label: "Gemini 카페인" },
+  { file: "caffeine_gpt_crop.png",    name: "Caffeine",  label: "GPT 카페인" },
+  { file: "alanine_gemini_crop.png",  name: "L-alanine", label: "Gemini 알라닌" },
+  { file: "alanine_gpt_crop.png",     name: "L-alanine", label: "GPT 알라닌" },
+];
+
+async function runExample(ex) {
+  const btns = document.querySelectorAll("#examples button");
+  btns.forEach((b) => { b.disabled = true; });
+  try {
+    const res = await fetch("evidence/crops/" + ex.file);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    $("nameInput").value = ex.name;   // OCR 이 못 읽어도 이름은 있다
+    await evaluate();
+    await handleImage(blob);
+  } catch (e) {
+    imageNote("예제를 불러오지 못했다: " + (e && e.message ? e.message : e));
+  } finally {
+    btns.forEach((b) => { b.disabled = false; });
+  }
+}
+
+(function setupExamples() {
+  const box = $("examples");
+  if (!box) return;
+  for (const ex of EXAMPLES) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = ex.label;
+    b.style.cssText = "margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;font-size:.85rem;cursor:pointer";
+    b.addEventListener("click", () => runExample(ex));
+    box.appendChild(b);
+  }
+})();
+
+
 // 서버 예열. 사용자가 이미지를 고르고 이름을 치는 동안 컨테이너가 뜬다.
 // 실패해도 아무 일 없다 - 임계 경로가 아니다.
 fetch(HEALTH_URL).then((r) => { if (r.ok) serverWarm = true; }).catch(() => {});
