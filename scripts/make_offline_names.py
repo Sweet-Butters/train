@@ -50,6 +50,7 @@ def build() -> dict[str, dict[str, str]]:
         table[name] = {
             "inchikey": inchi.MolToInchiKey(mol),
             "formula": CalcMolFormula(mol),
+            "inchi": inchi.MolToInchi(mol),
         }
     return table
 

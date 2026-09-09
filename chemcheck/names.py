@@ -13,7 +13,10 @@ from urllib.parse import quote
 
 import requests
 
-PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/property/InChIKey,MolecularFormula/JSON"
+PUBCHEM = (
+    "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}"
+    "/property/InChIKey,MolecularFormula,InChI/JSON"
+)
 CACHE_PATH = Path.home() / ".cache" / "chemcheck" / "pubchem.json"
 
 # PubChem에 못 닿을 때만 쓰는 최소 대체표. scripts/make_offline_names.py 가 만든다.
@@ -35,6 +38,9 @@ class Reference:
     name: str
     inchikey: str
     formula: str
+    # 이름이 가리키는 구조 자체. InChIKey는 해시라 되돌릴 수 없어 그림을 그릴 수 없다.
+    # 받지 못하면 빈 문자열로 두고, 그때는 참조 구조를 그리지 않는다.
+    inchi: str = ""
 
 
 class PubChemResolver:
@@ -64,7 +70,7 @@ class PubChemResolver:
         hit = self._fallback.get(key)
         if hit is None:
             return None
-        return Reference(name, hit["inchikey"], hit.get("formula", ""))
+        return Reference(name, hit["inchikey"], hit.get("formula", ""), hit.get("inchi", ""))
 
     def _save(self) -> None:
         try:
@@ -81,7 +87,9 @@ class PubChemResolver:
             return None
         if key in self._cache:
             hit = self._cache[key]
-            return Reference(name, hit["inchikey"], hit["formula"]) if hit else None
+            if not hit:
+                return None
+            return Reference(name, hit["inchikey"], hit["formula"], hit.get("inchi", ""))
 
         if self._offline:
             return self._from_fallback(name, key)
@@ -107,13 +115,17 @@ class PubChemResolver:
 
         try:
             props = resp.json()["PropertyTable"]["Properties"][0]
-            record = {"inchikey": props["InChIKey"], "formula": props.get("MolecularFormula", "")}
+            record = {
+                "inchikey": props["InChIKey"],
+                "formula": props.get("MolecularFormula", ""),
+                "inchi": props.get("InChI", ""),
+            }
         except (KeyError, IndexError, ValueError):
             return None
 
         self._cache[key] = record
         self._save()
-        return Reference(name, record["inchikey"], record["formula"])
+        return Reference(name, record["inchikey"], record["formula"], record["inchi"])
 
 
 def candidates(text: str, max_words: int = 4) -> list[str]:
