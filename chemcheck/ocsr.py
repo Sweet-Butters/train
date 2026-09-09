@@ -269,9 +269,19 @@ def load_engines(molscribe_checkpoint: Path | None = None) -> list[Engine]:
             LAST_DIAGNOSTICS.append(f"molscribe: {bridged.unavailable_reason}")
 
     decimer = DecimerEngine()
-    # DECIMER는 신뢰도를 주지 않으므로 자체 일관성 검사로 감싼다.
-    engines.append(SelfConsistent(decimer) if decimer.available() else decimer)
-    if decimer.unavailable_reason:
+    if decimer.available():
+        # DECIMER는 신뢰도를 주지 않는다. 그래서 혼자일 때는 크기를 바꿔가며
+        # 스스로 합의하는지 보는 것 외에 오인식을 걸러낼 방법이 없다.
+        #
+        # 다른 인식기가 있으면 이야기가 다르다. 합의 게이트가 이미 불일치를
+        # 보류로 잡고, MolScribe 는 신뢰도 점수까지 준다. 그때도 자체 일관성
+        # 검사를 돌리면 추론을 3배로 늘리면서 얻는 것은 적다.
+        #
+        # 공짜는 아니다. 두 인식기가 같은 방향으로 함께 틀리면 합의로는 못 잡고
+        # 자체 일관성 검사라면 흔들림으로 잡았을 수도 있다. 다만 안정적으로
+        # 틀리는 오인식은 크기를 바꿔도 흔들리지 않으므로 그 경우는 어차피 놓친다.
+        engines.append(decimer if engines else SelfConsistent(decimer))
+    elif decimer.unavailable_reason:
         LAST_DIAGNOSTICS.append(f"decimer: {decimer.unavailable_reason}")
 
     return [e for e in engines if e.available()]

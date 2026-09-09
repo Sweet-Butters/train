@@ -180,6 +180,35 @@ def test_subprocess_bridge_speaks_the_protocol() -> None:
     print("통과: 인식기를 옆 환경에서 돌려도 프로토콜이 지켜진다.")
 
 
+def test_self_consistency_only_when_decimer_is_alone() -> None:
+    """자체 일관성 검사는 DECIMER 가 혼자일 때만 켠다.
+
+    추론을 3배로 늘리는 장치다. 다른 인식기가 있으면 합의 게이트가 이미
+    불일치를 보류로 잡으므로 그 값을 치를 이유가 없다.
+    """
+    from unittest.mock import patch
+
+    from chemcheck import ocsr
+
+    with patch.object(ocsr.DecimerEngine, "available", lambda self: True):
+        with patch.object(ocsr.MolScribeEngine, "available", lambda self: False), \
+             patch.object(ocsr.SubprocessEngine, "available", lambda self: False):
+            alone = ocsr.load_engines(None)
+
+        with patch.object(ocsr.MolScribeEngine, "available", lambda self: True):
+            paired = ocsr.load_engines(None)
+
+    assert len(alone) == 1 and isinstance(alone[0], ocsr.SelfConsistent), \
+        f"혼자인데 자체 일관성 검사가 없다: {[e.name for e in alone]}"
+    assert len(paired) == 2, f"인식기가 둘이 아니다: {[e.name for e in paired]}"
+    assert not any(isinstance(e, ocsr.SelfConsistent) for e in paired), \
+        f"둘인데도 3배로 돌린다: {[e.name for e in paired]}"
+
+    print(f"  혼자 -> {[e.name for e in alone]}")
+    print(f"  둘   -> {[e.name for e in paired]}")
+    print("통과: 3배 비용은 그것 말고 방법이 없을 때만 치른다.")
+
+
 if __name__ == "__main__":
     test_detects_planted_errors()
     print()
@@ -188,3 +217,5 @@ if __name__ == "__main__":
     test_broken_engine_does_not_crash()
     print()
     test_subprocess_bridge_speaks_the_protocol()
+    print()
+    test_self_consistency_only_when_decimer_is_alone()
