@@ -158,16 +158,23 @@ async function onText(raw) {
   state.text = raw.trim(); state.forceName = false;
   await resolveAndRender();
 }
+// PubChem 조회가 섞이면 늦게 온 옛 응답이 새 결과를 덮어쓴다 - 순번으로 막는다.
+let resolveSeq = 0;
 async function resolveAndRender() {
+  const seq = ++resolveSeq;
   hideSuggestions(); clearErr();
   if (!state.text) { state.mol = null; state.molFrom = null; render(); }
   else if (!RDKit) { status("구조 엔진을 불러오는 중…"); return; }
   else {
     try {
       const r = await resolveText(state.text, state.forceName);
+      if (seq !== resolveSeq) return; // 그 사이 입력이 바뀌었다
       if (!r) { state.mol = null; state.molFrom = null; render(); showSuggestions(state.text); fail(`"${state.text}" 을(를) 찾지 못했습니다.`); }
       else { state.mol = r.mol; state.molFrom = r.from; render(); }
-    } catch (e) { state.mol = null; render(); fail("조회에 실패했습니다: " + (e && e.message ? e.message : e)); }
+    } catch (e) {
+      if (seq !== resolveSeq) return;
+      state.mol = null; render(); fail("조회에 실패했습니다: " + (e && e.message ? e.message : e));
+    }
   }
   // 이미지가 있고 보낼 이름이 바뀌었으면 대조를 다시 돈다
   if (state.image && !state.pending && nameForServer() !== state.checkedName) checkServer();
@@ -180,12 +187,13 @@ $("queryInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { cl
 
 // ============================================================ 이미지 입력 - crop.js 가 있으면 그것이 드롭 영역을 맡는다
 let usingCropper = false;
+let cropper = null; // crop.js 가 돌려주는 { recrop, reset }
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
     const mod = await import("./crop.js");
     if (mod && typeof mod.mountCropper === "function") {
-      mod.mountCropper(dropzone, { onCrop: (blob) => handleImage(blob, "cropper") });
+      cropper = mod.mountCropper(dropzone, { onCrop: (blob) => handleImage(blob, "cropper") }) || null;
       dropzone.classList.add("has-cropper");
       usingCropper = true;
       return;
@@ -210,27 +218,29 @@ $("cameraInput").addEventListener("change", () => {
   if (f && !feedCropper(f)) handleImage(f, "camera");
   $("cameraInput").value = "";
 });
-// crop.js 의 드롭 영역에 파일을 떨어뜨린 것처럼 넘긴다(계약 밖 API 를 부르지 않는다).
-function feedCropper(file) {
-  const drop = $("dropzone").querySelector(".cropx-drop");
-  if (!usingCropper || !drop) return false;
+// crop.js 의 파일 입력에 넣어 정상 경로로 태운다(계약 밖 내부 함수를 부르지 않는다).
+// 이걸로 예제 버튼도 원본을 드롭 영역에 그대로 띄운다 - 무엇을 보고 판정했는지 보여야 한다.
+// crop.js 의 크롭 캔버스는 폭이 800px 고정이라 좁은 화면을 밀어낸다(C 소유 파일이라 손대지 않는다).
+// 그래서 폰에서는 크롭 UI 대신 큰 미리보기로 원본을 보여준다.
+function canFeedCropper() { return usingCropper && window.innerWidth >= 640; }
+function feedCropper(file, scroll) {
+  const input = $("dropzone").querySelector(".cropx-input-file");
+  if (!canFeedCropper() || !input) return false;
   try {
     const dt = new DataTransfer();
     dt.items.add(file instanceof File ? file : new File([file], "image.png", { type: file.type || "image/png" }));
-    drop.dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
-    $("dropzone").scrollIntoView({ behavior: "smooth", block: "center" });
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    if (scroll) $("dropzone").scrollIntoView({ behavior: "smooth", block: "nearest" });
     return true;
   } catch (e) { return false; }
 }
 // 못 읽었을 때: 판정하지 않고 크롭 UI 를 띄운다
 function openCropper() {
-  if (!state.image) return false;
-  if (state.imageVia === "cropper") {
-    const recrop = $("dropzone").querySelector(".cropx-preview button");
-    if (recrop) { recrop.click(); $("dropzone").scrollIntoView({ behavior: "smooth", block: "center" }); return true; }
-  }
-  return feedCropper(state.image);
+  if (cropper && typeof cropper.recrop === "function" && cropper.recrop()) return true;
+  return state.image ? feedCropper(state.image, true) : false;
 }
+function canRecrop() { return usingCropper && (state.imageVia === "cropper" || canFeedCropper()); }
 
 function showPreview(blob) { $("imagePreviewImg").src = URL.createObjectURL(blob); $("imagePreview").hidden = false; }
 function hidePreview() { $("imagePreview").hidden = true; }
@@ -421,7 +431,7 @@ function unreadableBlock(json) {
   }
   label.append(el("span", "dot unreadable"), "그림에서 구조를 읽지 못했습니다"); box.appendChild(label);
   const row = el("div", "action-row");
-  if (usingCropper) { const b = el("button", "btn btn-sm", "구조 부분만 잘라서 다시 시도"); b.type = "button"; b.addEventListener("click", openCropper); row.appendChild(b); }
+  if (canRecrop()) { const b = el("button", "btn btn-sm", "구조 부분만 잘라서 다시 시도"); b.type = "button"; b.addEventListener("click", openCropper); row.appendChild(b); }
   else row.appendChild(el("span", "verdict-note", "구조 부분만 잘라서 다시 넣어 보세요."));
   box.appendChild(row);
   return box;
@@ -503,7 +513,9 @@ async function runExample(it) {
   let blob;
   try { const res = await fetch(it.path); if (!res.ok) throw new Error(res.status); blob = await res.blob(); }
   catch (e) { imageNote("예시 이미지를 불러오지 못했습니다. 이미지를 직접 붙여넣으세요."); return; }
-  await handleImage(blob, "example");
+  // 드롭 영역에 원본을 띄운다 - 검사한 그림을 눈으로 보고, 필요하면 거기서 다시 자를 수 있다.
+  const inCropper = feedCropper(new File([blob], it.key + ".png", { type: blob.type || "image/png" }));
+  await handleImage(blob, inCropper ? "cropper" : "example");
 }
 
 // ============================================================ 요금제 - 눌린다. 월/연 토글, 선택 카드, 요약 한 줄.
