@@ -52,7 +52,7 @@ function clamp(v, lo, hi) {
  * container: HTMLElement
  * onCrop(blob, meta) — meta = { full: Blob }
  */
-export function mountCropper(container, { onCrop, onLoad }) {
+export function mountCropper(container, { onCrop, onLoad, onHint }) {
   injectStyle();
   container.innerHTML = "";
   const root = el("div", "cropx", container);
@@ -176,7 +176,7 @@ export function mountCropper(container, { onCrop, onLoad }) {
   const newBtn = el("button", "cropx-ghost", row);
   newBtn.type = "button";
   newBtn.textContent = "다른 이미지";
-  el("span", "cropx-hint", row).textContent = "모서리를 끌어 크기 조절, 안쪽을 끌어 이동해 직접 잡을 수도 있습니다";
+  el("span", "cropx-hint", row).textContent = "구조만 남기고 크게 잘라 주세요 - 글자·3D 그림·여백이 많으면 인식이 어렵습니다";
 
   // ---- preview area, shown after a crop is confirmed ----
   const preview = el("div", "cropx-preview", root);
@@ -233,6 +233,13 @@ export function mountCropper(container, { onCrop, onLoad }) {
   }
 
   function finish(blob) {
+    // 화면 대비 선택 영역이 거의 전부면, 구조가 프레임에서 작을 가능성이 크다.
+    try {
+      const cover = (rect.w * rect.h) / (dispW * dispH || 1);
+      if (cover > 0.85 && typeof onHint === "function") {
+        onHint("사진 전체를 보냈습니다. 구조가 화면에서 작으면 인식이 어렵습니다 - 구조만 크게 잘라 다시 시도해 보세요.");
+      }
+    } catch (e) { /* 힌트일 뿐 */ }
     onCrop(blob, { full: fullBlob });
     const url = URL.createObjectURL(blob);
     previewImg.onload = () => URL.revokeObjectURL(url);
@@ -289,9 +296,22 @@ export function mountCropper(container, { onCrop, onLoad }) {
     ctx.clearRect(0, 0, dispW, dispH);
     ctx.drawImage(img, 0, 0, dispW, dispH);
 
-    // 기본 제안 영역: 전체. 텍스트(제목/화학식/SMILES)가 슬라이드 어디에나 있을 수 있어
-    // 가운데로 좁혀 두면 오히려 놓친다 - 필요하면 위 빠른 선택이나 직접 드래그로 좁힌다.
-    rect = { x: 0, y: 0, w: dispW, h: dispH };
+    // 기본 제안 영역: 가운데 60%.
+    //
+    // 실측(2026-09-10) - 같은 구조를 프레임에서 차지하는 비율만 바꿔 재봤다:
+    //     85% -> 두 인식기 모두 정확
+    //     50% -> MolScribe 가 13 조각으로 깨짐([C-]#[C-] 반복)
+    //     30% -> MolScribe 3 조각
+    //     18% -> MolScribe '*' 7 개 + 5 조각, DECIMER 도 틀림
+    // 흐림·기울기·조명·잡음·JPEG·주변 글자는 7/7 로 전부 통과했다. 인식을 깨는
+    // 것은 화질이 아니라 **구조가 화면에서 작다는 것** 이었다.
+    //
+    // 전체를 기본값으로 두면 드래그하지 않고 확인만 눌러도 사진이 통째로 간다 -
+    // 페이지나 화면을 찍으면 구조는 10~20% 뿐이고 그게 위 표의 맨 아랫줄이다.
+    // 텍스트는 OCR 의 몫인데 OCR 은 이제 제안까지만 하므로, 자르기는 인식기를
+    // 위해 구조 쪽으로 좁혀 두는 것이 맞다.
+    const cw = Math.round(dispW * 0.6), ch = Math.round(dispH * 0.6);
+    rect = { x: Math.round((dispW - cw) / 2), y: Math.round((dispH - ch) / 2), w: cw, h: ch };
     drawRect();
   }
 
