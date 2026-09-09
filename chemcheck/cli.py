@@ -191,6 +191,7 @@ STATUS_MARK = {
     "single": "[확신없음]",
     "no_result": "[결과없음]",
     "no_engine": "[인식기없음]",
+    "unreadable": "[읽기실패]",
 }
 
 
@@ -215,6 +216,10 @@ def _load_engines_or_explain(checkpoint: Path) -> list:
 def recognition_lines(rec) -> list[str]:
     """recognize 결과 한 건을 사람에게 보여준다. 엔진별 원문·정규화·키·신뢰도, 그 다음 결론."""
     out = [f"── {rec.image.name}"]
+    for note in rec.notes:
+        out.append(f"   입력  {note}")
+    for warning in rec.warnings:
+        out.append(f"   경고  {warning}")
     for r in rec.results:
         out.append(f"   {r.engine}")
         out.append(f"      원 SMILES  {r.raw_smiles}")
@@ -270,7 +275,7 @@ def recognize_main(argv: list[str]) -> int:
             print(line)
         print()
         worst = max(worst, {"agreed": 0, "uncertain": 1, "single": 1,
-                            "no_result": 1, "no_engine": 3}[rec.status])
+                            "no_result": 1, "unreadable": 2, "no_engine": 3}[rec.status])
     return worst
 
 

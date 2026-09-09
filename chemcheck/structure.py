@@ -13,11 +13,13 @@ LLM 은 구조 그림을 못 읽고, 못 그리고, 이상한 SMILES 를 준다.
 from __future__ import annotations
 
 import math
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from rdkit import Chem
 
+from .inputs import UnreadableImage, prepare_image
 from .keys import skeleton, smiles_to_inchikey
 from .names import PubChemResolver, Reference, korean_name
 from .ocsr import Engine, Prediction
@@ -66,10 +68,13 @@ class Candidate:
 @dataclass
 class Recognition:
     image: Path
-    status: str                          # agreed | uncertain | single | no_result | no_engine
+    status: str          # agreed | uncertain | single | no_result | no_engine | unreadable
     reason: str
     results: list[EngineResult] = field(default_factory=list)
     candidates: list[Candidate] = field(default_factory=list)
+    prepared: Path | None = None          # 인식기에 실제로 넘긴 그림 (inputs.prepare_image)
+    notes: list[str] = field(default_factory=list)      # 입력을 어떻게 다듬었는가
+    warnings: list[str] = field(default_factory=list)   # 다듬지 못해 품질이 의심되는 것
 
     @property
     def answer(self) -> Candidate | None:
@@ -121,16 +126,28 @@ def _group(results: list[EngineResult]) -> list[Candidate]:
     )
 
 
-def recognize(image: Path, engines: list[Engine], out_dir: Path | None = None) -> Recognition:
-    """그림 하나를 인식기 전부에 먹이고 합의를 본다. 그림은 out_dir 에 남긴다."""
+def recognize(image: Path, engines: list[Engine], out_dir: Path | None = None,
+              work_dir: Path | None = None) -> Recognition:
+    """그림 하나를 다듬어(inputs.prepare_image) 인식기 전부에 먹이고 합의를 본다.
+
+    다시 그린 그림은 out_dir 에, 다듬은 입력은 work_dir 에 남긴다 (기본: out_dir/prepared).
+    """
     image = Path(image)
     if not engines:
         return Recognition(image, "no_engine", "인식기 없음 - 설치된 구조 인식기(OCSR)가 없습니다")
 
+    # 입력 정규화는 B 의 inputs.py 몫이다. 여기서는 부르고 결과만 싣는다.
+    if work_dir is None:
+        work_dir = (Path(out_dir) / "prepared") if out_dir is not None else Path(tempfile.mkdtemp(prefix="chemcheck-"))
+    try:
+        prep = prepare_image(image, Path(work_dir))
+    except (UnreadableImage, FileNotFoundError, OSError) as exc:
+        return Recognition(image, "unreadable", f"그림을 읽을 수 없음 - {exc}")
+
     results: list[EngineResult] = []
     for engine in engines:
         try:
-            preds = engine.recognize_all(image)
+            preds = engine.recognize_all(prep.path)
         except Exception as exc:  # 인식기 하나가 죽어도 나머지는 본다
             preds = []
             results.append(EngineResult(engine.name, f"(실패: {type(exc).__name__}: {exc})",
@@ -171,6 +188,7 @@ def recognize(image: Path, engines: list[Engine], out_dir: Path | None = None) -
                           f"인식기 {len(families)}개가 골격 {cand.skeleton} 에 합의{note}",
                           results, candidates)
 
+    rec.prepared, rec.notes, rec.warnings = prep.path, list(prep.notes), list(prep.warnings)
     if out_dir is not None and candidates:
         _render_candidates(rec, Path(out_dir))
     return rec
