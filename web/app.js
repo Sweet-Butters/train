@@ -1,23 +1,64 @@
-// web/app.js (U 소유) - 화면 로직. 서버 없음 - 전부 이 브라우저 안에서 끝난다.
+// web/app.js (U 소유) - try.html 의 도구 로직. index.html 은 정적 페이지라 이 파일을 쓰지 않는다.
 // web/crop.js(C)·web/ocr.js(O)는 아직 없을 수 있다 - 있으면 쓰고 없으면 조용히 건너뛴다.
 //
-// 화면의 중심은 이름+SMILES 대조다: LLM 이 준 SMILES 를 이름의 정본과 대조해 InChIKey 로
-// 빨강/초록을 낸다 - 임의의 입력에 대해 실제로 도는 판정이고 하드코딩이 아니다.
-// 이미지는 OCR 로 이름칸만 채우는 보조 경로다 - 그림 자체를 읽는 것은 로컬 CLI 의 몫이다.
+// 결과 영역은 하나다: 정본 카드가 0.5초 안에 뜨고(이름/SMILES, 서버 없이 완결),
+// 이미지를 주면 같은 카드 안의 판정 슬롯이 서버 응답으로 나중에 채워진다.
 
 const TABLE = window.CHEMCHECK_TABLE || {};
 const ALIASES = window.CHEMCHECK_ALIASES || {};
 const BY_KEY = {};
 for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
 const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
-const CHECK_URL = "https://pxh7yp--chemcheck.modal.run/api/check";
+// 서버 주소는 web/config.js 한 곳에만 있다. 경로(/api/check, /api/health)만 여기서 붙인다.
+const SERVER = window.CHEMCHECK_SERVER || "";
+const CHECK_URL = SERVER + "/api/check";
+const HEALTH_URL = SERVER + "/api/health";
 const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
 
 const $ = (id) => document.getElementById(id);
-let RDKit = null;
-let currentCanonical = null;
 
-function status(t) { $("status").textContent = t; }
+// ── 결과 DOM 을 JS 가 만든다 ────────────────────────────────────────────────
+// index.html 재설계에서 <article id="result"> 가 빈 껍데기가 되면서, app.js 가
+// 기대하던 11 개 id(canon·molDraw·molTitle·molFacts·molSource·verdict·copy*)가
+// 사라졌다. 모듈 최상단의 copyPng 리스너 등록이 null 에서 죽어 **그 아래 코드가
+// 통째로 실행되지 않았다** - 예제 버튼도 판정 렌더도 그래서 아무 일이 없었다.
+// HTML 에 있으면 그대로 쓰고, 없으면 여기서 만든다.
+(function ensureResultDom() {
+  const host = document.getElementById("result");
+  if (!host || document.getElementById("verdict")) return;
+  const mk = (tag, id, cls) => {
+    const e = document.createElement(tag);
+    if (id) e.id = id;
+    if (cls) e.className = cls;
+    return e;
+  };
+  const canon = mk("div", "canon", "canon");
+  canon.hidden = true;
+  canon.appendChild(mk("div", "molDraw", "mol-draw"));
+  const side = mk("div", null, "mol-side");
+  side.appendChild(mk("p", "molSource", "mol-source"));
+  side.appendChild(mk("h2", "molTitle", "mol-name"));
+  side.appendChild(mk("dl", "molFacts", "facts"));
+  const row = mk("div", null, "copy-row");
+  for (const [id, label] of [["copyPng", "PNG 복사"], ["copySvg", "SVG 다운로드"],
+                             ["copySmiles", "SMILES 복사"], ["copyKey", "InChIKey 복사"]]) {
+    const b = mk("button", id, "btn btn-sm");
+    b.type = "button"; b.textContent = label;
+    row.appendChild(b);
+  }
+  side.appendChild(row);
+  side.appendChild(mk("p", "copyNote", "copy-note"));
+  canon.appendChild(side);
+  host.appendChild(canon);
+
+  const v = mk("div", "verdict", "verdict");
+  v.hidden = true;
+  host.appendChild(v);
+})();
+let RDKit = null;
+let currentMol = null;
+
+function status(t) { $("rdkitStatus").textContent = t; }
 function fail(msg) { $("err").textContent = msg; }
 function clearErr() { $("err").textContent = ""; }
 
@@ -54,11 +95,13 @@ async function resolveName(name) {
 
 async function identifyByKey(inchikey) {
   if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "내장 표" };
-  const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title/JSON`);
+  // Title(관용명)과 IUPACName 을 함께 받는다 - 새로 만난 분자는 관용명이 없고
+  // IUPAC 명만 있는 경우가 많다. 둘 다 없으면 진짜 미등재다.
+  const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title,IUPACName/JSON`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
   const p = (await res.json()).PropertyTable.Properties[0];
-  return { title: p.Title, cid: p.CID, source: "PubChem" };
+  return { title: p.Title, iupac: p.IUPACName, cid: p.CID, source: "PubChem" };
 }
 
 // ============================================================ RDKit 계산 (그림·InChIKey·화학식)
@@ -110,44 +153,25 @@ function describeFull(smiles) {
   return base;
 }
 
-// ---- 부분 구조 칠하기 (관능기 하나 붙거나 빠진 차이만 - RDKit.js(MinimalLib)는 rdFMCS 가 없다) ----
-
-function molAtomBondCounts(mol) {
-  const m = JSON.parse(mol.get_json()).molecules[0];
-  return { atoms: m.atoms.length, bonds: m.bonds.length };
-}
-function complementIndices(total, matched) {
-  const set = new Set(matched || []);
-  const out = [];
-  for (let i = 0; i < total; i++) if (!set.has(i)) out.push(i);
-  return out;
-}
-function highlightDiff(refSmiles, userSmiles) {
-  const refMol = RDKit.get_mol(refSmiles);
-  const userMol = RDKit.get_mol(userSmiles);
-  try {
-    if (!refMol || !refMol.is_valid() || !userMol || !userMol.is_valid()) return null;
-    const refInUser = JSON.parse(userMol.get_substruct_match(refMol));
-    if (refInUser.atoms && refInUser.atoms.length) {
-      const c = molAtomBondCounts(userMol);
-      return { side: "user", atoms: complementIndices(c.atoms, refInUser.atoms), bonds: complementIndices(c.bonds, refInUser.bonds) };
-    }
-    const userInRef = JSON.parse(refMol.get_substruct_match(userMol));
-    if (userInRef.atoms && userInRef.atoms.length) {
-      const c = molAtomBondCounts(refMol);
-      return { side: "ref", atoms: complementIndices(c.atoms, userInRef.atoms), bonds: complementIndices(c.bonds, userInRef.bonds) };
-    }
-    return null;
-  } finally { refMol.delete(); userMol.delete(); }
-}
-function svgWithHighlight(smiles, highlight, w, h) {
-  const mol = RDKit.get_mol(smiles);
-  try {
-    if (!mol || !mol.is_valid()) return "";
-    if (!highlight || !highlight.atoms.length) return mol.get_svg(w, h);
-    const details = JSON.stringify({ atoms: highlight.atoms, bonds: highlight.bonds, highlightColour: [0.94, 0.42, 0.42], width: w, height: h });
-    return mol.get_svg_with_highlights(details);
-  } finally { mol.delete(); }
+// 판별 규칙: RDKit 이 파싱하면 SMILES, 못 하면 이름 - 추론이 아니라 규칙이다.
+async function resolveSingle(raw) {
+  const probe = RDKit.get_mol(raw);
+  const validSmiles = !!(probe && probe.is_valid());
+  if (probe) probe.delete();
+  if (validSmiles) {
+    const desc = describeFull(raw);
+    const who = await identifyByKey(desc.inchikey);
+    return {
+      svg: desc.svg, smiles: desc.smiles, inchikey: desc.inchikey, formula: desc.formula,
+      cid: who ? who.cid : null, title: who ? who.title : null,
+      source: who ? who.source : "SMILES 입력 (PubChem 미등록)",
+    };
+  }
+  const byName = await resolveName(raw);
+  if (!byName) return null;
+  const desc = describeFull(byName.smiles);
+  if (!desc) return null;
+  return { svg: desc.svg, smiles: desc.smiles, inchikey: desc.inchikey, formula: desc.formula, cid: byName.cid, title: byName.title || raw, source: byName.source };
 }
 
 // ============================================================ 이름 근접 제안 (편집거리)
@@ -185,23 +209,30 @@ function showSuggestions(raw) {
   const pills = document.createElement("div"); pills.className = "pills";
   for (const { t } of top) {
     const b = document.createElement("button"); b.type = "button"; b.textContent = t;
-    b.addEventListener("click", () => { $("nameInput").value = t; evaluate(); });
+    b.addEventListener("click", () => { $("queryInput").value = t; attemptResolve(t); });
     pills.appendChild(b);
   }
   box.append(p, pills);
 }
 function hideSuggestions() { const box = $("suggestions"); box.hidden = true; box.innerHTML = ""; }
 
-// ============================================================ 정본 카드 (복사 넷은 여기에만 - 이름으로 찾은 것에만)
+// ============================================================ 결과 카드 - 하나. 정본이 먼저, 판정은 같은 카드 안에서 나중에.
 
-function renderCanonical(data) {
-  currentCanonical = data;
-  $("canonCard").hidden = false;
-  $("canonDraw").innerHTML = data.svg || "";
-  $("canonTitle").textContent = data.title || "(PubChem 에 이름 없음)";
-  const dl = $("canonFacts"); dl.innerHTML = "";
+// 카드(#result)는 정본(#canon)이나 판정(#verdict) 중 하나라도 있을 때만 보인다.
+// 이름 없이 이미지만 넣으면 정본 없이 판정 슬롯만 뜬다 - 그래도 카드는 하나다.
+function syncResult() {
+  const hasMol = !!currentMol, hasVerdict = !$("verdict").hidden;
+  $("canon").hidden = !hasMol;
+  $("result").hidden = !(hasMol || hasVerdict);
+}
+function renderMol(data) {
+  currentMol = data;
+  $("molDraw").innerHTML = data.svg || "";
+  $("molSource").textContent = "정본 · " + (data.source || "");
+  $("molTitle").textContent = data.title || "(PubChem 에 이름 없음)";
+  const dl = $("molFacts"); dl.innerHTML = "";
   const cidLink = data.cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${data.cid}`, text: `CID ${data.cid}` } : null;
-  const rows = [["출처", data.source], ["PubChem", cidLink], ["화학식", data.formula], ["SMILES", data.smiles], ["InChIKey", data.inchikey]];
+  const rows = [["PubChem", cidLink], ["화학식", data.formula], ["SMILES", data.smiles], ["InChIKey", data.inchikey]];
   for (const [k, val] of rows) {
     if (val === undefined || val === null || val === "") continue;
     const dt = document.createElement("dt"); dt.textContent = k;
@@ -211,178 +242,53 @@ function renderCanonical(data) {
     dl.append(dt, dd);
   }
   $("copyNote").textContent = "";
+  syncResult();
 }
-function hideCanonical() { currentCanonical = null; $("canonCard").hidden = true; }
-
-// ============================================================ 판정 근거를 문자 그대로 보여준다 (추론 0, 문자열·원자수 비교)
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-function markDiff(ref, read) {
-  if (!read) return "";
-  if (!ref) return escapeHtml(read);
-  let out = "";
-  for (let i = 0; i < read.length; i++) {
-    const c = read[i];
-    out += (i < ref.length && ref[i] === c) ? escapeHtml(c) : `<mark>${escapeHtml(c)}</mark>`;
-  }
-  return out;
-}
-const KO_ELEM = { C: "탄소", H: "수소", N: "질소", O: "산소", S: "황", P: "인", F: "불소", Cl: "염소", Br: "브롬", I: "아이오딘" };
-function formulaDiffNote(refF, readF) {
-  if (!refF || !readF) return null;
-  const re = /([A-Z][a-z]?)(\d*)/g;
-  const parseF = (f) => { const out = {}; let m; while ((m = re.exec(f))) out[m[1]] = (out[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1); re.lastIndex = 0; return out; };
-  const a = parseF(refF), b = parseF(readF);
-  const elems = [...new Set([...Object.keys(a), ...Object.keys(b)])];
-  const parts = [];
-  for (const el of elems) {
-    const d = (b[el] || 0) - (a[el] || 0);
-    if (!d) continue;
-    const ko = KO_ELEM[el] || el;
-    const word = d > 0 ? (d === 1 ? "하나 많음" : `${d}개 많음`) : (d === -1 ? "하나 적음" : `${Math.abs(d)}개 적음`);
-    parts.push(`${ko} ${word}`);
-  }
-  return parts.length ? parts.join(", ") : null;
-}
-function buildEvidenceBox(rows) {
-  const box = document.createElement("div"); box.className = "evidence";
-  for (const [k, html] of rows) {
-    const row = document.createElement("div"); row.className = "row";
-    const kd = document.createElement("div"); kd.className = "k"; kd.textContent = k;
-    const vd = document.createElement("div"); vd.innerHTML = html;
-    row.append(kd, vd); box.appendChild(row);
-  }
-  return box;
-}
-function appendReasons(card, reasons) {
-  if (!reasons || !reasons.length) return;
-  const ul = document.createElement("ul"); ul.className = "reasons";
-  for (const r of reasons) { const li = document.createElement("li"); li.textContent = r; ul.appendChild(li); }
-  card.appendChild(ul);
-}
-function compareKeys(a, b) { return a === b ? { cls: "match", text: "🟢 일치" } : { cls: "mismatch", text: "🔴 불일치" }; }
-function skeletonNote(a, b) { return (a !== b && a.slice(0, 14) === b.slice(0, 14)) ? "앞 14자(골격)는 같고 입체·전하만 다르다." : null; }
-
-function hideVerdict() { $("verdictSection").hidden = true; $("verdictCard").innerHTML = ""; }
-function hideSolo() { $("soloCard").hidden = true; $("soloCard").innerHTML = ""; }
-
-// 화면의 중심: 이름의 정본과 SMILES 입력을 InChIKey 로 대조해 빨강/초록을 낸다.
-function renderComparison(ref, refDesc, user, nameRaw) {
-  const diff = highlightDiff(refDesc.smiles, user.smiles);
-  const refSvg = svgWithHighlight(refDesc.smiles, diff && diff.side === "ref" ? diff : null, 420, 360);
-  renderCanonical({ svg: refSvg, title: ref.title || nameRaw, cid: ref.cid, source: ref.source, smiles: refDesc.smiles, inchikey: refDesc.inchikey, formula: refDesc.formula });
-
-  hideSolo();
-  $("verdictSection").hidden = false;
-  const card = $("verdictCard"); card.innerHTML = "";
-
-  const verdict = compareKeys(refDesc.inchikey, user.inchikey);
-  const pill = document.createElement("p"); pill.className = "verdict-pill " + verdict.cls; pill.textContent = verdict.text;
-  card.appendChild(pill);
-
-  const userSvg = svgWithHighlight(user.smiles, diff && diff.side === "user" ? diff : null, 260, 220);
-  const box = document.createElement("div"); box.className = "drawbox-inline";
-  const label = document.createElement("p"); label.className = "drawlabel"; label.textContent = "입력한 SMILES (복사 없음)";
-  const draw = document.createElement("div"); draw.className = "draw"; draw.innerHTML = userSvg || "";
-  box.append(label, draw); card.appendChild(box);
-
-  const rows = [
-    [`이름 "${ref.title || nameRaw}" 의 정본`, escapeHtml(refDesc.inchikey)],
-    ["입력한 SMILES", markDiff(refDesc.inchikey, user.inchikey)],
-    ["정본 화학식", escapeHtml(refDesc.formula || "-")],
-  ];
-  if (user.formula) {
-    const note = formulaDiffNote(refDesc.formula, user.formula);
-    rows.push(["입력 SMILES 의 화학식", escapeHtml(user.formula) + (note ? `  ← ${escapeHtml(note)}` : "")]);
-  }
-  card.appendChild(buildEvidenceBox(rows));
-
-  const reasons = [];
-  const skel = skeletonNote(refDesc.inchikey, user.inchikey);
-  if (skel) reasons.push(skel);
-  if (verdict.cls === "mismatch" && !diff) reasons.push("두 구조가 부분 포함 관계가 아니라(고리 크기·위치·치환기 차이 등) 어디가 다른지는 못 칠했다.");
-  appendReasons(card, reasons);
+function hideMol() { currentMol = null; syncResult(); }
+function hideVerdict() { const v = $("verdict"); v.hidden = true; v.innerHTML = ""; v.className = "verdict"; syncResult(); }
+// 판정 슬롯을 비우고 연다. state 는 match / mismatch / unreadable / "" (대기·안내).
+function openVerdict(state) {
+  const v = $("verdict"); v.hidden = false; v.innerHTML = ""; v.className = "verdict" + (state ? " " + state : "");
+  syncResult();
+  return v;
 }
 
-// SMILES 만 있고 이름이 없을 때 - 대조 상대가 없으니 판정 없이 정체만 보여준다(복사 없음).
-async function renderSoloSmiles(user, smilesRaw) {
-  hideVerdict();
-  const box = $("soloCard"); box.hidden = false; box.innerHTML = "";
-  const who = await identifyByKey(user.inchikey);
-  const draw = document.createElement("div"); draw.className = "canon-draw"; draw.innerHTML = user.svg || "";
-  const info = document.createElement("div");
-  const title = document.createElement("p"); title.className = "canon-title";
-  title.textContent = who ? `PubChem: ${who.title}` : "PubChem 에 없는 구조";
-  const dl = document.createElement("dl"); dl.className = "facts";
-  const rows = [["화학식", user.formula], ["SMILES", user.smiles], ["InChIKey", user.inchikey]];
-  for (const [k, v] of rows) {
-    if (!v) continue;
-    const dt = document.createElement("dt"); dt.textContent = k;
-    const dd = document.createElement("dd"); dd.textContent = v;
-    dl.append(dt, dd);
-  }
-  const note = document.createElement("p"); note.className = "field-note";
-  note.textContent = "이름을 채우면 이 SMILES 를 정본과 대조해 판정을 낸다.";
-  info.append(title, dl, note);
-  box.append(draw, info);
-}
-
-// ============================================================ 대조 엔진 - 이름 칸 + SMILES 칸을 함께 본다
-
-let debounceTimer = null;
-function scheduleEvaluate() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(evaluate, 400);
-}
-async function evaluate() {
-  const nameRaw = $("nameInput").value.trim();
-  const smilesRaw = $("smilesInput").value.trim();
+async function attemptResolve(raw) {
+  raw = raw.trim();
   hideSuggestions();
-  clearErr();
-  if (!nameRaw && !smilesRaw) { hideCanonical(); hideVerdict(); hideSolo(); return; }
+  hideVerdict(); // 새 조회는 이전 판정과 무관하다
+  if (!raw) { hideMol(); clearErr(); return; }
   if (!RDKit) { status("RDKit 로딩 중… 준비되면 자동으로 확인한다."); return; }
   status("확인 중…");
+  clearErr();
   try {
-    const ref = nameRaw ? await resolveName(nameRaw) : null;
-    if (nameRaw && !ref) {
-      hideCanonical(); hideVerdict(); hideSolo();
-      showSuggestions(nameRaw);
-      fail(`"${nameRaw}" - 내장 표 423개에도 PubChem 에도 없다.`);
+    const res = await resolveSingle(raw);
+    if (!res) {
+      hideMol();
+      showSuggestions(raw);
+      fail(`"${raw}" - 내장 표 423개에도, PubChem 에도, 유효한 SMILES 로도 못 찾았다.`);
       status(`RDKit ${RDKit.version()} 준비됨`);
       return;
     }
-    const refDesc = ref ? describeFull(ref.smiles) : null;
-    const user = smilesRaw ? describeFull(smilesRaw) : null;
-    if (smilesRaw && !user) fail("SMILES 를 읽을 수 없다 - RDKit 이 파싱하지 못했다: " + smilesRaw);
-    else clearErr();
-
-    if (ref && user) {
-      renderComparison(ref, refDesc, user, nameRaw);
-    } else if (ref) {
-      renderCanonical({ svg: refDesc.svg, title: ref.title || nameRaw, cid: ref.cid, source: ref.source, smiles: refDesc.smiles, inchikey: refDesc.inchikey, formula: refDesc.formula });
-      hideVerdict(); hideSolo();
-    } else if (user) {
-      hideCanonical();
-      await renderSoloSmiles(user, smilesRaw);
-    } else {
-      hideCanonical(); hideVerdict(); hideSolo();
-    }
+    renderMol(res);
     status(`RDKit ${RDKit.version()} 준비됨`);
   } catch (e) {
-    hideCanonical(); hideVerdict(); hideSolo();
+    hideMol();
     fail("실패: " + (e && e.message ? e.message : e) + " (PubChem 조회는 네트워크가 필요하다)");
     status(RDKit ? `RDKit ${RDKit.version()} 준비됨` : "");
   }
 }
 
-$("nameInput").addEventListener("input", scheduleEvaluate);
-$("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(debounceTimer); evaluate(); } });
-$("smilesInput").addEventListener("input", scheduleEvaluate);
-$("smilesInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(debounceTimer); evaluate(); } });
+let debounceTimer = null;
+$("queryInput").addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => attemptResolve($("queryInput").value), 400);
+});
+$("queryInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { clearTimeout(debounceTimer); attemptResolve($("queryInput").value); }
+});
 
-// ============================================================ 정본 복사 (넷) - 정본에만 둔다. 사용자가 올린 그림 쪽엔 두지 않는다.
+// ============================================================ 정본 복사 (넷) - 이 카드에만 둔다. 서버가 읽은 그림 쪽엔 두지 않는다.
 
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
@@ -432,35 +338,183 @@ function svgToPngBlob(svg, w, h) {
 }
 
 $("copyPng").addEventListener("click", async () => {
-  if (!currentCanonical) return;
+  if (!currentMol) return;
   let blob;
-  try { blob = await svgToPngBlob(currentCanonical.svg, 420, 360); }
+  try { blob = await svgToPngBlob(currentMol.svg, 420, 360); }
   catch (e) { copyNote("PNG 생성 실패: " + (e && e.message ? e.message : e)); return; }
   try {
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
     copyNote("PNG 를 클립보드에 복사했다.");
   } catch (e) {
-    downloadBlob(blob, safeFileName(currentCanonical) + ".png");
+    downloadBlob(blob, safeFileName(currentMol) + ".png");
     copyNote("클립보드 복사가 막혀 파일로 내려받았다.");
   }
 });
 $("copySvg").addEventListener("click", () => {
-  if (!currentCanonical) return;
-  downloadBlob(new Blob([currentCanonical.svg], { type: "image/svg+xml" }), safeFileName(currentCanonical) + ".svg");
+  if (!currentMol) return;
+  downloadBlob(new Blob([currentMol.svg], { type: "image/svg+xml" }), safeFileName(currentMol) + ".svg");
   copyNote("SVG 를 내려받았다.");
 });
-$("copySmiles").addEventListener("click", () => copyText(currentCanonical && currentCanonical.smiles, "SMILES"));
-$("copyKey").addEventListener("click", () => copyText(currentCanonical && currentCanonical.inchikey, "InChIKey"));
+$("copySmiles").addEventListener("click", () => copyText(currentMol && currentMol.smiles, "SMILES"));
+$("copyKey").addEventListener("click", () => copyText(currentMol && currentMol.inchikey, "InChIKey"));
 
 // ============================================================ 이미지 입력 - crop.js(C)·ocr.js(O) 있으면 쓰고 없으면 대체. 임계 경로 아님.
-// 이미지는 이름칸만 채운다 - 그림 자체 검사(OCSR)는 3GB 인식기가 필요해 로컬 CLI 의 몫이다.
+
+let usingCropper = false; // crop.js 가 붙으면 미리보기·크롭 UI 는 crop.js 가 맡는다
+// ── 예제 - 심사위원이 아무것도 준비하지 않고 바로 확인할 수 있게 ────────────
+// evidence/crops 의 실제 그림을 사용자가 올린 것과 **같은 경로**로 통과시킨다.
+// 미리 채우는 것은 입력(그림·이름)뿐이고 판정은 서버가 그때 낸다.
+const EXAMPLE_GROUPS = [
+  { label: "AI 가 그린 그림 - 이름과 대조합니다", items: [
+      { file: "caffeine_gemini_crop.png", name: "Caffeine",  label: "Gemini 카페인" },
+      { file: "caffeine_gpt_crop.png",    name: "Caffeine",  label: "GPT 카페인" },
+      { file: "alanine_gemini_crop.png",  name: "L-alanine", label: "Gemini 알라닌" },
+      { file: "alanine_gpt_crop.png",     name: "L-alanine", label: "GPT 알라닌" },
+  ] },
+  { label: "처음 보는 분자 - PubChem 에도 내장 표에도 없습니다. 그림에서만 읽습니다", items: [
+      { file: "novel_a.png", name: "", label: "신규 A" },
+      { file: "novel_b.png", name: "", label: "신규 B" },
+      { file: "novel_c.png", name: "", label: "신규 C" },
+  ] },
+];
+
+async function runExample(ex) {
+  const btns = document.querySelectorAll("#examples button");
+  btns.forEach((b) => { b.disabled = true; });
+  try {
+    const res = await fetch("evidence/crops/" + ex.file);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    const q = $("queryInput");
+    if (q) { q.value = ex.name || ""; }
+    // 원본을 입력 칸에 실제로 띄운다 - 사용자가 붙여넣은 것과 같은 상태가 되게.
+    if (CROPPER && typeof CROPPER.load === "function") CROPPER.load(blob);
+    else showImagePreview(blob);
+    await handleImage(blob);
+  } catch (e) {
+    const n = $("imageNote");
+    if (n) n.textContent = "예제를 불러오지 못했다: " + (e && e.message ? e.message : e);
+  } finally {
+    btns.forEach((b) => { b.disabled = false; });
+  }
+}
+
+function setupExamples() {
+  const box = $("examples");
+  if (!box) return;
+  for (const g of EXAMPLE_GROUPS) {
+    const row = document.createElement("div");
+    row.className = "example-row";
+    const lab = document.createElement("span");
+    lab.className = "example-group";
+    lab.textContent = g.label;
+    row.appendChild(lab);
+    for (const ex of g.items) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip";
+      b.textContent = ex.label;
+      b.addEventListener("click", () => runExample(ex));
+      row.appendChild(b);
+    }
+    box.appendChild(row);
+  }
+}
+
+// ============================================================ 요금제 - 눌린다.
+// 월/연 토글, 선택 카드(테두리·배지), 요약 한 줄. role=radiogroup + 화살표 키.
+// web-ui 브랜치(Sweet-Butters/web-ui)의 app.js 에서 그대로 포팅했다 - HTML·CSS
+// (#plans·.plan·.plan-cta·.toggle-btn·.is-selected·.is-on)는 이미 있었다.
+(function pricing() {
+  const plans = [...document.querySelectorAll("#plans .plan")];
+  if (!plans.length) return;
+  let cycle = "monthly";
+  const priceOf = (p) => {
+    const amount = p.querySelector(".amount");
+    const per = p.querySelector(".per");
+    return (amount.dataset[cycle] || amount.textContent) +
+      (per ? (per.dataset[cycle] || per.textContent).replace(" ", "") : "");
+  };
+  function select(p, focus) {
+    for (const q of plans) {
+      const on = q === p;
+      q.setAttribute("aria-checked", on);
+      q.tabIndex = on ? 0 : -1;
+      q.classList.toggle("is-selected", on);
+    }
+    $("planSummary").textContent = p.dataset.summary.replace("{price}", priceOf(p));
+    if (focus) p.focus();
+  }
+  function applyCycle() {
+    for (const s of document.querySelectorAll("#plans [data-monthly]")) s.textContent = s.dataset[cycle];
+    for (const b of document.querySelectorAll(".toggle-btn")) {
+      const on = b.dataset.cycle === cycle;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-pressed", on);
+    }
+    select(plans.find((p) => p.getAttribute("aria-checked") === "true") || plans[1]);
+  }
+  for (const p of plans) {
+    p.addEventListener("click", (e) => { if (!e.target.closest(".plan-cta")) select(p); });
+    p.addEventListener("keydown", (e) => {
+      const i = plans.indexOf(p);
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault(); select(plans[(i + 1) % plans.length], true);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault(); select(plans[(i - 1 + plans.length) % plans.length], true);
+      } else if ((e.key === " " || e.key === "Enter") && e.target === p) {
+        e.preventDefault(); select(p);
+      }
+    });
+  }
+  for (const b of document.querySelectorAll(".toggle-btn")) {
+    b.addEventListener("click", () => { cycle = b.dataset.cycle; applyCycle(); });
+  }
+  const startBtn = document.querySelector('[data-action="start"]');
+  if (startBtn) {
+    startBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      $("queryInput").scrollIntoView({ behavior: "smooth", block: "center" });
+      $("queryInput").focus();
+    });
+  }
+  applyCycle();
+})();
+
+let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에 걸리면 다시 연다
+
+// ── index.html 이 제공하는 촬영·지우기 버튼을 배선한다 ─────────────────────
+// 재설계에서 #cameraBtn / #cameraInput / #imageClear 가 dropzone **밖에** 생겼는데
+// app.js 는 그것들을 모르고 있었다. crop.js 는 dropzone 안만 다시 그리므로 이
+// 버튼들은 아무도 듣지 않는 채 남아 있었다 - 눌러도 아무 일이 없던 이유다.
+function setupPageImageButtons() {
+  const camBtn = $("cameraBtn"), camInput = $("cameraInput");
+  if (camBtn && camInput) {
+    camBtn.addEventListener("click", () => camInput.click());
+    camInput.addEventListener("change", () => {
+      const f = camInput.files && camInput.files[0];
+      camInput.value = "";                       // 같은 사진을 다시 찍어도 change 가 뜨게
+      if (!f) return;
+      if (CROPPER && typeof CROPPER.load === "function") CROPPER.load(f);
+      else { showImagePreview(f); handleImage(f); }
+    });
+  }
+  const clear = $("imageClear");
+  if (clear) {
+    clear.addEventListener("click", () => {
+      if (CROPPER && typeof CROPPER.reset === "function") CROPPER.reset();
+      const box = $("imagePreview"); if (box) box.hidden = true;
+      imageNote("");
+    });
+  }
+}
 
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js");
+    const mod = await import("./crop.js?v=202609100451");
     if (mod && typeof mod.mountCropper === "function") {
-      mod.mountCropper(dropzone, { onCrop: handleImage });
+      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
+      usingCropper = true;
       return;
     }
   } catch (e) { /* web/crop.js 아직 없다 - 조용히 건너뛴다 */ }
@@ -493,54 +547,58 @@ function setupBasicImageInput(dropzone) {
 }
 function showImagePreview(blob) {
   const box = $("imagePreview");
-  box.innerHTML = ""; box.hidden = false;
-  const img = document.createElement("img");
+  if (!box) return;
+  box.hidden = false;
+  // 재설계된 index.html 은 <img id="imagePreviewImg"> 와 "지우기" 버튼을 이미 갖고
+  // 있다. innerHTML 을 비우면 그 버튼까지 날아간다 - 있으면 그대로 쓴다.
+  let img = $("imagePreviewImg");
+  if (!img) {
+    img = document.createElement("img");
+    img.alt = "넣은 이미지";
+    box.appendChild(img);
+  }
   img.src = URL.createObjectURL(blob);
-  img.alt = "붙여넣은 이미지";
-  box.appendChild(img);
 }
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
 async function handleImage(blob) {
-  showImagePreview(blob);
+  if (!usingCropper) showImagePreview(blob);
   imageNote("OCR 로 이름을 읽는 중…");
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js");
+    const mod = await import("./ocr.js?v=202609100451");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
   const name = hints && hints.names && hints.names[0];
   if (name) {
     imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
-    $("nameInput").value = name;
-    await evaluate();
+    $("queryInput").value = name;
+    await attemptResolve(name);
+  } else if ($("queryInput").value.trim()) {
+    imageNote("이미지에서 이름을 읽지 못했지만 입력칸에 이미 값이 있다 - 그대로 서버 대조에 쓴다.");
   } else {
-    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 이름칸에 직접 입력하면 서버 대조에도 쓰인다.");
+    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 칸에 직접 입력하면 서버 대조에도 쓰인다.");
   }
 
-  await checkServerImage(blob, $("nameInput").value.trim());
+  await checkServerImage(blob, $("queryInput").value.trim());
 }
 
-// ============================================================ 이미지 자체 대조 - 서버(S). 정본은 이미 떠 있으니 이건 나중에 채운다.
+// ============================================================ 이미지 자체 대조 - 서버(S). 정본 카드 안의 같은 자리에 채운다.
 
-function showImageVerdictLoading() {
-  $("imageVerdictSection").hidden = false;
-  const card = $("imageVerdictCard"); card.innerHTML = "";
-  const p = document.createElement("p"); p.className = "result-placeholder";
-  p.textContent = "서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다 - 따뜻하면 2~3초.";
-  card.appendChild(p);
+// 스피너로 덮지 않는다 - 정본은 그대로 두고, 판정 슬롯에 한 줄만 적는다.
+function showVerdictLoading() {
+  showVerdictNote("서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다. 따뜻하면 2~3초.");
 }
-function showImageVerdictNote(msg) {
-  $("imageVerdictSection").hidden = false;
-  const card = $("imageVerdictCard"); card.innerHTML = "";
-  const p = document.createElement("p"); p.className = "result-placeholder"; p.textContent = msg;
+function showVerdictNote(msg) {
+  const card = openVerdict("");
+  const p = document.createElement("p"); p.className = "verdict-note"; p.textContent = msg;
   card.appendChild(p);
 }
 
 async function checkServerImage(blob, name) {
-  showImageVerdictLoading();
+  showVerdictLoading();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
   try {
@@ -549,10 +607,10 @@ async function checkServerImage(blob, name) {
     fd.append("name", name || "");
     const res = await fetch(CHECK_URL, { method: "POST", body: fd, signal: controller.signal });
     if (!res.ok) throw new Error(`서버 응답 ${res.status}`);
-    renderImageVerdict(await res.json());
+    renderVerdict(await res.json());
   } catch (e) {
     const timedOut = e && e.name === "AbortError";
-    showImageVerdictNote(
+    showVerdictNote(
       (timedOut ? "서버가 시간 안에 응답하지 않았다(최대 1분 대기했다). " : "서버에 연결하지 못했다. ") +
       "그림 자체는 확인하지 못했다 - 위 정본과 나란히 놓고 비교해 보라."
     );
@@ -561,73 +619,367 @@ async function checkServerImage(blob, name) {
   }
 }
 
-function renderImageVerdict(json) {
-  const card = $("imageVerdictCard"); card.innerHTML = "";
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function markDiff(ref, read) {
+  if (!read) return "";
+  if (!ref) return escapeHtml(read);
+  let out = "";
+  for (let i = 0; i < read.length; i++) {
+    const c = read[i];
+    out += (i < ref.length && ref[i] === c) ? escapeHtml(c) : `<mark>${escapeHtml(c)}</mark>`;
+  }
+  return out;
+}
+const KO_ELEM = { C: "탄소", H: "수소", N: "질소", O: "산소", S: "황", P: "인", F: "불소", Cl: "염소", Br: "브롬", I: "아이오딘" };
+function formulaDiffNote(refF, readF) {
+  if (!refF || !readF) return null;
+  const re = /([A-Z][a-z]?)(\d*)/g;
+  const parseF = (f) => { const out = {}; let m; while ((m = re.exec(f))) out[m[1]] = (out[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1); re.lastIndex = 0; return out; };
+  const a = parseF(refF), b = parseF(readF);
+  const elems = [...new Set([...Object.keys(a), ...Object.keys(b)])];
+  const parts = [];
+  for (const el of elems) {
+    if (el === "H") continue; // heavy_formula 는 중원자만 센다 - 수소 차이는 비교 대상이 아니다
+    const d = (b[el] || 0) - (a[el] || 0);
+    if (!d) continue;
+    const ko = KO_ELEM[el] || el;
+    const word = d > 0 ? (d === 1 ? "하나 많음" : `${d}개 많음`) : (d === -1 ? "하나 적음" : `${Math.abs(d)}개 적음`);
+    parts.push(`${ko} ${word}`);
+  }
+  return parts.length ? parts.join(", ") : null;
+}
+function buildEvidenceBox(rows) {
+  const box = document.createElement("div"); box.className = "evidence";
+  for (const [k, html] of rows) {
+    const row = document.createElement("div"); row.className = "row";
+    const kd = document.createElement("div"); kd.className = "k"; kd.textContent = k;
+    const vd = document.createElement("div"); vd.className = "v"; vd.innerHTML = html;
+    row.append(kd, vd); box.appendChild(row);
+  }
+  return box;
+}
+function appendReasons(card, reasons) {
+  if (!reasons || !reasons.length) return;
+  const ul = document.createElement("ul"); ul.className = "reasons";
+  for (const r of reasons) { const li = document.createElement("li"); li.textContent = r; ul.appendChild(li); }
+  card.appendChild(ul);
+}
 
-  if (json.verdict === "unreadable") {
-    const pill = document.createElement("p"); pill.className = "verdict-pill unreadable"; pill.textContent = "⚪ 읽지 못함";
-    card.appendChild(pill);
-    const note = document.createElement("p"); note.className = "result-placeholder";
-    note.textContent = "서버가 그림을 확실히 읽지 못했다. 요청하신 구조는 위 정본이다 - 나란히 놓고 보라.";
-    card.appendChild(note);
+function verdictLabel(state, text) {
+  const h = document.createElement("p"); h.className = "verdict-label";
+  const dot = document.createElement("span"); dot.className = "dot " + state;
+  h.append(dot, text);
+  return h;
+}
+
+// ── 인식기가 갈렸을 때: 문자열 대신 **구조를 그려서** 보여준다 ──────────────
+// InChIKey 는 사람이 못 읽는다. 무엇을 읽었는지 알려면 그림이어야 한다.
+function keyName(inchikey) {
+  if (!inchikey) return null;
+  const row = BY_KEY[inchikey] || BY_KEY[(inchikey || "").slice(0, 14)];
+  return row ? (row.title || row.name) : null;
+}
+
+function smallSvg(smiles, w, h) {
+  if (!RDKit || !smiles) return "";
+  let mol = null;
+  try {
+    mol = RDKit.get_mol(smiles);
+    if (!mol || !mol.is_valid()) return "";
+    return mol.get_svg(w, h);
+  } catch (e) { return ""; }
+  finally { if (mol) mol.delete(); }
+}
+
+function candidateTile(title, smiles, inchikey, verdictText, tone) {
+  const box = document.createElement("div");
+  box.style.cssText = "flex:1 1 190px;min-width:180px;border:1px solid " +
+    (tone === "ok" ? "#7bb37f" : tone === "no" ? "#dd9999" : "#dddddd") +
+    ";border-radius:8px;padding:.5rem;background:#fff";
+  const h = document.createElement("div");
+  h.style.cssText = "font-size:.78rem;opacity:.7;margin-bottom:.25rem";
+  h.textContent = title;
+  box.appendChild(h);
+
+  const svg = smallSvg(smiles, 190, 150);
+  const art = document.createElement("div");
+  art.style.cssText = "min-height:150px;display:flex;align-items:center;justify-content:center";
+  if (svg) { art.innerHTML = svg; }
+  else { art.textContent = "그리지 못함"; art.style.fontSize = ".8rem"; art.style.opacity = ".6"; }
+  box.appendChild(art);
+
+  const nm = keyName(inchikey);
+  const label = document.createElement("div");
+  label.style.cssText = "font-size:.82rem;margin-top:.3rem;font-weight:600";
+  label.textContent = nm || (inchikey ? "이름 없음 (표·PubChem 미등재)" : "읽지 못함");
+  box.appendChild(label);
+
+  if (inchikey) {
+    const k = document.createElement("div");
+    k.style.cssText = "font-size:.7rem;opacity:.55;word-break:break-all";
+    k.textContent = inchikey;
+    box.appendChild(k);
+  }
+  if (verdictText) {
+    const v = document.createElement("div");
+    v.style.cssText = "font-size:.78rem;margin-top:.25rem;color:" +
+      (tone === "ok" ? "#1f7a3d" : tone === "no" ? "#b3261e" : "#666666");
+    v.textContent = verdictText;
+    box.appendChild(v);
+  }
+  return box;
+}
+
+function appendCandidates(card, json) {
+  const read = json.read || {};
+  const engines = read.engines || [];
+  if (!engines.length) return false;
+
+  const ref = json.reference;
+  const refSkel = ref && ref.inchikey ? ref.inchikey.slice(0, 14) : null;
+
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0";
+
+  if (ref && ref.smiles) {
+    row.appendChild(candidateTile('정본 "' + (ref.name || "") + '"', ref.smiles, ref.inchikey, "요청하신 구조", ""));
+  }
+  let anyMatch = false;
+  for (const e of engines) {
+    const skel = e.inchikey ? e.inchikey.slice(0, 14) : null;
+    let tone = "", txt = "";
+    if (refSkel && skel) {
+      if (skel === refSkel) { tone = "ok"; txt = "정본과 같음"; anyMatch = true; }
+      else { tone = "no"; txt = "정본과 다름"; }
+    } else if (!e.inchikey) {
+      tone = "no"; txt = "RDKit 이 분자로 못 받음";
+    }
+    row.appendChild(candidateTile(e.engine + " 가 읽음", e.smiles, e.inchikey, txt, tone));
+  }
+  card.appendChild(row);
+
+  const tip = document.createElement("p");
+  tip.className = "verdict-note";
+  tip.textContent = anyMatch
+    ? "인식기 하나는 정본과 같게 읽었습니다. 다른 하나가 갈렸으므로 판정하지 않습니다 - 사진이 흐리거나 기울면 이런 일이 생깁니다. 구조 영역만 잘라 다시 넣어 보세요."
+    : "두 인식기가 서로 다르게 읽었습니다. 어느 쪽이 맞는지 우리가 모르므로 판정하지 않습니다 - 구조 영역만 잘라 다시 넣어 보세요.";
+  card.appendChild(tip);
+  return true;
+}
+
+// ── 이름 없이 그림만 넣은 경우: 판정이 아니라 **무엇으로 읽혔는가** 를 보여준다 ──
+// 대조할 이름이 없으므로 "일치/다름" 은 성립하지 않는다. 대신 읽은 구조를 그리고,
+// InChIKey 로 이름을 역조회하고, SMILES 를 복사할 수 있게 준다.
+function appendIdentification(card, json) {
+  const read = json.read || {};
+  if (!read.smiles) return false;
+
+  const h = document.createElement("p");
+  h.className = "verdict-grade";
+  h.textContent = json.grade === "strong"
+    ? "인식기 둘이 서로 다른 구조로 학습됐는데도 같게 읽었습니다"
+    : "인식기 하나가 읽은 것입니다 - 대조할 이름이 없어 확인되지 않았습니다";
+  card.appendChild(h);
+
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-start;margin:.5rem 0";
+
+  const svg = smallSvg(read.smiles, 220, 180);
+  if (svg) {
+    const art = document.createElement("div");
+    art.style.cssText = "border:1px solid #e0e0e0;border-radius:8px;padding:.3rem;background:#fff";
+    art.innerHTML = svg;
+    wrap.appendChild(art);
+  }
+
+  const info = document.createElement("div");
+  info.style.cssText = "flex:1 1 260px;min-width:240px";
+
+  const nameEl = document.createElement("p");
+  nameEl.style.cssText = "font-size:1.05rem;font-weight:700;margin:.1rem 0 .35rem";
+  const local = keyName(read.inchikey);
+  nameEl.textContent = local || "이름을 찾는 중…";
+  info.appendChild(nameEl);
+
+  const iupacEl = document.createElement("p");
+  iupacEl.style.cssText = "font-size:.85rem;opacity:.8;margin:.1rem 0 .4rem;word-break:break-word";
+  info.appendChild(iupacEl);
+
+  const rows = [];
+  if (read.smiles) rows.push(["SMILES", escapeHtml(read.smiles)]);
+  if (read.inchikey) rows.push(["InChIKey", escapeHtml(read.inchikey)]);
+  if (read.heavy_formula) rows.push(["중원자 조성", escapeHtml(read.heavy_formula)]);
+  info.appendChild(buildEvidenceBox(rows));
+
+  const bar = document.createElement("div");
+  bar.style.cssText = "margin:.45rem 0";
+  const mk = (label, text) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn btn-sm";
+    b.textContent = label;
+    b.style.cssText = "margin:.15rem .3rem .15rem 0";
+    b.addEventListener("click", () => copyText(text, label.replace("복사", "").trim()));
+    return b;
+  };
+  bar.appendChild(mk("SMILES 복사", read.smiles));
+  if (read.inchikey) bar.appendChild(mk("InChIKey 복사", read.inchikey));
+  info.appendChild(bar);
+
+  const tip = document.createElement("p");
+  tip.className = "verdict-note";
+  tip.textContent = "이름을 위 칸에 넣으면 정본과 대조해 맞는지까지 판정합니다.";
+  info.appendChild(tip);
+
+  wrap.appendChild(info);
+  card.appendChild(wrap);
+
+  // 내장 표에 없으면 PubChem 으로 역조회한다. 실패해도 화면은 이미 서 있다.
+  if (!local && read.inchikey) {
+    identifyByKey(read.inchikey)
+      .then((hit) => {
+        if (!hit) {
+          nameEl.textContent = "이름 없음 - PubChem 에 등재되지 않은 분자입니다";
+          iupacEl.textContent = "새 분자이거나, 아직 이름이 붙지 않은 구조입니다. SMILES 로 쓰십시오.";
+          return;
+        }
+        const common = hit.title || hit.name;
+        const iupac = hit.iupac;
+        nameEl.textContent = common || iupac || "이름 없음";
+        if (iupac && iupac !== common) iupacEl.textContent = "IUPAC · " + iupac;
+        else if (hit.source) iupacEl.textContent = "출처 · " + hit.source;
+      })
+      .catch(() => { nameEl.textContent = "이름 조회 실패 (네트워크)"; });
+  }
+  return true;
+}
+
+function renderVerdict(json) {
+  const state = json.verdict === "match" ? "match" : json.verdict === "mismatch" ? "mismatch" : "unreadable";
+  const card = openVerdict(state);
+
+  if (state === "unreadable") {
+    card.appendChild(verdictLabel(state, "판정 불가"));
+    // 이름 없이 그림만 넣었고 읽기에는 성공했다 - 판정이 아니라 식별을 보여준다.
+    const noName = !json.reference;
+    if (noName && (json.read || {}).smiles) {
+      card.appendChild(verdictLabel("unreadable", "이 그림은 이렇게 읽혔습니다"));
+      appendIdentification(card, json);
+      return;
+    }
+
+    // 슬라이드를 통째로 넣어 "너무 크다" 로 걸린 경우 - 막다른 길이 아니라 한 동작이 되게.
+    const tooBig = (json.reasons || []).some((x) => x.indexOf("지나치게 큽니다") >= 0);
+    if (tooBig) {
+      const note = document.createElement("p"); note.className = "verdict-note";
+      note.textContent = "슬라이드 전체를 넣으신 것 같습니다. 인식기는 구조 그림만 읽습니다 - 구조 부분만 잘라 주세요.";
+      card.appendChild(note);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn btn-primary";
+      b.textContent = "구조 부분만 잘라서 다시 시도 →";
+      b.style.cssText = "margin:.4rem 0";
+      b.addEventListener("click", () => {
+        if (!(CROPPER && CROPPER.recrop && CROPPER.recrop())) {
+          const dz = $("dropzone");
+          if (dz && dz.scrollIntoView) dz.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+      card.appendChild(b);
+      appendReasons(card, json.reasons);
+      return;
+    }
+
+    const shown = appendCandidates(card, json);
+    if (!shown) {
+      const note = document.createElement("p"); note.className = "verdict-note";
+      note.textContent = "그림에서 구조를 읽지 못했습니다. 요청하신 구조는 위 정본입니다 - 나란히 놓고 보세요.";
+      card.appendChild(note);
+    }
     appendReasons(card, json.reasons);
     return;
   }
 
-  const pill = document.createElement("p");
-  pill.className = "verdict-pill " + (json.verdict === "match" ? "match" : "mismatch");
-  pill.textContent = json.verdict === "match" ? "🟢 일치" : "🔴 불일치";
+  card.appendChild(verdictLabel(state, state === "match" ? "일치" : "다름"));
   if (json.grade) {
-    const g = document.createElement("span"); g.className = "grade-badge";
-    g.textContent = json.grade === "strong" ? "확신: 강함 (인식기 둘 합의)" : "확신: 약함 (인식기 하나)";
-    pill.append(" ", g);
+    // 확신 등급은 색이 아니라 작은 글씨 한 줄로.
+    const g = document.createElement("p"); g.className = "verdict-grade";
+    g.textContent = json.grade === "strong" ? "확신 강함 · 인식기 둘이 같은 골격을 읽었다" : "확신 약함 · 인식기 하나의 답이다";
+    card.appendChild(g);
   }
-  card.appendChild(pill);
 
   const ref = json.reference, read = json.read;
   const rows = [];
-  if (ref) rows.push([`이름 "${ref.name || ""}" 의 정본`, escapeHtml(ref.inchikey || "-")]);
+  if (ref) rows.push([`"${ref.name || ""}" 의 정본`, escapeHtml(ref.inchikey || "-")]);
   if (read) rows.push(["그림에서 읽은 것", markDiff(ref && ref.inchikey, read.inchikey)]);
   if (ref && ref.formula) rows.push(["정본 화학식", escapeHtml(ref.formula)]);
   if (read && read.heavy_formula) {
     const note = formulaDiffNote(ref && ref.formula, read.heavy_formula);
-    rows.push(["그림에서 센 원자", escapeHtml(read.heavy_formula) + (note ? `  ← ${escapeHtml(note)}` : "")]);
+    rows.push(["그림에서 센 원자", escapeHtml(read.heavy_formula) + (note ? ` <span class="note">${escapeHtml(note)}</span>` : "")]);
   }
   if (rows.length) card.appendChild(buildEvidenceBox(rows));
 
   appendReasons(card, json.reasons);
 
   if (read && read.engines && read.engines.length) {
-    const box = document.createElement("div"); box.className = "evidence";
-    const title = document.createElement("div"); title.className = "k"; title.textContent = "인식기별 결과";
-    box.appendChild(title);
-    for (const e of read.engines) {
-      const row = document.createElement("div"); row.className = "row";
-      const k = document.createElement("div"); k.className = "k"; k.textContent = e.engine || "-";
-      const v = document.createElement("div");
-      v.textContent = `${e.inchikey || "(파싱 실패)"}${typeof e.confidence === "number" ? "  신뢰도 " + e.confidence.toFixed(3) : ""}`;
-      row.append(k, v); box.appendChild(row);
-    }
-    card.appendChild(box);
+    const title = document.createElement("p"); title.className = "evidence-title"; title.textContent = "인식기별 결과";
+    card.appendChild(title);
+    card.appendChild(buildEvidenceBox(read.engines.map((e) => [
+      e.engine || "-",
+      escapeHtml(e.inchikey || "(파싱 실패)") + (typeof e.confidence === "number" ? ` <span class="note">신뢰도 ${e.confidence.toFixed(3)}</span>` : ""),
+    ])));
   }
+}
+
+// 콜드스타트가 55초(따뜻하면 2.3초) - 페이지가 열리자마자 조용히 한 번 깨워 둔다.
+// 응답은 상태 표시에만 쓴다. 실패해도 무시한다 - 크레딧 안 쓰는 공짜 최적화다.
+function warmupServer() {
+  const el = $("serverStatus");
+  fetch(HEALTH_URL).then((res) => {
+    el.textContent = res.ok ? "그림 검사 준비됨" : "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+  }).catch(() => {
+    el.textContent = "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+  });
+}
+
+// index.html 의 "야생에서 잡은 오류" 이야기에서 "직접 해보기" 로 넘어오면(?sample=caffeine_gemini)
+// 이름칸을 채우고 그 이미지를 실제로 불러와 이 페이지의 정상 경로(handleImage)를 그대로 태운다.
+// 미리 적어둔 값은 없다 - 매번 서버가 새로 계산한다.
+async function loadSample(key) {
+  const samples = { caffeine_gemini: { name: "Caffeine", path: "evidence/caffeine_gemini_crop.png" } };
+  // 통째 슬라이드가 아니라 **구조 영역만 오려낸 것**을 보낸다. 이야기에 적힌 CSXLFNRQOLIQAN
+  // 이 그 기준이고, 통째로 보내면 서버가 "판정 불가 - 구조 부분만 잘라서" 로 물러난다.
+  const s = samples[key];
+  if (!s) return;
+  $("queryInput").value = s.name;
+  await attemptResolve(s.name);
+  let blob;
+  try {
+    const res = await fetch(s.path);
+    if (!res.ok) throw new Error(`샘플 이미지 응답 ${res.status}`);
+    blob = await res.blob();
+  } catch (e) {
+    imageNote("샘플 이미지를 이 방식으로는 못 불러왔다(" + (e && e.message ? e.message : e) + ") - file:// 로 열었다면 GitHub Pages 배포판에서 해보거나, 이미지를 직접 붙여넣어라.");
+    return;
+  }
+  await handleImage(blob);
 }
 
 // ============================================================ 시작
 
-$("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (web/build_table.py 가 chemcheck/data 에서 구움). ` +
-  `이름·SMILES 대조와 InChIKey·화학식 계산은 이 브라우저 안에서 표·PubChem·RDKit(WASM) 만으로 끝난다 - 서버가 없다. ` +
-  `이미지는 web/crop.js·web/ocr.js 가 있으면 이름칸을 자동으로 채운다(오늘은 없을 수 있다) - 없어도 두 칸은 그대로 동작한다. ` +
-  `그림 자체를 읽는 검사(OCSR)는 3GB 인식기가 필요해 로컬 CLI 의 몫이다 - 아래 "야생에서 잡은 오류" 참고.`;
-
 setupImageInput();
+setupPageImageButtons();
+setupExamples();
+warmupServer();
 
 const q = new URLSearchParams(location.search);
-if (q.get("name")) $("nameInput").value = q.get("name");
-if (q.get("smiles")) $("smilesInput").value = q.get("smiles");
+if (q.get("name")) $("queryInput").value = q.get("name");
 
 const t0 = performance.now();
 window.initRDKitModule().then((m) => {
   RDKit = m;
   status(`RDKit ${m.version()} 준비됨 (${Math.round(performance.now() - t0)}ms)`);
-  if ($("nameInput").value.trim() || $("smilesInput").value.trim()) evaluate();
+  const sample = q.get("sample");
+  if (sample) loadSample(sample);
+  else if ($("queryInput").value.trim()) attemptResolve($("queryInput").value);
 }).catch((e) => { status(""); fail("RDKit 을 불러오지 못했다: " + e); });

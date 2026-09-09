@@ -57,3 +57,52 @@ torch<2.0 + py3.10 이 필요해 이 배포에 올리지 않았다. 두 번째 �
 
 **슬라이드를 통째로 먹이지 않는다.** 실측에서 탄소 100개짜리 폴리인이 나왔다.
 구조 영역만 잘라 보내야 한다 — 크롭은 프런트(C 트랙 `web/crop.js`)가 맡는다.
+
+## 콜드스타트 — 실측과 대응 (2026-09-10)
+
+    따뜻할 때   0.7 초 (health) / 2.3 초 (check)
+    콜드스타트  약 55 초
+
+가중치를 이미지에 구워도 55 초다. 내려받기가 아니라 **TensorFlow import + 모델 적재**가
+지배적이기 때문이다. 굽기는 콜드스타트를 없애지는 못하지만 zenodo 가 죽어도 컨테이너가
+뜬다는 보장을 준다 (빌드에서 두 번 끊겼던 그 문제).
+
+### 대응 둘 — 같이 쓴다
+
+**1. 페이지가 열릴 때 `/api/health` 를 한 번 부른다 (무료, 기본)**
+
+사용자가 이미지를 붙여넣고 이름을 고치는 동안 컨테이너가 뜬다. 제출할 때쯤이면 따뜻하다.
+크레딧을 쓰지 않는다.
+
+**2. 심사 시간대에만 컨테이너를 상주시킨다 (크레딧 소모)**
+
+```bash
+CHEMCHECK_MIN_CONTAINERS=1 modal deploy server/modal_app.py    # 심사 직전
+CHEMCHECK_MIN_CONTAINERS=0 modal deploy server/modal_app.py    # 끝나면 되돌린다
+```
+
+상주시키면 콜드스타트가 0 이 된다. 유휴 과금이 생기므로 **끝나면 반드시 0 으로 되돌린다.**
+
+### 배포 시 주의 — 배포만으로는 컨테이너가 안 바뀐다
+
+새 코드를 올려도 옛 컨테이너가 계속 서빙한다. 확실히 바꾸려면:
+
+```bash
+modal app stop -y <app-id> && modal deploy server/modal_app.py
+```
+
+어느 코드가 살아 있는지는 `/api/health` 의 `build` 필드로 확인한다.
+
+### 윈도우에서 배포할 때
+
+```bash
+PYTHONUTF8=1 PYTHONIOENCODING=utf-8 TERM=dumb modal deploy server/modal_app.py
+```
+
+없으면 진행바의 유니코드 문자가 cp949 에서 터져 배포가 중단된다.
+
+### 한글 이름
+
+서버는 UTF-8 을 정확히 처리한다(`name=카페인` → 정본 `RYYVLZVUVIJVGH`). 브라우저 `FormData`
+는 UTF-8 이라 문제없다. **윈도우 curl 로 시험할 때만** 명령줄 인자가 cp949 로 바뀌므로
+파일에서 읽어야 한다: `-F "name=<name.utf8.txt"`.

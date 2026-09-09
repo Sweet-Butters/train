@@ -66,13 +66,27 @@ export function mountCropper(container, { onCrop }) {
   // ---- drop zone ----
   const drop = el("div", "cropx-drop", root);
   const p1 = el("p", null, drop);
-  p1.textContent = "이미지를 붙여넣거나(Ctrl+V) 여기로 드래그하세요";
+  p1.textContent = "이미지를 붙여넣거나(Ctrl+V) 끌어오세요 - 폰이면 카메라로 바로 찍어도 됩니다";
   const fileBtn = el("button", null, drop);
   fileBtn.type = "button";
   fileBtn.textContent = "또는 파일 선택";
   const fileInput = el("input", "cropx-input-file", drop);
   fileInput.type = "file";
   fileInput.accept = "image/*";
+
+  // 카메라 - 폰에서는 뒷면 카메라가 바로 열린다(capture). 데스크탑에서는 파일 선택으로 떨어진다.
+  const camBtn = el("button", null, drop);
+  camBtn.type = "button";
+  camBtn.textContent = "카메라로 찍기";
+  const camInput = el("input", "cropx-input-file", drop);
+  camInput.type = "file";
+  camInput.accept = "image/*";
+  camInput.setAttribute("capture", "environment");
+  camBtn.addEventListener("click", () => camInput.click());
+  camInput.addEventListener("change", () => {
+    const f = camInput.files && camInput.files[0];
+    if (f) loadBlob(f);
+  });
 
   fileBtn.addEventListener("click", () => fileInput.click());
   fileInput.addEventListener("change", () => {
@@ -186,7 +200,16 @@ export function mountCropper(container, { onCrop }) {
   });
   confirmBtn.addEventListener("click", () => {
     if (!img) return;
-    cropAtFullRes().then(finish);
+    confirmBtn.disabled = true;
+    const prev = confirmBtn.textContent;
+    confirmBtn.textContent = "자르는 중…";
+    cropAtFullRes()
+      .then((b) => {
+        // 잘라내기가 실패하면(캔버스 한계 등) 조용히 죽지 않고 원본을 보낸다.
+        finish(b || fullBlob);
+      })
+      .catch(() => finish(fullBlob))
+      .finally(() => { confirmBtn.disabled = false; confirmBtn.textContent = prev; });
   });
 
   function reset() {
@@ -195,6 +218,17 @@ export function mountCropper(container, { onCrop }) {
     drop.hidden = false;
     work.hidden = true;
     preview.hidden = true;
+  }
+
+  // 판정이 "너무 크다(슬라이드 통째)" 로 걸렸을 때 부르는 훅. 자르기 화면을 다시 연다.
+  // mountCropper 의 반환값으로 나간다 - 기존 호출부는 반환값을 안 써도 그대로 동작한다.
+  function recrop() {
+    if (!img) return false;
+    preview.hidden = true;
+    drop.hidden = true;
+    work.hidden = false;
+    root.scrollIntoView({ behavior: "smooth", block: "center" });
+    return true;
   }
 
   function finish(blob) {
@@ -207,6 +241,24 @@ export function mountCropper(container, { onCrop }) {
   }
 
   function loadBlob(blob) {
+    // 폰 사진은 EXIF 로 회전 정보가 붙는다. createImageBitmap 이 있으면 그걸로
+    // 방향을 바로잡아 캔버스와 화면이 어긋나지 않게 한다.
+    if (typeof createImageBitmap === "function") {
+      createImageBitmap(blob, { imageOrientation: "from-image" })
+        .then((bmp) => {
+          const c = document.createElement("canvas");
+          c.width = bmp.width; c.height = bmp.height;
+          c.getContext("2d").drawImage(bmp, 0, 0);
+          bmp.close && bmp.close();
+          c.toBlob((b) => loadBlobRaw(b || blob), "image/png");
+        })
+        .catch(() => loadBlobRaw(blob));
+      return;
+    }
+    loadBlobRaw(blob);
+  }
+
+  function loadBlobRaw(blob) {
     const url = URL.createObjectURL(blob);
     const image = new Image();
     image.onload = () => {
@@ -325,16 +377,36 @@ export function mountCropper(container, { onCrop }) {
     }
   }
 
+  // 폰 사진은 4000x3000 이 흔하다. 원본 해상도로 캔버스를 만들면 iOS 의 캔버스
+  // 면적 한계(약 16.7M px)에 걸려 toBlob 이 null 을 돌려주고, 그러면 아무 일도
+  // 일어나지 않는다. 인식기는 1600px 이상을 필요로 하지 않으므로 긴 변을 제한한다.
+  const MAX_OUT = 1600;
+
   async function cropAtFullRes() {
     const inv = 1 / scale;
     const sx = Math.round(rect.x * inv);
     const sy = Math.round(rect.y * inv);
     const sw = Math.max(1, Math.round(rect.w * inv));
     const sh = Math.max(1, Math.round(rect.h * inv));
+
+    const k = Math.min(1, MAX_OUT / Math.max(sw, sh));
+    const ow = Math.max(1, Math.round(sw * k));
+    const oh = Math.max(1, Math.round(sh * k));
+
     const out = document.createElement("canvas");
-    out.width = sw;
-    out.height = sh;
-    out.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-    return new Promise((resolve) => out.toBlob((b) => resolve(b), "image/png"));
+    out.width = ow;
+    out.height = oh;
+    const c = out.getContext("2d");
+    c.fillStyle = "#fff";               // 투명 배경을 흰색으로 - 인식기가 검게 읽지 않게
+    c.fillRect(0, 0, ow, oh);
+    c.drawImage(img, sx, sy, sw, sh, 0, 0, ow, oh);
+
+    return new Promise((resolve) => {
+      try {
+        out.toBlob((b) => resolve(b || null), "image/png");
+      } catch (e) { resolve(null); }
+    });
   }
+
+  return { recrop, reset, load: loadBlob };
 }

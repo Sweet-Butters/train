@@ -129,6 +129,33 @@ image = (
     .run_function(_bake_weights)
 )
 
+# ── MolScribe (다른 앱·다른 이미지·다른 컨테이너) ────────────────────────────
+# 같은 컨테이너에 두지 않는다. py3.10/torch1.x 와 py3.11/TF 는 섞이지 않고,
+# 서버리스에서는 섞을 이유도 없다 - 메모리를 공유하지 않으므로 병렬이 공짜다.
+# 이 경로가 통째로 실패해도 DECIMER 판정은 그대로 나가야 한다.
+def _molscribe_spawn(image_bytes: bytes):
+    """MolScribe 추론을 원격에서 시작만 하고 핸들을 준다. 실패하면 None."""
+    try:
+        cls = modal.Cls.from_name("chemcheck-molscribe", "MolScribeReader")
+        return cls().read.spawn(image_bytes)
+    except Exception as exc:
+        print("MolScribe spawn 실패:", exc)
+        return None
+
+
+def _molscribe_collect(handle, timeout: float = 180.0):
+    """핸들에서 결과를 수거한다. 무엇이 잘못돼도 (None, 사유) 로 돌려준다."""
+    if handle is None:
+        return None, "MolScribe 를 호출하지 못했습니다"
+    try:
+        out = handle.get(timeout=timeout)
+    except Exception as exc:
+        return None, f"MolScribe 응답 실패: {type(exc).__name__}"
+    if not isinstance(out, dict) or out.get("error"):
+        return None, f"MolScribe: {(out or {}).get('error', '알 수 없음')}"
+    return out, None
+
+
 app = modal.App("chemcheck-web")
 
 
@@ -202,8 +229,15 @@ class Api:
 
         @api.get("/api/health")
         def health():
-            return {"ok": True, "engine": "decimer", "build": "baked-weights-4", "ready": bool(self.ready),
-                    "error": self.engine_error}
+            ms = "unknown"
+            try:
+                modal.Cls.from_name("chemcheck-molscribe", "MolScribeReader")
+                ms = "reachable"
+            except Exception as exc:
+                ms = f"unreachable: {type(exc).__name__}"
+            return {"ok": True, "engines": ["decimer", "molscribe"], "engine": "decimer",
+                    "build": "two-engines-1", "ready": bool(self.ready),
+                    "molscribe": ms, "error": self.engine_error}
 
         # FastAPI 의 의존성 주입을 쓰지 않는다. 이 라우트가 메서드 안에서 정의되므로
         # pydantic 이 어노테이션(UploadFile, Request)을 모듈 전역에서 찾다가 실패한다.
@@ -233,10 +267,20 @@ class Api:
             except Exception as exc:  # 이름 해석이 죽어도 그림 읽기는 계속한다
                 print("이름 해석 실패:", exc)
 
+            from server.judge import EngineRead
+
+            # MolScribe 를 먼저 띄워 두고(원격), DECIMER 를 여기서 돌린다 - 둘이 겹쳐 돈다.
+            ms_handle = _molscribe_spawn(data)
             reads, err = self._read(data, getattr(upload, "filename", "") or "")
+            ms_out, ms_err = _molscribe_collect(ms_handle)
+            if ms_out and ms_out.get("smiles"):
+                reads = list(reads) + [EngineRead("molscribe", ms_out["smiles"], ms_out.get("confidence"))]
+
             result = build_result(name, ref, reads)
             if err and not reads:
                 result["reasons"].append(f"인식기 사유: {err}")
+            if ms_err:
+                result["reasons"].append(ms_err)
             result["elapsed_ms"] = int((time.monotonic() - started) * 1000)
             return JSONResponse(result)
 

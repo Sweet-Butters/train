@@ -1,0 +1,377 @@
+[
+ {
+  "file": "gemini__acetic_acid__crop.png",
+  "model": "gemini",
+  "compound": "acetic acid",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "MUBZPKHOEPUJKR-UHFFFAOYSA-L",
+  "read_formula": "C2O4",
+  "ref_key": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 MUBZPKHOEPUJKR 로 읽었습니다",
+   "molscribe 는 AQICKMRWNDOAEM 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 10.8
+ },
+ {
+  "file": "gemini__acetone__crop.png",
+  "model": "gemini",
+  "compound": "acetone",
+  "crop": true,
+  "verdict": "mismatch",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "IFVHXUDNYZLJED-UHFFFAOYSA-N",
+  "read_formula": "C5IO",
+  "ref_key": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 다릅니다 (IFVHXUDNYZLJED vs CSCPPACGZOOCGX)",
+   "중원자 조성 C5IO vs C3O",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 6.1
+ },
+ {
+  "file": "gemini__aspirin__crop.png",
+  "model": "gemini",
+  "compound": "aspirin",
+  "crop": true,
+  "verdict": "mismatch",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "YMHMQRQFHHILOO-UHFFFAOYSA-N",
+  "read_formula": "C7FIO2",
+  "ref_key": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 다릅니다 (YMHMQRQFHHILOO vs BSYNRYMUTXBXSQ)",
+   "중원자 조성 C7FIO2 vs C9O4",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 6.7
+ },
+ {
+  "file": "gemini__caffeine__crop.png",
+  "model": "gemini",
+  "compound": "caffeine",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "YFRBLUMIYKFZHU-UHFFFAOYSA-M",
+  "read_formula": "C4ClN2O2",
+  "ref_key": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 YFRBLUMIYKFZHU 로 읽었습니다",
+   "molscribe 는 LVKRRKSQUQTPAI 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 6.7
+ },
+ {
+  "file": "gemini__ethanol__crop.png",
+  "model": "gemini",
+  "compound": "ethanol",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "HNNUOYRFPJIWHG-UHFFFAOYSA-N",
+  "read_formula": "C2I3",
+  "ref_key": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 HNNUOYRFPJIWHG 로 읽었습니다",
+   "molscribe 는 IDXGSHWLVNBFDX 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 6.5
+ },
+ {
+  "file": "gemini__glucose__crop.png",
+  "model": "gemini",
+  "compound": "glucose",
+  "crop": true,
+  "verdict": "mismatch",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "CDXKFLTVUHFKMC-UHFFFAOYSA-N",
+  "read_formula": "C10O7",
+  "ref_key": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+  "reasons": [
+   "골격이 다릅니다 (CDXKFLTVUHFKMC vs WQZGKKKJIJFFOK)",
+   "중원자 조성 C10O7 vs C6O6",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 4.6
+ },
+ {
+  "file": "gemini__nicotine__crop.png",
+  "model": "gemini",
+  "compound": "nicotine",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "ITQTTZVARXURQS-MICDWDOJSA-N",
+  "read_formula": "C6HN",
+  "ref_key": "SNICXCGAKADSCV-JTQLQIEISA-N",
+  "reasons": [
+   "decimer 는 ITQTTZVARXURQS 로 읽었습니다",
+   "molscribe 는 NWFPROSIZZLOJD 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 4.1
+ },
+ {
+  "file": "gemini__penicillin_g__crop.png",
+  "model": "gemini",
+  "compound": "penicillin g",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "VCMMUJUSCHONQC-DMTCNVIQSA-N",
+  "read_formula": "C7N2O5",
+  "ref_key": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+  "reasons": [
+   "decimer 는 VCMMUJUSCHONQC 로 읽었습니다",
+   "molscribe 는 IDMDXYWVDIPLKS 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 4.3
+ },
+ {
+  "file": "gemini__phenol__crop.png",
+  "model": "gemini",
+  "compound": "phenol",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "NURGPCUCEYUUFC-UHFFFAOYSA-N",
+  "read_formula": "C15ClO2",
+  "ref_key": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 NURGPCUCEYUUFC 로 읽었습니다",
+   "molscribe 는 ISWSIDIOOBJBQZ 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 3.8
+ },
+ {
+  "file": "gemini__toluene__crop.png",
+  "model": "gemini",
+  "compound": "toluene",
+  "crop": true,
+  "verdict": "match",
+  "grade": "strong",
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+  "read_formula": "C7",
+  "ref_key": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 같습니다 (InChIKey 앞 14자 YXFVVABEGXRONW)",
+   "인식기 2개(decimer · molscribe)가 같은 골격에 합의했습니다 - 확신 등급 strong"
+  ],
+  "sec": 3.9
+ },
+ {
+  "file": "gpt__acetic_acid__crop.png",
+  "model": "gpt",
+  "compound": "acetic acid",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "MPRSBVMFSOOEQQ-UHFFFAOYSA-N",
+  "read_formula": "C2I4O2",
+  "ref_key": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 MPRSBVMFSOOEQQ 로 읽었습니다",
+   "molscribe 는 DNDDQARFGPTBLR 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 4.4
+ },
+ {
+  "file": "gpt__acetone__crop.png",
+  "model": "gpt",
+  "compound": "acetone",
+  "crop": true,
+  "verdict": "match",
+  "grade": "strong",
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+  "read_formula": "C3O",
+  "ref_key": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 같습니다 (InChIKey 앞 14자 CSCPPACGZOOCGX)",
+   "인식기 2개(decimer · molscribe)가 같은 골격에 합의했습니다 - 확신 등급 strong"
+  ],
+  "sec": 4.2
+ },
+ {
+  "file": "gpt__aspirin__crop.png",
+  "model": "gpt",
+  "compound": "aspirin",
+  "crop": true,
+  "verdict": "mismatch",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "ZDUPYLSHMKCSJG-WTRHXODISA-N",
+  "read_formula": "C12HO2",
+  "ref_key": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 다릅니다 (ZDUPYLSHMKCSJG vs BSYNRYMUTXBXSQ)",
+   "중원자 조성 C12HO2 vs C9O4",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 4.2
+ },
+ {
+  "file": "gpt__caffeine__crop.png",
+  "model": "gpt",
+  "compound": "caffeine",
+  "crop": true,
+  "verdict": "mismatch",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "UUGMJQVJWVCSIT-UHFFFAOYSA-N",
+  "read_formula": "C9N4O",
+  "ref_key": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 다릅니다 (UUGMJQVJWVCSIT vs RYYVLZVUVIJVGH)",
+   "중원자 조성 C9N4O vs C8N4O2",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 4.7
+ },
+ {
+  "file": "gpt__ethanol__crop.png",
+  "model": "gpt",
+  "compound": "ethanol",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "SHSXFBDPEUTEAO-UHFFFAOYSA-N",
+  "read_formula": "C3O",
+  "ref_key": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 SHSXFBDPEUTEAO 로 읽었습니다",
+   "molscribe 는 LFQSCWFLJHTTHZ 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 4.2
+ },
+ {
+  "file": "gpt__glucose__crop.png",
+  "model": "gpt",
+  "compound": "glucose",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "BXBOVEQFQMTJHF-WHPLSWTGSA-M",
+  "read_formula": "C8NO6",
+  "ref_key": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+  "reasons": [
+   "decimer 는 BXBOVEQFQMTJHF 로 읽었습니다",
+   "molscribe 는 NAFWOZFYEYSJTE 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 28.9
+ },
+ {
+  "file": "gpt__nicotine__crop.png",
+  "model": "gpt",
+  "compound": "nicotine",
+  "crop": true,
+  "verdict": "mismatch",
+  "grade": "strong",
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "DIKDZTJPTFJYAI-UHFFFAOYSA-N",
+  "read_formula": "C10N2",
+  "ref_key": "SNICXCGAKADSCV-JTQLQIEISA-N",
+  "reasons": [
+   "골격이 다릅니다 (DIKDZTJPTFJYAI vs SNICXCGAKADSCV)",
+   "인식기 2개(decimer · molscribe)가 같은 골격에 합의했습니다 - 확신 등급 strong"
+  ],
+  "sec": 4.5
+ },
+ {
+  "file": "gpt__penicillin_g__crop.png",
+  "model": "gpt",
+  "compound": "penicillin g",
+  "crop": true,
+  "verdict": "match",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "JGSARLDLIJGVTE-LXVYMNJGSA-N",
+  "read_formula": "C16N2O4S",
+  "ref_key": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+  "reasons": [
+   "골격이 같습니다 (InChIKey 앞 14자 JGSARLDLIJGVTE)",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 4.8
+ },
+ {
+  "file": "gpt__phenol__crop.png",
+  "model": "gpt",
+  "compound": "phenol",
+  "crop": true,
+  "verdict": "unreadable",
+  "grade": null,
+  "engines": 2,
+  "parse_fail": 0,
+  "read_key": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+  "read_formula": "C8",
+  "ref_key": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+  "reasons": [
+   "decimer 는 PPBRXRYQALVLMV 로 읽었습니다",
+   "molscribe 는 BTHXCUSWKFYPBF 로 읽었습니다",
+   "인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)"
+  ],
+  "sec": 4.0
+ },
+ {
+  "file": "gpt__toluene__crop.png",
+  "model": "gpt",
+  "compound": "toluene",
+  "crop": true,
+  "verdict": "match",
+  "grade": "weak",
+  "engines": 2,
+  "parse_fail": 1,
+  "read_key": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+  "read_formula": "C7",
+  "ref_key": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+  "reasons": [
+   "골격이 같습니다 (InChIKey 앞 14자 YXFVVABEGXRONW)",
+   "유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다"
+  ],
+  "sec": 4.3
+ }
+]

@@ -1,0 +1,14 @@
+.git
+__pycache__
+*.pyc
+.venv
+.venv310
+.venv-seg
+.wheels
+models
+docs
+web
+bench
+tests
+samples
+*.log
