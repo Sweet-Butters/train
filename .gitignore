@@ -28,3 +28,8 @@ __pycache__/
 venv/
 *.egg-info/
 .pytest_cache/
+
+# 개인 LLM 대화 저장본 - 공개 저장소에 넣지 않는다 (2026-09-09)
+*- Claude.html
+*- Claude_files/
+*_files/
