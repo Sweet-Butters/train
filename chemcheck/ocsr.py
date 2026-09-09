@@ -28,6 +28,11 @@ class Engine:
     def recognize(self, image_path: Path) -> Prediction | None:
         raise NotImplementedError
 
+    def recognize_all(self, image_path: Path) -> list[Prediction]:
+        """이 인식기가 내놓는 모든 예측. 기본은 한 개."""
+        pred = self.recognize(image_path)
+        return [pred] if pred is not None else []
+
 
 class MolScribeEngine(Engine):
     name = "molscribe"
@@ -90,5 +95,56 @@ class DecimerEngine(Engine):
 
 def load_engines(molscribe_checkpoint: Path | None = None) -> list[Engine]:
     """설치돼 있고 실제로 쓸 수 있는 인식기만 돌려준다."""
-    engines = [MolScribeEngine(molscribe_checkpoint), DecimerEngine()]
+    engines: list[Engine] = [MolScribeEngine(molscribe_checkpoint)]
+    decimer = DecimerEngine()
+    # DECIMER는 신뢰도를 주지 않으므로 자체 일관성 검사로 감싼다.
+    engines.append(SelfConsistent(decimer) if decimer.available() else decimer)
     return [e for e in engines if e.available()]
+
+
+class SelfConsistent(Engine):
+    """한 인식기를 살짝 변형한 이미지들에 반복 적용해 스스로 합의하는지 본다.
+
+    DECIMER처럼 신뢰도를 주지 않는 인식기는 단독으로 쓰면 오인식이 그대로
+    '오류' 오판이 된다. 크기를 조금 바꾼 이미지에서 답이 흔들리면 그 인식은
+    믿을 수 없다는 뜻이므로, 서로 다른 예측을 그대로 내보내 합의 게이트에서
+    보류로 걸리게 한다.
+    """
+
+    SCALES = (1.0, 0.9, 1.15)
+
+    def __init__(self, base: Engine, scales: tuple[float, ...] = SCALES):
+        self.base = base
+        self.scales = scales
+        self.name = f"{base.name}-selfconsistent"
+
+    def available(self) -> bool:
+        return self.base.available()
+
+    def recognize(self, image_path: Path) -> Prediction | None:
+        preds = self.recognize_all(image_path)
+        return preds[0] if preds else None
+
+    def recognize_all(self, image_path: Path) -> list[Prediction]:
+        from tempfile import TemporaryDirectory
+
+        from PIL import Image
+
+        out: list[Prediction] = []
+        with TemporaryDirectory() as tmp:
+            with Image.open(image_path) as src:
+                base_img = src.convert("RGB")
+                for i, scale in enumerate(self.scales, start=1):
+                    if scale == 1.0:
+                        target = image_path
+                    else:
+                        size = (max(1, int(base_img.width * scale)),
+                                max(1, int(base_img.height * scale)))
+                        variant = base_img.resize(size, Image.LANCZOS)
+                        target = Path(tmp) / f"v{i}{image_path.suffix or '.png'}"
+                        variant.save(target)
+                    pred = self.base.recognize(Path(target))
+                    if pred is not None:
+                        out.append(Prediction(pred.smiles, pred.confidence,
+                                              f"{self.base.name}/x{scale:g}"))
+        return out

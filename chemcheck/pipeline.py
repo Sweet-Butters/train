@@ -51,9 +51,7 @@ def run(
         for image in slide.images:
             predictions = []
             for engine in engines:
-                pred = engine.recognize(image)
-                if pred is not None:
-                    predictions.append(pred)
+                predictions.extend(engine.recognize_all(image))
             findings.append((image, judge(refs, predictions)))
         results.append(SlideResult(slide, refs, findings))
     return results
