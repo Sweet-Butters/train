@@ -26,8 +26,17 @@ class Engine:
     # 마지막 recognize 가 결과를 못 낸 이유. 조용히 None 만 돌려주면 사용자는
     # 인식기가 못 읽은 것인지 죽은 것인지 알 수 없다.
     last_error: str | None = None
+    # available() 이 False 인 이유. 없으면 None.
+    unavailable_reason: str | None = None
 
     def available(self) -> bool:
+        """이 인식기를 쓸 수 있는가. **절대 예외를 올리지 않는다.**
+
+        인식기 하나가 터져서 도구 전체가 죽으면 안 된다. import 가 어떤 예외로
+        죽든 (ImportError 뿐 아니라 DLL 을 못 찾은 OSError, 깨진 가중치의
+        BadZipFile, 끊긴 회선) '없다' 로 접고 unavailable_reason 에 이유를 남긴다.
+        tests/test_engines.py::test_available_never_raises 가 이 계약을 지킨다.
+        """
         raise NotImplementedError
 
     def recognize(self, image_path: Path) -> Prediction | None:
@@ -45,13 +54,23 @@ class MolScribeEngine(Engine):
     def __init__(self, checkpoint: Path | None = None):
         self.checkpoint = checkpoint
         self._model = None
+        self.unavailable_reason: str | None = None
 
     def available(self) -> bool:
+        if self._model is not None:
+            return True
+        if self.checkpoint is None or not self.checkpoint.exists():
+            self.unavailable_reason = f"체크포인트 없음: {self.checkpoint}"
+            return False
         try:
             import molscribe  # noqa: F401
-        except ImportError:
+        except Exception as exc:
+            # ImportError 만이 아니다. 윈도우의 torch 는 DLL 을 못 찾으면 OSError
+            # 로 죽는다. 어느 쪽이든 인식기가 없는 것이지 도구가 죽을 일은 아니다.
+            self.unavailable_reason = f"{type(exc).__name__}: {exc}"
             return False
-        return self.checkpoint is not None and self.checkpoint.exists()
+        self.unavailable_reason = None
+        return True
 
     def recognize(self, image_path: Path) -> Prediction | None:
         if not self.available():
@@ -243,6 +262,10 @@ class SelfConsistent(Engine):
         self.base = base
         self.scales = scales
         self.name = f"{base.name}-selfconsistent"
+
+    @property
+    def unavailable_reason(self) -> str | None:
+        return self.base.unavailable_reason
 
     def available(self) -> bool:
         return self.base.available()

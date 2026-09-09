@@ -35,9 +35,33 @@ def load_rgb(path: str):
         return np.asarray(img.convert("RGB"))
 
 
+def _serial_convert_graph_to_smiles(coords, symbols, edges, images=None, num_workers=1):
+    """molscribe.chemistry.convert_graph_to_smiles 와 같은 일을 프로세스 없이 한다.
+
+    원본은 이미지 한 장을 넣어도 multiprocessing.Pool(16) 을 열어 그래프 하나를
+    후처리한다. 윈도우는 spawn 이라 자식 16개가 각각 파이썬과 rdkit 을 새로
+    올린다 - 이 기계(16GB)에서 장당 프로세스 18~27개, 십수 초가 그 값이다.
+    이 워커는 한 번에 한 장만 다루므로 같은 프로세스에서 순서대로 하면 된다.
+    """
+    import numpy as np
+    from molscribe.chemistry import _convert_graph_to_smiles
+
+    if images is None:
+        results = [_convert_graph_to_smiles(c, s, e) for c, s, e in zip(coords, symbols, edges)]
+    else:
+        results = [_convert_graph_to_smiles(c, s, e, im)
+                   for c, s, e, im in zip(coords, symbols, edges, images)]
+    smiles_list, molblock_list, success = zip(*results)
+    return smiles_list, molblock_list, float(np.mean(success))
+
+
 def load_molscribe(checkpoint: str):
     import torch
-    from molscribe import MolScribe
+    from molscribe import MolScribe, interface
+
+    # predict_images 는 num_workers 를 넘길 자리가 없다. interface 모듈이 이름을
+    # 직접 들여왔으므로 그 이름을 바꿔치기한다.
+    interface.convert_graph_to_smiles = _serial_convert_graph_to_smiles
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = MolScribe(checkpoint, device=device)
