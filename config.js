@@ -5,4 +5,4 @@
 // grade 가 항상 weak 이고 합의 게이트가 잠들어 있다. Modal 은 두 엔진이
 // 붙어 있어 둘이 골격에 합의하면 strong, 갈리면 판정하지 않는다.
 // (Cloud Run 에 MolScribe 를 올리면 다시 이 줄만 바꾸면 된다 - 서울 리전이라 더 빠르다)
-window.CHEMCHECK_SERVER = "https://pxh7yp--chemcheck.modal.run";
+window.CHEMCHECK_SERVER = "https://chemcheck-361680004842.asia-northeast3.run.app";
