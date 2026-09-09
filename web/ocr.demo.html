@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>OCR demo — readLabels()</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+  fieldset { margin-bottom: 1.5rem; }
+  img { max-width: 320px; display: block; margin: 0.5rem 0; border: 1px solid #ccc; }
+  pre { background: #f4f4f4; padding: 0.75rem; white-space: pre-wrap; word-break: break-all; }
+  .status { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>web/ocr.js — readLabels() 수동/자동 검증 페이지</h1>
+<p>파일을 선택하면 <code>readLabels(blob)</code> 결과를 JSON 으로 보여준다. file:// 로 열어도 동작해야 한다.</p>
+
+<input id="file-input" type="file" accept="image/*" />
+<p>
+  또는 저장소에 있는 실측 자료(<code>web/evidence/</code>)를 바로 시험:
+  <button type="button" data-evidence="evidence/caffeine_gpt.png">caffeine_gpt.png</button>
+  <button type="button" data-evidence="evidence/caffeine_gemini.jpeg">caffeine_gemini.jpeg</button>
+  <button type="button" data-evidence="evidence/alanine_gpt.png">alanine_gpt.png</button>
+  <button type="button" data-evidence="evidence/alanine_gemini.jpeg">alanine_gemini.jpeg</button>
+</p>
+<div id="results"></div>
+
+<script type="module">
+  import { readLabels } from './ocr.js';
+
+  const input = document.getElementById('file-input');
+  const results = document.getElementById('results');
+
+  async function runOne(name, blob) {
+    const box = document.createElement('fieldset');
+    box.innerHTML = `<legend>${name}</legend><div class="status">읽는 중...</div>`;
+    results.appendChild(box);
+
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(blob);
+    box.appendChild(img);
+
+    const t0 = performance.now();
+    const out = await readLabels(blob);
+    const ms = Math.round(performance.now() - t0);
+
+    const statusEl = box.querySelector('.status');
+    statusEl.textContent = `완료 (${ms}ms)`;
+
+    const pre = document.createElement('pre');
+    pre.textContent = JSON.stringify(out, null, 2);
+    box.appendChild(pre);
+
+    // 자동화 테스트가 읽을 수 있도록 결과를 window 에도 노출.
+    window.__ocrResults = window.__ocrResults || {};
+    window.__ocrResults[name] = out;
+    window.dispatchEvent(new CustomEvent('ocr-result', { detail: { name, out } }));
+  }
+
+  input.addEventListener('change', () => {
+    for (const file of input.files) {
+      runOne(file.name, file);
+    }
+  });
+
+  for (const btn of document.querySelectorAll('button[data-evidence]')) {
+    btn.addEventListener('click', async () => {
+      const path = btn.dataset.evidence;
+      const resp = await fetch(path);
+      const blob = await resp.blob();
+      runOne(path.split('/').pop(), blob);
+    });
+  }
+
+  // 자동화(Playwright)에서 호출: 외부에서 blob 을 넣어 readLabels 를 돌린다.
+  window.__runOcrOn = async (name, blob) => runOne(name, blob);
+</script>
+</body>
+</html>
