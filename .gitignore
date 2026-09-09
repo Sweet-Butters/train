@@ -31,6 +31,7 @@ venv/
 
 # 로컬 환경 (커밋하지 않음)
 .venv/
+.venv310/
 .wheels/
 models/
 samples/demo_*.png

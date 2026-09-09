@@ -1,28 +1,35 @@
 #!/usr/bin/env bash
-# OCSR(MolScribe) 설치 전체 과정. 회선이 불안정해도 이어받고 재시도한다.
-# 다시 실행해도 안전하다 — 이미 받은 부분은 건너뛴다.
+# MolScribe(OCSR) 환경 구성.
+#
+# 왜 Python 3.10인가:
+#   MolScribe 1.1.1 은 torch<2.0 과 2021년대 라이브러리에 고정돼 있다.
+#   torch 1.x 는 Python 3.11 이후 휠이 없으므로 3.10 으로 별도 환경을 만든다.
+# DECIMER 를 대신하는 게 아니라 옆에 세우는 것이다:
+#   판정은 여러 인식기의 합의로 한다. 한 쪽이 오인식해도 합의가 깨지면 보류된다.
+#   특히 DECIMER 는 신뢰도 점수를 주지 않는데 MolScribe 는 준다. 서로를 메운다.
+#   DECIMER 쪽 환경은 .venv 와 scripts/fetch_decimer.sh 가 맡는다.
+#
+# 두 환경을 나누는 이유는 순전히 의존성 충돌 때문이다. 한 프로세스에서
+# py3.10/torch1.x 와 py3.13/TF 를 같이 올릴 수 없다.
+#
+# 회선이 불안정해도 이어받는다. 다시 실행해도 안전하다.
 set -u
 cd "$(dirname "$0")/.."
 
-PY=./.venv/Scripts/python.exe
-WHEEL=.wheels/torch-2.14.0+cpu-cp313-cp313-win_amd64.whl
-TORCH_URL="https://download.pytorch.org/whl/cpu/torch-2.14.0%2Bcpu-cp313-cp313-win_amd64.whl"
+VENV=.venv310
+PY="$VENV/Scripts/python.exe"
 
-# 30초 동안 10KB/s 밑이면 끊고 재시도한다. 이게 없으면 curl이 죽은 연결에 매달린다.
-STALL="--speed-time 30 --speed-limit 10000 --retry 50 --retry-all-errors --retry-delay 5 --connect-timeout 30"
+echo "[1/3] Python 3.10 가상환경"
+if [ ! -x "$PY" ]; then
+  py -3.10 -m venv "$VENV" || exit 1
+fi
+"$PY" -m pip install -q --upgrade pip
 
-echo "[1/4] torch 휠 내려받기"
-mkdir -p .wheels
-curl -L $STALL -C - -o "$WHEEL" "$TORCH_URL" || true
-ls -la "$WHEEL"
+echo "[2/3] molscribe + 파이프라인 의존성"
+"$PY" -m pip install --no-cache-dir molscribe || exit 1
+"$PY" -m pip install --no-cache-dir rdkit pymupdf python-pptx requests pillow || exit 1
 
-echo "[2/4] torch 설치"
-"$PY" -m pip install --no-cache-dir "$WHEEL" || exit 1
-
-echo "[3/4] molscribe + 의존성 설치"
-"$PY" -m pip install --no-cache-dir molscribe rdkit pymupdf python-pptx requests || exit 1
-
-echo "[4/4] 체크포인트 내려받기 (약 1.13GB)"
+echo "[3/3] 체크포인트 (약 1.13GB, HuggingFace)"
 PYTHONIOENCODING=utf-8 "$PY" scripts/fetch_models.py molscribe
 
 echo "완료"
