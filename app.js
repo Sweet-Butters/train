@@ -11,6 +11,7 @@ const BY_KEY = {};
 for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
 const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
 const CHECK_URL = "https://pxh7yp--chemcheck.modal.run/api/check";
+const HEALTH_URL = "https://pxh7yp--chemcheck.modal.run/api/health";
 const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
 
 const $ = (id) => document.getElementById(id);
@@ -612,6 +613,17 @@ function renderImageVerdict(json) {
   }
 }
 
+// 콜드스타트가 55초(따뜻하면 2.3초) - 페이지가 열리자마자 조용히 한 번 깨워 둔다.
+// 응답은 상태 표시에만 쓴다. 실패해도 무시한다 - 크레딧 안 쓰는 공짜 최적화다.
+function warmupServer() {
+  const el = $("serverStatus");
+  fetch(HEALTH_URL).then((res) => {
+    el.textContent = res.ok ? "그림 검사 준비됨" : "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+  }).catch(() => {
+    el.textContent = "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+  });
+}
+
 // ============================================================ 시작
 
 $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (web/build_table.py 가 chemcheck/data 에서 구움). ` +
@@ -620,6 +632,7 @@ $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (w
   `처음이면(콜드스타트) 최대 1분, 서버가 응답하지 않으면 정본만 보여준다.`;
 
 setupImageInput();
+warmupServer();
 
 const q = new URLSearchParams(location.search);
 if (q.get("name")) $("nameInput").value = q.get("name");
