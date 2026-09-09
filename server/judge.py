@@ -24,6 +24,7 @@ from chemcheck.keys import heavy_atom_formula, skeleton, smiles_to_inchikey
 # 엔진이 DECIMER 하나뿐이므로 등급은 언제나 weak 다. 두 엔진이 합의해야 strong 인데
 # MolScribe(torch<2.0, py3.10)는 이 배포에 올리지 않았다. 없는 확신을 지어내지 않는다.
 GRADE_SINGLE_ENGINE = "weak"
+GRADE_CONSENSUS = "strong"
 
 
 @dataclass(frozen=True)
@@ -85,11 +86,34 @@ def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
     reasons: list[str] = []
     engines = [_engine_entry(r) for r in reads]
 
-    # 대표 예측: 첫 엔진의 답. 엔진이 하나뿐이므로 고를 것이 없다.
-    primary = reads[0] if reads else None
+    # 엔진마다 (읽은 것, InChIKey, 골격). RDKit 이 분자로 못 받는 답은 유효하지 않다.
+    parsed = []
+    for r in reads:
+        key = smiles_to_inchikey(r.smiles) if r.smiles else None
+        parsed.append((r, key, skeleton(key) if key else None))
+    valid = [x for x in parsed if x[1]]
+
+    # ── 합의 게이트: 유효한 읽기가 둘 이상인데 골격이 갈리면 판정하지 않는다 ──
+    # README 가 약속한 그것이다. 어느 쪽이 맞는지 우리가 모르므로, 이름과 대조해
+    # 맞는 쪽을 고르면 그건 확증 편향이지 판정이 아니다.
+    skels = {x[2] for x in valid}
+    if len(valid) >= 2 and len(skels) > 1:
+        for r, key, sk in valid:
+            reasons.append(f"{r.engine} 는 {sk} 로 읽었습니다")
+        reasons.append("인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)")
+        return {"verdict": "unreadable", "grade": None,
+                "reference": _reference_block(ref),
+                "read": {"smiles": valid[0][0].smiles, "inchikey": valid[0][1],
+                         "heavy_formula": heavy_atom_formula(valid[0][0].smiles),
+                         "engines": engines},
+                "reasons": reasons}
+
+    # 대표 예측: 유효한 것이 있으면 그중 첫째, 없으면 첫 엔진의 답(파싱 실패 진단용).
+    primary = valid[0][0] if valid else (reads[0] if reads else None)
     read_smiles = primary.smiles if primary else None
-    read_key = smiles_to_inchikey(read_smiles) if read_smiles else None
+    read_key = valid[0][1] if valid else None
     read_formula = heavy_atom_formula(read_smiles) if read_smiles else None
+    grade = GRADE_CONSENSUS if len(valid) >= 2 else GRADE_SINGLE_ENGINE
 
     read_block = {
         "smiles": read_smiles,
@@ -136,6 +160,10 @@ def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
             reasons.append(hint)
         verdict = "mismatch"
 
-    reasons.append("인식기가 하나뿐이라 확신 등급은 weak 입니다")
-    return {"verdict": verdict, "grade": GRADE_SINGLE_ENGINE,
+    if grade == GRADE_CONSENSUS:
+        names = " · ".join(x[0].engine for x in valid)
+        reasons.append(f"인식기 {len(valid)}개({names})가 같은 골격에 합의했습니다 - 확신 등급 strong")
+    else:
+        reasons.append("유효한 구조를 낸 인식기가 하나뿐이라 확신 등급은 weak 입니다")
+    return {"verdict": verdict, "grade": grade,
             "reference": _reference_block(ref), "read": read_block, "reasons": reasons}
