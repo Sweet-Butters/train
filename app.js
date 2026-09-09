@@ -482,10 +482,36 @@ function setupExamples() {
 
 let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에 걸리면 다시 연다
 
+// ── index.html 이 제공하는 촬영·지우기 버튼을 배선한다 ─────────────────────
+// 재설계에서 #cameraBtn / #cameraInput / #imageClear 가 dropzone **밖에** 생겼는데
+// app.js 는 그것들을 모르고 있었다. crop.js 는 dropzone 안만 다시 그리므로 이
+// 버튼들은 아무도 듣지 않는 채 남아 있었다 - 눌러도 아무 일이 없던 이유다.
+function setupPageImageButtons() {
+  const camBtn = $("cameraBtn"), camInput = $("cameraInput");
+  if (camBtn && camInput) {
+    camBtn.addEventListener("click", () => camInput.click());
+    camInput.addEventListener("change", () => {
+      const f = camInput.files && camInput.files[0];
+      camInput.value = "";                       // 같은 사진을 다시 찍어도 change 가 뜨게
+      if (!f) return;
+      if (CROPPER && typeof CROPPER.load === "function") CROPPER.load(f);
+      else { showImagePreview(f); handleImage(f); }
+    });
+  }
+  const clear = $("imageClear");
+  if (clear) {
+    clear.addEventListener("click", () => {
+      if (CROPPER && typeof CROPPER.reset === "function") CROPPER.reset();
+      const box = $("imagePreview"); if (box) box.hidden = true;
+      imageNote("");
+    });
+  }
+}
+
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100444");
+    const mod = await import("./crop.js?v=202609100451");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
       usingCropper = true;
@@ -521,11 +547,17 @@ function setupBasicImageInput(dropzone) {
 }
 function showImagePreview(blob) {
   const box = $("imagePreview");
-  box.innerHTML = ""; box.hidden = false;
-  const img = document.createElement("img");
+  if (!box) return;
+  box.hidden = false;
+  // 재설계된 index.html 은 <img id="imagePreviewImg"> 와 "지우기" 버튼을 이미 갖고
+  // 있다. innerHTML 을 비우면 그 버튼까지 날아간다 - 있으면 그대로 쓴다.
+  let img = $("imagePreviewImg");
+  if (!img) {
+    img = document.createElement("img");
+    img.alt = "넣은 이미지";
+    box.appendChild(img);
+  }
   img.src = URL.createObjectURL(blob);
-  img.alt = "붙여넣은 이미지";
-  box.appendChild(img);
 }
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
@@ -535,7 +567,7 @@ async function handleImage(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100444");
+    const mod = await import("./ocr.js?v=202609100451");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
@@ -936,6 +968,7 @@ async function loadSample(key) {
 // ============================================================ 시작
 
 setupImageInput();
+setupPageImageButtons();
 setupExamples();
 warmupServer();
 
