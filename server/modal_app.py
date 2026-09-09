@@ -173,7 +173,7 @@ class Api:
 
         @api.get("/api/health")
         def health():
-            return {"ok": True, "engine": "decimer", "ready": bool(self.ready),
+            return {"ok": True, "engine": "decimer", "build": "form-direct-2", "ready": bool(self.ready),
                     "error": self.engine_error}
 
         @api.post("/api/check")
