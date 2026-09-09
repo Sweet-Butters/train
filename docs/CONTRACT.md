@@ -102,3 +102,32 @@ bash scripts/setup_lite.sh      # 무거운 것 없이 파이프라인 의존성
 
 새 테스트를 어느 방식으로 쓰든 상관없지만, "통과했다"고 말하기 전에는 반드시
 `pytest tests/` 로 확인한다.
+
+## 개정 1 — 분할기와 베이스 인프라 (코디네이터 결정, `docs/DIRECTION.md`)
+
+포크 이후 새로 생긴 파일들이 소유표에 없어서, 통합 브랜치가 한 트랙의 작업대가
+되는 일이 벌어졌다. 경계를 다시 긋는다.
+
+| 대상 | 소유 |
+|---|---|
+| `chemcheck/bridge.py` | **없음 - 베이스 인프라.** `setup_lite.sh` 와 같다. 프로세스 너머 워커를 쓰는 트랙이 이미 둘이다. 변경은 코디네이터를 거친다 |
+| `chemcheck/segment.py`, `scripts/segment_worker.py`, `scripts/setup_segmentation.sh`, `tests/test_segment.py`, `.venv-seg` | **A** - 무거운 모델과 자체 venv 는 A 안에만 존재한다 |
+| `extract.py` 에서 분할기를 부르는 배선 | **B** - `extract.py` 는 B 배타 소유다. 남의 파일을 대신 건드리지 않는다 |
+
+### 동결 — A 와 B 사이의 인터페이스
+
+```python
+# chemcheck/segment.py
+def available() -> bool: ...                 # 절대 예외를 올리지 않는다
+def unavailable_reason() -> str | None: ...
+def segment_page(page_image: Path, out_dir: Path) -> list[Path]: ...
+```
+
+**빈 목록이 정상이라는 것이 계약의 일부다** - 구조가 없는 페이지에서도, 분할기가
+설치되지 않았을 때도 빈 목록이다. 이 셋만 유지되면 A 는 안을 마음대로 바꾼다.
+
+### 통합 브랜치는 아무 트랙의 작업대도 아니다
+
+`Sweet-Butters/chemcheck` 워크트리에서는 코디네이터 문서와 머지만 커밋한다.
+A 는 `Sweet-Butters/track-a-ocsr` 에서 작업한다. 통합 지점이 동시에 작업대이면
+통합이 그 트랙의 진행에 인질로 잡힌다.
