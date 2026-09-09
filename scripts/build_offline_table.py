@@ -7,7 +7,8 @@
 어디서 언제 받았는지 함께 남긴다. 해석되지 않은 이름은 표에 넣지 않고 보고한다
 (한국어 별칭의 영문 대응이 틀렸다면 여기서 드러난다).
 
-    python scripts/build_offline_table.py
+    python scripts/build_offline_table.py            # 이미 표에 있는 이름은 다시 묻지 않는다
+    python scripts/build_offline_table.py --refresh  # 전부 다시 받는다
 """
 from __future__ import annotations
 
@@ -23,9 +24,13 @@ import requests
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from chemcheck.names import KO_ALIASES, PUBCHEM  # noqa: E402
+from chemcheck.keys import skeleton  # noqa: E402
+from chemcheck.names import KO_ALIASES, KO_WHOLE_ONLY, PUBCHEM, variants  # noqa: E402
 
 OUT = ROOT / "chemcheck" / "data" / "compounds.json"
+# 교과서 화합물 목록. id 이름의 PubChem 응답이 정답(answer)이 되고, 그 화합물의
+# 영문 표기 중 PubChem 이 같은 골격으로 해석한 것은 전부 동봉 표에 들어간다.
+LECTURE = ROOT / "chemcheck" / "data" / "lecture_compounds.json"
 
 # 한국어 별칭이 가리키는 영문 이름은 전부 들어가야 한다. 하나라도 빠지면
 # 한국어 슬라이드가 망 없이는 해석되지 않는다.
@@ -79,20 +84,69 @@ def fetch(session: requests.Session, name: str) -> dict | None:
     return None
 
 
+def fill_lecture_answers(session: requests.Session) -> list[dict]:
+    """목록의 각 화합물에 대해 id 이름의 PubChem 응답을 answer 로 적는다. 이미 있으면 둔다."""
+    doc = json.loads(LECTURE.read_text(encoding="utf-8"))
+    compounds = doc["compounds"]
+    todo = [c for c in compounds if not c.get("answer")]
+    if todo:
+        print(f"목록 {len(compounds)}개 중 정답이 없는 {len(todo)}개를 PubChem 에 조회한다")
+    for i, c in enumerate(todo, start=1):
+        record = fetch(session, c["id"])
+        if record is None:
+            print(f"  {i:3}/{len(todo)}  해석 못함  {c['id']}  <- id 를 PubChem 이 아는 이름으로 바꿔야 한다")
+        else:
+            c["answer"] = record
+            print(f"  {i:3}/{len(todo)}  {record['inchikey']}  {c['id']}")
+        time.sleep(0.25)
+    if todo:
+        LECTURE.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"{LECTURE.relative_to(ROOT)} 갱신\n")
+    return compounds
+
+
 def main() -> int:
-    names = sorted({v.lower() for v in KO_ALIASES.values()} | {n.lower() for n in EXTRA})
+    refresh = "--refresh" in sys.argv[1:]
+    session = requests.Session()
+    compounds = fill_lecture_answers(session)
+    # 목록의 영문 표기(관용명·IUPAC·약어)와 그 변형(입체 접두사를 뗀 것 등). 변형을
+    # 함께 넣어야 '(R)-...' 를 망 없이도 뗀 형태로 풀 수 있다.
+    # 한글은 KO_ALIASES 를 거치므로 여기 넣지 않는다.
+    lecture_names = {
+        v.lower(): c["answer"]["inchikey"]
+        for c in compounds if c.get("answer")
+        for n in c["en"] + c["iupac"] + c["abbr"]
+        for v in variants(n)
+    }
+    ko_targets = {v.lower() for v in KO_ALIASES.values()} | {v.lower() for v in KO_WHOLE_ONLY.values()}
+    names = sorted(ko_targets | {n.lower() for n in EXTRA} | set(lecture_names))
     print(f"{len(names)}개 이름을 PubChem 에 조회한다 (한국어 별칭 대응 "
-          f"{len({v.lower() for v in KO_ALIASES.values()})}개 포함)\n")
+          f"{len(ko_targets)}개, 목록 영문 표기 {len(lecture_names)}개 포함)\n")
+
+    previous: dict[str, dict] = {}
+    if not refresh:
+        try:
+            previous = json.loads(OUT.read_text(encoding="utf-8")).get("entries", {})
+        except (OSError, json.JSONDecodeError):
+            previous = {}
 
     entries: dict[str, dict] = {}
     missing: list[str] = []
-    session = requests.Session()
+    wrong: list[str] = []
 
     for i, name in enumerate(names, start=1):
+        if name in previous and previous[name].get("smiles"):
+            entries[name] = previous[name]  # 지난번 PubChem 응답. --refresh 면 다시 받는다
+            continue
         record = fetch(session, name)
         if record is None:
             missing.append(name)
             print(f"  {i:3}/{len(names)}  해석 못함  {name}")
+        elif name in lecture_names and skeleton(record["inchikey"]) != skeleton(lecture_names[name]):
+            # PubChem 이 이 표기를 다른 화합물로 읽는다. 표에 넣으면 그 이름으로
+            # 엉뚱한 그림이 나온다. 넣지 않고 보고한다 - 목록 쪽 표기가 틀렸을 수 있다.
+            wrong.append(f"{name} -> {record['inchikey']} (기대 {lecture_names[name]})")
+            print(f"  {i:3}/{len(names)}  다른 화합물  {name}")
         else:
             entries[name] = record
             print(f"  {i:3}/{len(names)}  {record['inchikey']}  {name}")
@@ -117,12 +171,16 @@ def main() -> int:
     print(f"\n{OUT.relative_to(ROOT)} 에 {len(entries)}건 기록")
 
     # 한국어 별칭이 가리키는데 해석되지 않은 영문 이름 = 별칭이 틀렸다는 뜻이다.
-    bad = {ko: en for ko, en in KO_ALIASES.items() if en.lower() in missing}
+    bad = {ko: en for ko, en in {**KO_ALIASES, **KO_WHOLE_ONLY}.items() if en.lower() in missing}
     if bad:
         print("\n경고: 아래 한국어 별칭의 영문 대응이 PubChem 에서 해석되지 않았다.")
         print("      names.py 의 KO_ALIASES 를 고쳐야 한다.")
         for ko, en in sorted(bad.items()):
             print(f"      {ko} -> {en!r}")
+    if wrong:
+        print(f"\n목록과 다른 화합물로 해석된 표기 {len(wrong)}건 (표에 넣지 않음):")
+        for line in wrong:
+            print(f"      {line}")
     if missing:
         print(f"\n해석 안 된 이름 {len(missing)}건: {', '.join(missing)}")
     return 1 if bad else 0

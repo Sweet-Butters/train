@@ -1,6 +1,426 @@
 {
- "count": 170,
+ "count": 423,
  "entries": {
+  "(-)-menthol": {
+   "cid": 16666,
+   "formula": "C10H20O",
+   "inchikey": "NOOLISFMXDJSKH-KXUCPTDWSA-N",
+   "smiles": "C[C@@H]1CC[C@H]([C@@H](C1)O)C(C)C"
+  },
+  "(1r,2s,5r)-2-isopropyl-5-methylcyclohexanol": {
+   "cid": 16666,
+   "formula": "C10H20O",
+   "inchikey": "NOOLISFMXDJSKH-KXUCPTDWSA-N",
+   "smiles": "C[C@@H]1CC[C@H]([C@@H](C1)O)C(C)C"
+  },
+  "(2s)-2-(6-methoxynaphthalen-2-yl)propanoic acid": {
+   "cid": 156391,
+   "formula": "C14H14O3",
+   "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N",
+   "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O"
+  },
+  "(9z)-octadec-9-enoic acid": {
+   "cid": 445639,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-KTKRTIGZSA-N",
+   "smiles": "CCCCCCCC/C=C\\CCCCCCCC(=O)O"
+  },
+  "(9z,12z)-octadeca-9,12-dienoic acid": {
+   "cid": 5280450,
+   "formula": "C18H32O2",
+   "inchikey": "OYHQOLUKZRVURQ-HZJYTTRNSA-N",
+   "smiles": "CCCCC/C=C\\C/C=C\\CCCCCCCC(=O)O"
+  },
+  "(e)-butenedioic acid": {
+   "cid": 444972,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-OWOJBTEDSA-N",
+   "smiles": "C(=C/C(=O)O)\\C(=O)O"
+  },
+  "(methylsulfinyl)methane": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+   "smiles": "CS(=O)C"
+  },
+  "(r)-(+)-limonene": {
+   "cid": 440917,
+   "formula": "C10H16",
+   "inchikey": "XMGQYMWWDOXHJM-JTQLQIEISA-N",
+   "smiles": "CC1=CC[C@@H](CC1)C(=C)C"
+  },
+  "(rs)-2-(4-isobutylphenyl)propanoic acid": {
+   "cid": 3672,
+   "formula": "C13H18O2",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+   "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"
+  },
+  "(s)-2-aminopropanoic acid": {
+   "cid": 5950,
+   "formula": "C3H7NO2",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+   "smiles": "C[C@@H](C(=O)O)N"
+  },
+  "(s)-3-(1-methylpyrrolidin-2-yl)pyridine": {
+   "cid": 89594,
+   "formula": "C10H14N2",
+   "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N",
+   "smiles": "CN1CCC[C@H]1C2=CN=CC=C2"
+  },
+  "(s)-6-methoxy-alpha-methyl-2-naphthaleneacetic acid": {
+   "cid": 156391,
+   "formula": "C14H14O3",
+   "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N",
+   "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O"
+  },
+  "(z)-butenedioic acid": {
+   "cid": 444266,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-UPHRSURJSA-N",
+   "smiles": "C(=C\\C(=O)O)\\C(=O)O"
+  },
+  "1,1'-oxybisethane": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
+  "1,1,1-trichloro-2,2-bis(4-chlorophenyl)ethane": {
+   "cid": 3036,
+   "formula": "C14H9Cl5",
+   "inchikey": "YVGGHNCTFXOJCH-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)Cl)C(Cl)(Cl)Cl)Cl"
+  },
+  "1,2,3-propanetriol": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+   "smiles": "C(C(CO)O)O"
+  },
+  "1,2,3-propanetriol trinitrate": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
+  },
+  "1,2-ethanediol": {
+   "cid": 174,
+   "formula": "C2H6O2",
+   "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
+   "smiles": "C(CO)O"
+  },
+  "1,3,7-trimethylpurine-2,6-dione": {
+   "cid": 2519,
+   "formula": "C8H10N4O2",
+   "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+   "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
+  },
+  "1,3,7-trimethylxanthine": {
+   "cid": 2519,
+   "formula": "C8H10N4O2",
+   "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+   "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
+  },
+  "1,7,7-trimethylbicyclo[2.2.1]heptan-2-one": {
+   "cid": 2537,
+   "formula": "C10H16O",
+   "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N",
+   "smiles": "CC1(C2CCC1(C(=O)C2)C)C"
+  },
+  "1-phenylethan-1-one": {
+   "cid": 7410,
+   "formula": "C8H8O",
+   "inchikey": "KWOLFJPFCHCOCG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C1=CC=CC=C1"
+  },
+  "1-phenylethanone": {
+   "cid": 7410,
+   "formula": "C8H8O",
+   "inchikey": "KWOLFJPFCHCOCG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C1=CC=CC=C1"
+  },
+  "17beta-estradiol": {
+   "cid": 5757,
+   "formula": "C18H24O2",
+   "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
+   "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O"
+  },
+  "2,2-bis(4-hydroxyphenyl)propane": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "2,3-dihydroxybutanedioic acid": {
+   "cid": 875,
+   "formula": "C4H6O6",
+   "inchikey": "FEWJPZIEWOKRBE-UHFFFAOYSA-N",
+   "smiles": "C(C(C(=O)O)O)(C(=O)O)O"
+  },
+  "2,4,6-trinitrotoluene": {
+   "cid": 8376,
+   "formula": "C7H5N3O6",
+   "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+   "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]"
+  },
+  "2,4-dihydroxypyrimidine": {
+   "cid": 1174,
+   "formula": "C4H4N2O2",
+   "inchikey": "ISAKRJDGNUQOIC-UHFFFAOYSA-N",
+   "smiles": "C1=CNC(=O)NC1=O"
+  },
+  "2-(1h-imidazol-4-yl)ethanamine": {
+   "cid": 774,
+   "formula": "C5H9N3",
+   "inchikey": "NTYJJOPFIAHURM-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC=N1)CCN"
+  },
+  "2-(1h-imidazol-5-yl)ethanamine": {
+   "cid": 774,
+   "formula": "C5H9N3",
+   "inchikey": "NTYJJOPFIAHURM-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC=N1)CCN"
+  },
+  "2-(4-isobutylphenyl)propanoic acid": {
+   "cid": 3672,
+   "formula": "C13H18O2",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+   "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"
+  },
+  "2-(6-methoxynaphthalen-2-yl)propanoic acid": {
+   "cid": 1302,
+   "formula": "C14H14O3",
+   "inchikey": "CMWTZPSULFXXJA-UHFFFAOYSA-N",
+   "smiles": "CC(C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O"
+  },
+  "2-(acetyloxy)benzoic acid": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
+  },
+  "2-[4-(2-methylpropyl)phenyl]propanoic acid": {
+   "cid": 3672,
+   "formula": "C13H18O2",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+   "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"
+  },
+  "2-acetoxybenzoic acid": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
+  },
+  "2-acetyloxybenzoic acid": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
+  },
+  "2-amino-3-phenylpropanoic acid": {
+   "cid": 994,
+   "formula": "C9H11NO2",
+   "inchikey": "COLNVLDHVKWLRT-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)CC(C(=O)O)N"
+  },
+  "2-amino-3-sulfanylpropanoic acid": {
+   "cid": 5862,
+   "formula": "C3H7NO2S",
+   "inchikey": "XUJNEKJLAYXESH-REOHCLBHSA-N",
+   "smiles": "C([C@@H](C(=O)O)N)S"
+  },
+  "2-aminoacetic acid": {
+   "cid": 750,
+   "formula": "C2H5NO2",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)N"
+  },
+  "2-aminohypoxanthine": {
+   "cid": 135398634,
+   "formula": "C5H5N5O",
+   "inchikey": "UYTPUPDQBNUYGX-UHFFFAOYSA-N",
+   "smiles": "C1=NC2=C(N1)C(=O)NC(=N2)N"
+  },
+  "2-aminopropanoic acid": {
+   "cid": 5950,
+   "formula": "C3H7NO2",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+   "smiles": "C[C@@H](C(=O)O)N"
+  },
+  "2-hydroxybenzoic acid": {
+   "cid": 338,
+   "formula": "C7H6O3",
+   "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C(=C1)C(=O)O)O"
+  },
+  "2-hydroxypropane-1,2,3-tricarboxylic acid": {
+   "cid": 311,
+   "formula": "C6H8O7",
+   "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)C(CC(=O)O)(C(=O)O)O"
+  },
+  "2-hydroxypropanoic acid": {
+   "cid": 612,
+   "formula": "C3H6O3",
+   "inchikey": "JVTAAEKCZFNVCJ-UHFFFAOYSA-N",
+   "smiles": "CC(C(=O)O)O"
+  },
+  "2-isopropyl-5-methylcyclohexanol": {
+   "cid": 1254,
+   "formula": "C10H20O",
+   "inchikey": "NOOLISFMXDJSKH-UHFFFAOYSA-N",
+   "smiles": "CC1CCC(C(C1)O)C(C)C"
+  },
+  "2-methyl-1,3,5-trinitrobenzene": {
+   "cid": 8376,
+   "formula": "C7H5N3O6",
+   "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+   "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]"
+  },
+  "2-methyl-2-propanol": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "2-methylpropan-2-ol": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "2-methylpropane": {
+   "cid": 6360,
+   "formula": "C4H10",
+   "inchikey": "NNPPMTNAJDCUHE-UHFFFAOYSA-N",
+   "smiles": "CC(C)C"
+  },
+  "2-oxopropanoic acid": {
+   "cid": 1060,
+   "formula": "C3H4O3",
+   "inchikey": "LCTONWCANYUPML-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C(=O)O"
+  },
+  "2-propanol": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
+  "2-propanone": {
+   "cid": 180,
+   "formula": "C3H6O",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C"
+  },
+  "3,4-dihydroxyphenethylamine": {
+   "cid": 681,
+   "formula": "C8H11NO2",
+   "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=C(C=C1CCN)O)O"
+  },
+  "3-(1-methylpyrrolidin-2-yl)pyridine": {
+   "cid": 942,
+   "formula": "C10H14N2",
+   "inchikey": "SNICXCGAKADSCV-UHFFFAOYSA-N",
+   "smiles": "CN1CCCC1C2=CN=CC=C2"
+  },
+  "3-(2-aminoethyl)-1h-indol-5-ol": {
+   "cid": 5202,
+   "formula": "C10H12N2O",
+   "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+   "smiles": "C1=CC2=C(C=C1O)C(=CN2)CCN"
+  },
+  "4,4'-(propane-2,2-diyl)diphenol": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "4-(2-aminoethyl)benzene-1,2-diol": {
+   "cid": 681,
+   "formula": "C8H11NO2",
+   "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=C(C=C1CCN)O)O"
+  },
+  "4-acetamidophenol": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "4-amino-2-hydroxypyrimidine": {
+   "cid": 597,
+   "formula": "C4H5N3O",
+   "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC(=O)N=C1)N"
+  },
+  "4-aminopyrimidin-2(1h)-one": {
+   "cid": 597,
+   "formula": "C4H5N3O",
+   "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC(=O)N=C1)N"
+  },
+  "4-hydroxy-3-methoxybenzaldehyde": {
+   "cid": 1183,
+   "formula": "C8H8O3",
+   "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
+   "smiles": "COC1=C(C=CC(=C1)C=O)O"
+  },
+  "4-isopropenyl-1-methylcyclohexene": {
+   "cid": 22311,
+   "formula": "C10H16",
+   "inchikey": "XMGQYMWWDOXHJM-UHFFFAOYSA-N",
+   "smiles": "CC1=CCC(CC1)C(=C)C"
+  },
+  "5-ht": {
+   "cid": 5202,
+   "formula": "C10H12N2O",
+   "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+   "smiles": "C1=CC2=C(C=C1O)C(=CN2)CCN"
+  },
+  "5-hydroxytryptamine": {
+   "cid": 5202,
+   "formula": "C10H12N2O",
+   "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+   "smiles": "C1=CC2=C(C=C1O)C(=CN2)CCN"
+  },
+  "5-methyluracil": {
+   "cid": 1135,
+   "formula": "C5H6N2O2",
+   "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+   "smiles": "CC1=CNC(=O)NC1=O"
+  },
+  "6-aminopurine": {
+   "cid": 190,
+   "formula": "C5H5N5",
+   "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+   "smiles": "C1=NC2=NC=NC(=C2N1)N"
+  },
+  "6-methoxy-alpha-methyl-2-naphthaleneacetic acid": {
+   "cid": 156391,
+   "formula": "C14H14O3",
+   "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N",
+   "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O"
+  },
+  "9-octadecenoic acid": {
+   "cid": 965,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCC=CCCCCCCCC(=O)O"
+  },
+  "9h-purin-6-amine": {
+   "cid": 190,
+   "formula": "C5H5N5",
+   "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+   "smiles": "C1=NC2=NC=NC(=C2N1)N"
+  },
+  "ac2o": {
+   "cid": 7918,
+   "formula": "C4H6O3",
+   "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC(=O)C"
+  },
   "acetaldehyde": {
    "cid": 177,
    "formula": "C2H4O",
@@ -67,6 +487,18 @@
    "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
    "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
   },
+  "ach": {
+   "cid": 187,
+   "formula": "C7H16NO2+",
+   "inchikey": "OIPILFWXSMYKGL-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OCC[N+](C)(C)C"
+  },
+  "acoh": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "smiles": "CC(=O)O"
+  },
   "adenine": {
    "cid": 190,
    "formula": "C5H5N5",
@@ -78,6 +510,12 @@
    "formula": "C10H13N5O4",
    "inchikey": "OIRDTQYFTABQOQ-KQYNXXCUSA-N",
    "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO)O)O)N"
+  },
+  "adenosine 5'-triphosphate": {
+   "cid": 5957,
+   "formula": "C10H16N5O13P3",
+   "inchikey": "ZKHQWZAMYRWXGA-KQYNXXCUSA-N",
+   "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N"
   },
   "adenosine triphosphate": {
    "cid": 5957,
@@ -91,6 +529,18 @@
    "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
    "smiles": "CNC[C@@H](C1=CC(=C(C=C1)O)O)O"
   },
+  "advil": {
+   "cid": 3672,
+   "formula": "C13H18O2",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+   "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"
+  },
+  "ala": {
+   "cid": 5950,
+   "formula": "C3H7NO2",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+   "smiles": "C[C@@H](C(=O)O)N"
+  },
   "alanine": {
    "cid": 5950,
    "formula": "C3H7NO2",
@@ -102,6 +552,30 @@
    "formula": "C5H6O5",
    "inchikey": "KPGXRSRHYNQIFN-UHFFFAOYSA-N",
    "smiles": "C(CC(=O)O)C(=O)C(=O)O"
+  },
+  "aminoacetic acid": {
+   "cid": 750,
+   "formula": "C2H5NO2",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)N"
+  },
+  "aminobenzene": {
+   "cid": 6115,
+   "formula": "C6H7N",
+   "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)N"
+  },
+  "aminoethanoic acid": {
+   "cid": 750,
+   "formula": "C2H5NO2",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)N"
+  },
+  "aminomethane": {
+   "cid": 6329,
+   "formula": "CH5N",
+   "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N",
+   "smiles": "CN"
   },
   "ammonia": {
    "cid": 222,
@@ -127,6 +601,18 @@
    "inchikey": "MWPLVEDNUUSJAV-UHFFFAOYSA-N",
    "smiles": "C1=CC=C2C=C3C=CC=CC3=CC2=C1"
   },
+  "apap": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "asa": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
+  },
   "ascorbic acid": {
    "cid": 54670067,
    "formula": "C6H8O6",
@@ -151,11 +637,35 @@
    "inchikey": "XUKUURHRXDUEBC-KAYWLYCHSA-N",
    "smiles": "CC(C)C1=C(C(=C(N1CC[C@H](C[C@H](CC(=O)O)O)O)C2=CC=C(C=C2)F)C3=CC=CC=C3)C(=O)NC4=CC=CC=C4"
   },
+  "atp": {
+   "cid": 5957,
+   "formula": "C10H16N5O13P3",
+   "inchikey": "ZKHQWZAMYRWXGA-KQYNXXCUSA-N",
+   "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N"
+  },
   "atropine": {
    "cid": 174174,
    "formula": "C17H23NO3",
    "inchikey": "RKUNBYITZUJHSG-PJPHBNEVSA-N",
    "smiles": "CN1[C@@H]2CC[C@H]1CC(C2)OC(=O)C(CO)C3=CC=CC=C3"
+  },
+  "azabenzene": {
+   "cid": 1049,
+   "formula": "C5H5N",
+   "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+   "smiles": "C1=CC=NC=C1"
+  },
+  "azane": {
+   "cid": 222,
+   "formula": "H3N",
+   "inchikey": "QGZKDVFQNNGYKY-UHFFFAOYSA-N",
+   "smiles": "N"
+  },
+  "azine": {
+   "cid": 1049,
+   "formula": "C5H5N",
+   "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+   "smiles": "C1=CC=NC=C1"
   },
   "azobenzene": {
    "cid": 2272,
@@ -163,11 +673,23 @@
    "inchikey": "DMLAVOWQYNRWNQ-UHFFFAOYSA-N",
    "smiles": "C1=CC=C(C=C1)N=NC2=CC=CC=C2"
   },
+  "baking soda": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+   "smiles": "C(=O)(O)[O-].[Na+]"
+  },
   "benzaldehyde": {
    "cid": 240,
    "formula": "C7H6O",
    "inchikey": "HUMNYLRZRPPJDN-UHFFFAOYSA-N",
    "smiles": "C1=CC=C(C=C1)C=O"
+  },
+  "benzenamine": {
+   "cid": 6115,
+   "formula": "C6H7N",
+   "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)N"
   },
   "benzene": {
    "cid": 241,
@@ -175,11 +697,47 @@
    "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
    "smiles": "C1=CC=CC=C1"
   },
+  "benzenecarbaldehyde": {
+   "cid": 240,
+   "formula": "C7H6O",
+   "inchikey": "HUMNYLRZRPPJDN-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)C=O"
+  },
+  "benzenecarboxylic acid": {
+   "cid": 243,
+   "formula": "C7H6O2",
+   "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)C(=O)O"
+  },
+  "benzenol": {
+   "cid": 996,
+   "formula": "C6H6O",
+   "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)O"
+  },
   "benzoic acid": {
    "cid": 243,
    "formula": "C7H6O2",
    "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
    "smiles": "C1=CC=C(C=C1)C(=O)O"
+  },
+  "benzol": {
+   "cid": 241,
+   "formula": "C6H6",
+   "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+   "smiles": "C1=CC=CC=C1"
+  },
+  "benzylpenicillin": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "beta-carotene": {
+   "cid": 5280489,
+   "formula": "C40H56",
+   "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C"
   },
   "biotin": {
    "cid": 171548,
@@ -187,11 +745,41 @@
    "inchikey": "YBJHBAHKTGYVGT-ZKWXMUAHSA-N",
    "smiles": "C1[C@H]2[C@@H]([C@@H](S1)CCCCC(=O)O)NC(=O)N2"
   },
+  "bisphenol a": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "bpa": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
   "butane": {
    "cid": 7843,
    "formula": "C4H10",
    "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N",
    "smiles": "CCCC"
+  },
+  "butanedioic acid": {
+   "cid": 1110,
+   "formula": "C4H6O4",
+   "inchikey": "KDYFGRWQOYBRFD-UHFFFAOYSA-N",
+   "smiles": "C(CC(=O)O)C(=O)O"
+  },
+  "butenedioic acid": {
+   "cid": 723,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-UHFFFAOYSA-N",
+   "smiles": "C(=CC(=O)O)C(=O)O"
+  },
+  "caco3": {
+   "cid": 10112,
+   "formula": "CCaO3",
+   "inchikey": "VTYYLEPIZMXCLO-UHFFFAOYSA-L",
+   "smiles": "C(=O)([O-])[O-].[Ca+2]"
   },
   "caffeine": {
    "cid": 2519,
@@ -199,17 +787,47 @@
    "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
    "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
   },
+  "calcite": {
+   "cid": 10112,
+   "formula": "CCaO3",
+   "inchikey": "VTYYLEPIZMXCLO-UHFFFAOYSA-L",
+   "smiles": "C(=O)([O-])[O-].[Ca+2]"
+  },
+  "calcium carbonate": {
+   "cid": 10112,
+   "formula": "CCaO3",
+   "inchikey": "VTYYLEPIZMXCLO-UHFFFAOYSA-L",
+   "smiles": "C(=O)([O-])[O-].[Ca+2]"
+  },
   "camphor": {
    "cid": 2537,
    "formula": "C10H16O",
    "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N",
    "smiles": "CC1(C2CCC1(C(=O)C2)C)C"
   },
+  "cane sugar": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
+  },
   "capsaicin": {
    "cid": 1548943,
    "formula": "C18H27NO3",
    "inchikey": "YKPUWZUDDOIDPM-SOFGYWHQSA-N",
    "smiles": "CC(C)/C=C/CCCCC(=O)NCC1=CC(=C(C=C1)O)OC"
+  },
+  "carbamide": {
+   "cid": 1176,
+   "formula": "CH4N2O",
+   "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+   "smiles": "C(=O)(N)N"
+  },
+  "carbolic acid": {
+   "cid": 996,
+   "formula": "C6H6O",
+   "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)O"
   },
   "carbon dioxide": {
    "cid": 280,
@@ -235,6 +853,36 @@
    "inchikey": "BVKZGUZCCUSVTD-UHFFFAOYSA-N",
    "smiles": "C(=O)(O)O"
   },
+  "carbonyl diamide": {
+   "cid": 1176,
+   "formula": "CH4N2O",
+   "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+   "smiles": "C(=O)(N)N"
+  },
+  "caustic soda": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+   "smiles": "[OH-].[Na+]"
+  },
+  "ccl4": {
+   "cid": 5943,
+   "formula": "CCl4",
+   "inchikey": "VZGDMQKNWNREIO-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)(Cl)Cl"
+  },
+  "ch4": {
+   "cid": 297,
+   "formula": "CH4",
+   "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N",
+   "smiles": "C"
+  },
+  "chcl3": {
+   "cid": 6212,
+   "formula": "CHCl3",
+   "inchikey": "HEDRZPFGACZZDS-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)Cl"
+  },
   "chloroform": {
    "cid": 6212,
    "formula": "CHCl3",
@@ -259,6 +907,18 @@
    "inchikey": "BHQCQFFYRZLCQQ-OELDTZBJSA-N",
    "smiles": "C[C@H](CCC(=O)O)[C@H]1CC[C@@H]2[C@@]1([C@H](C[C@H]3[C@H]2[C@@H](C[C@H]4[C@@]3(CC[C@H](C4)O)C)O)O)C"
   },
+  "cis-9-octadecenoic acid": {
+   "cid": 445639,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-KTKRTIGZSA-N",
+   "smiles": "CCCCCCCC/C=C\\CCCCCCCC(=O)O"
+  },
+  "cis-butenedioic acid": {
+   "cid": 444266,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-UPHRSURJSA-N",
+   "smiles": "C(=C\\C(=O)O)\\C(=O)O"
+  },
   "citric acid": {
    "cid": 311,
    "formula": "C6H8O7",
@@ -270,6 +930,12 @@
    "formula": "C10H18O",
    "inchikey": "NEHNMFOYXAPHSD-UHFFFAOYSA-N",
    "smiles": "CC(CCC=C(C)C)CC=O"
+  },
+  "co2": {
+   "cid": 280,
+   "formula": "CO2",
+   "inchikey": "CURLTUGMZLYLDI-UHFFFAOYSA-N",
+   "smiles": "C(=O)=O"
   },
   "codeine": {
    "cid": 5284371,
@@ -289,6 +955,12 @@
    "inchikey": "RMRCNWBMXRMIRW-WZHZPDAFSA-L",
    "smiles": "CC1=CC2=C(C=C1C)[N+](=CN2)[C@@H]3[C@@H]([C@@H]([C@H](O3)CO)OP(=O)(O)O[C@H](C)CNC(=O)CC[C@@]4([C@H]([C@@H]5[C@]6([C@@]([C@@H](C(=N6)/C(=C\\7/[C@@]([C@@H](/C(=C/C8=N/C(=C(\\C4=N5)/C)/[C@H](C8(C)C)CCC(=N)[O-])/N7)CCC(=N)[O-])(C)CC(=O)N)/C)CCC(=N)[O-])(C)CC(=O)N)C)CC(=O)N)C)O.[C]#N.[Co+2]"
   },
+  "cyanomethane": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+   "smiles": "CC#N"
+  },
   "cyclohexane": {
    "cid": 8078,
    "formula": "C6H12",
@@ -300,6 +972,12 @@
    "formula": "C6H10O",
    "inchikey": "JHIVVAPYMSGYDF-UHFFFAOYSA-N",
    "smiles": "C1CCC(=O)CC1"
+  },
+  "cys": {
+   "cid": 5862,
+   "formula": "C3H7NO2S",
+   "inchikey": "XUJNEKJLAYXESH-REOHCLBHSA-N",
+   "smiles": "C([C@@H](C(=O)O)N)S"
   },
   "cysteine": {
    "cid": 5862,
@@ -319,17 +997,59 @@
    "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N",
    "smiles": "C1=C(NC(=O)N=C1)N"
   },
+  "d-fructose": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+   "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O"
+  },
+  "d-glucose": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
+  "d-limonene": {
+   "cid": 440917,
+   "formula": "C10H16",
+   "inchikey": "XMGQYMWWDOXHJM-JTQLQIEISA-N",
+   "smiles": "CC1=CC[C@@H](CC1)C(=C)C"
+  },
+  "d-ribose": {
+   "cid": 10975657,
+   "formula": "C5H10O5",
+   "inchikey": "SRBFZHDQGSBBOR-SOOFDHNKSA-N",
+   "smiles": "C1[C@H]([C@H]([C@H](C(O1)O)O)O)O"
+  },
+  "ddt": {
+   "cid": 3036,
+   "formula": "C14H9Cl5",
+   "inchikey": "YVGGHNCTFXOJCH-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)Cl)C(Cl)(Cl)Cl)Cl"
+  },
   "deoxyribose": {
    "cid": 9828112,
    "formula": "C5H10O4",
    "inchikey": "PDWIQYODPROSQH-PYHARJCCSA-N",
    "smiles": "C1[C@@H]([C@H](OC1O)CO)O"
   },
+  "dextrose": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
   "diazepam": {
    "cid": 3016,
    "formula": "C16H13ClN2O",
    "inchikey": "AAOVKJBEBIDNHE-UHFFFAOYSA-N",
    "smiles": "CN1C(=O)CN=C(C2=C1C=CC(=C2)Cl)C3=CC=CC=C3"
+  },
+  "dichlorodiphenyltrichloroethane": {
+   "cid": 3036,
+   "formula": "C14H9Cl5",
+   "inchikey": "YVGGHNCTFXOJCH-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)Cl)C(Cl)(Cl)Cl)Cl"
   },
   "dichloromethane": {
    "cid": 6344,
@@ -343,7 +1063,43 @@
    "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
    "smiles": "CCOCC"
   },
+  "dihydrogen monoxide": {
+   "cid": 962,
+   "formula": "H2O",
+   "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+   "smiles": "O"
+  },
+  "dimethyl ketone": {
+   "cid": 180,
+   "formula": "C3H6O",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C"
+  },
   "dimethyl sulfoxide": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+   "smiles": "CS(=O)C"
+  },
+  "dimethylformamide": {
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+   "smiles": "CN(C)C=O"
+  },
+  "dinitrogen monoxide": {
+   "cid": 948,
+   "formula": "N2O",
+   "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+   "smiles": "[N-]=[N+]=O"
+  },
+  "dmf": {
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+   "smiles": "CN(C)C=O"
+  },
+  "dmso": {
    "cid": 679,
    "formula": "C2H6OS",
    "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
@@ -354,6 +1110,24 @@
    "formula": "C8H11NO2",
    "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
    "smiles": "C1=CC(=C(C=C1CCN)O)O"
+  },
+  "e2": {
+   "cid": 5757,
+   "formula": "C18H24O2",
+   "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
+   "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O"
+  },
+  "edetic acid": {
+   "cid": 6049,
+   "formula": "C10H16N2O8",
+   "inchikey": "KCXVZYZYPLLWCC-UHFFFAOYSA-N",
+   "smiles": "C(CN(CC(=O)O)CC(=O)O)N(CC(=O)O)CC(=O)O"
+  },
+  "edta": {
+   "cid": 6049,
+   "formula": "C10H16N2O8",
+   "inchikey": "KCXVZYZYPLLWCC-UHFFFAOYSA-N",
+   "smiles": "C(CN(CC(=O)O)CC(=O)O)N(CC(=O)O)CC(=O)O"
   },
   "ephedrine": {
    "cid": 9294,
@@ -373,11 +1147,53 @@
    "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
    "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O"
   },
+  "et2o": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
+  "ethanal": {
+   "cid": 177,
+   "formula": "C2H4O",
+   "inchikey": "IKHGUXGNUITLKF-UHFFFAOYSA-N",
+   "smiles": "CC=O"
+  },
   "ethane": {
    "cid": 6324,
    "formula": "C2H6",
    "inchikey": "OTMSDBZUPAUEDD-UHFFFAOYSA-N",
    "smiles": "CC"
+  },
+  "ethane-1,2-diol": {
+   "cid": 174,
+   "formula": "C2H6O2",
+   "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
+   "smiles": "C(CO)O"
+  },
+  "ethanedioic acid": {
+   "cid": 971,
+   "formula": "C2H2O4",
+   "inchikey": "MUBZPKHOEPUJKR-UHFFFAOYSA-N",
+   "smiles": "C(=O)(C(=O)O)O"
+  },
+  "ethanenitrile": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+   "smiles": "CC#N"
+  },
+  "ethanoic acid": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "smiles": "CC(=O)O"
+  },
+  "ethanoic anhydride": {
+   "cid": 7918,
+   "formula": "C4H6O3",
+   "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC(=O)C"
   },
   "ethanol": {
    "cid": 702,
@@ -385,11 +1201,53 @@
    "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
    "smiles": "CCO"
   },
+  "ethene": {
+   "cid": 6325,
+   "formula": "C2H4",
+   "inchikey": "VGGSQFUCUMXWEO-UHFFFAOYSA-N",
+   "smiles": "C=C"
+  },
+  "ethenylbenzene": {
+   "cid": 7501,
+   "formula": "C8H8",
+   "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+   "smiles": "C=CC1=CC=CC=C1"
+  },
+  "ether": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
+  "ethoxyethane": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
   "ethyl acetate": {
    "cid": 8857,
    "formula": "C4H8O2",
    "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
    "smiles": "CCOC(=O)C"
+  },
+  "ethyl alcohol": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "smiles": "CCO"
+  },
+  "ethyl ethanoate": {
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+   "smiles": "CCOC(=O)C"
+  },
+  "ethyl ether": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
   },
   "ethylene": {
    "cid": 6325,
@@ -402,6 +1260,30 @@
    "formula": "C2H6O2",
    "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
    "smiles": "C(CO)O"
+  },
+  "ethylenediaminetetraacetic acid": {
+   "cid": 6049,
+   "formula": "C10H16N2O8",
+   "inchikey": "KCXVZYZYPLLWCC-UHFFFAOYSA-N",
+   "smiles": "C(CN(CC(=O)O)CC(=O)O)N(CC(=O)O)CC(=O)O"
+  },
+  "ethyne": {
+   "cid": 6326,
+   "formula": "C2H2",
+   "inchikey": "HSFWRNGVRCDJHI-UHFFFAOYSA-N",
+   "smiles": "C#C"
+  },
+  "etoac": {
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+   "smiles": "CCOC(=O)C"
+  },
+  "etoh": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "smiles": "CCO"
   },
   "eugenol": {
    "cid": 3314,
@@ -421,6 +1303,12 @@
    "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
    "smiles": "C=O"
   },
+  "formalin": {
+   "cid": 712,
+   "formula": "CH2O",
+   "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
+   "smiles": "C=O"
+  },
   "formic acid": {
    "cid": 284,
    "formula": "CH2O2",
@@ -428,6 +1316,12 @@
    "smiles": "C(=O)O"
   },
   "fructose": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+   "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O"
+  },
+  "fruit sugar": {
    "cid": 2723872,
    "formula": "C6H12O6",
    "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
@@ -451,11 +1345,41 @@
    "inchikey": "GLZPCOQZEFWAFX-JXMROGBWSA-N",
    "smiles": "CC(=CCC/C(=C/CO)/C)C"
   },
+  "glacial acetic acid": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "smiles": "CC(=O)O"
+  },
+  "glc": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
   "glucose": {
    "cid": 5793,
    "formula": "C6H12O6",
    "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
    "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
+  "gly": {
+   "cid": 750,
+   "formula": "C2H5NO2",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)N"
+  },
+  "glycerin": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+   "smiles": "C(C(CO)O)O"
+  },
+  "glycerine": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+   "smiles": "C(C(CO)O)O"
   },
   "glycerol": {
    "cid": 753,
@@ -463,11 +1387,35 @@
    "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
    "smiles": "C(C(CO)O)O"
   },
+  "glyceryl trinitrate": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
+  },
   "glycine": {
    "cid": 750,
    "formula": "C2H5NO2",
    "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
    "smiles": "C(C(=O)O)N"
+  },
+  "grain alcohol": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "smiles": "CCO"
+  },
+  "grape sugar": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
+  "gtn": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
   },
   "guanine": {
    "cid": 135398634,
@@ -481,6 +1429,48 @@
    "inchikey": "NYHBQMYGNKIUIF-UUOKFMHZSA-N",
    "smiles": "C1=NC2=C(N1[C@H]3[C@@H]([C@@H]([C@H](O3)CO)O)O)N=C(NC2=O)N"
   },
+  "h2o": {
+   "cid": 962,
+   "formula": "H2O",
+   "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+   "smiles": "O"
+  },
+  "h2o2": {
+   "cid": 784,
+   "formula": "H2O2",
+   "inchikey": "MHAJPDPJQMAIIY-UHFFFAOYSA-N",
+   "smiles": "OO"
+  },
+  "h2so4": {
+   "cid": 1118,
+   "formula": "H2O4S",
+   "inchikey": "QAOWNCQODCNURD-UHFFFAOYSA-N",
+   "smiles": "OS(=O)(=O)O"
+  },
+  "h3po4": {
+   "cid": 1004,
+   "formula": "H3O4P",
+   "inchikey": "NBIIXXVUZAFLBC-UHFFFAOYSA-N",
+   "smiles": "OP(=O)(O)O"
+  },
+  "halite": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+   "smiles": "[Na+].[Cl-]"
+  },
+  "hcl": {
+   "cid": 313,
+   "formula": "ClH",
+   "inchikey": "VEXZGXHMUGYJMC-UHFFFAOYSA-N",
+   "smiles": "Cl"
+  },
+  "hexadecanoic acid": {
+   "cid": 985,
+   "formula": "C16H32O2",
+   "inchikey": "IPCSVZSSVZVIGE-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCCCCCCCCC(=O)O"
+  },
   "hexane": {
    "cid": 8058,
    "formula": "C6H14",
@@ -492,6 +1482,18 @@
    "formula": "C5H9N3",
    "inchikey": "NTYJJOPFIAHURM-UHFFFAOYSA-N",
    "smiles": "C1=C(NC=N1)CCN"
+  },
+  "hno3": {
+   "cid": 944,
+   "formula": "HNO3",
+   "inchikey": "GRYLNZFGIOXLOG-UHFFFAOYSA-N",
+   "smiles": "[N+](=O)(O)[O-]"
+  },
+  "hoac": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "smiles": "CC(=O)O"
   },
   "hydrochloric acid": {
    "cid": 313,
@@ -511,6 +1513,12 @@
    "inchikey": "MHAJPDPJQMAIIY-UHFFFAOYSA-N",
    "smiles": "OO"
   },
+  "hydroxybenzene": {
+   "cid": 996,
+   "formula": "C6H6O",
+   "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)O"
+  },
   "ibuprofen": {
    "cid": 3672,
    "formula": "C13H18O2",
@@ -529,11 +1537,71 @@
    "inchikey": "SIKJAQJRHWYJAI-UHFFFAOYSA-N",
    "smiles": "C1=CC=C2C(=C1)C=CN2"
   },
+  "isobutane": {
+   "cid": 6360,
+   "formula": "C4H10",
+   "inchikey": "NNPPMTNAJDCUHE-UHFFFAOYSA-N",
+   "smiles": "CC(C)C"
+  },
+  "isopropanol": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
   "isopropyl alcohol": {
    "cid": 3776,
    "formula": "C3H8O",
    "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
    "smiles": "CC(C)O"
+  },
+  "kmno4": {
+   "cid": 516875,
+   "formula": "KMnO4",
+   "inchikey": "VZJVWSHVAAUDKD-UHFFFAOYSA-N",
+   "smiles": "[O-][Mn](=O)(=O)=O.[K+]"
+  },
+  "l-alanine": {
+   "cid": 5950,
+   "formula": "C3H7NO2",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+   "smiles": "C[C@@H](C(=O)O)N"
+  },
+  "l-ascorbic acid": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "l-cysteine": {
+   "cid": 5862,
+   "formula": "C3H7NO2S",
+   "inchikey": "XUJNEKJLAYXESH-REOHCLBHSA-N",
+   "smiles": "C([C@@H](C(=O)O)N)S"
+  },
+  "l-menthol": {
+   "cid": 16666,
+   "formula": "C10H20O",
+   "inchikey": "NOOLISFMXDJSKH-KXUCPTDWSA-N",
+   "smiles": "C[C@@H]1CC[C@H]([C@@H](C1)O)C(C)C"
+  },
+  "l-phenylalanine": {
+   "cid": 6140,
+   "formula": "C9H11NO2",
+   "inchikey": "COLNVLDHVKWLRT-QMMMGPOBSA-N",
+   "smiles": "C1=CC=C(C=C1)C[C@@H](C(=O)O)N"
+  },
+  "l-tryptophan": {
+   "cid": 6305,
+   "formula": "C11H12N2O2",
+   "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
+   "smiles": "C1=CC=C2C(=C1)C(=CN2)C[C@@H](C(=O)O)N"
+  },
+  "l-tyrosine": {
+   "cid": 6057,
+   "formula": "C9H11NO3",
+   "inchikey": "OUYCCCASQSFEME-QMMMGPOBSA-N",
+   "smiles": "C1=CC(=CC=C1C[C@@H](C(=O)O)N)O"
   },
   "lactic acid": {
    "cid": 612,
@@ -547,11 +1615,23 @@
    "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
    "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
   },
+  "laughing gas": {
+   "cid": 948,
+   "formula": "N2O",
+   "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+   "smiles": "[N-]=[N+]=O"
+  },
   "leucine": {
    "cid": 6106,
    "formula": "C6H13NO2",
    "inchikey": "ROHFNLRQFUQHCH-YFKPBYRVSA-N",
    "smiles": "CC(C)C[C@@H](C(=O)O)N"
+  },
+  "levulose": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+   "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O"
   },
   "lidocaine": {
    "cid": 3676,
@@ -577,6 +1657,18 @@
    "inchikey": "OYHQOLUKZRVURQ-HZJYTTRNSA-N",
    "smiles": "CCCCC/C=C\\C/C=C\\CCCCCCCC(=O)O"
   },
+  "lye": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+   "smiles": "[OH-].[Na+]"
+  },
+  "maleic acid": {
+   "cid": 444266,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-UPHRSURJSA-N",
+   "smiles": "C(=C\\C(=O)O)\\C(=O)O"
+  },
   "malic acid": {
    "cid": 525,
    "formula": "C4H6O5",
@@ -589,11 +1681,29 @@
    "inchikey": "GUBGYTABKSRVRQ-PICCSMPSSA-N",
    "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@@H]2[C@H](OC([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
   },
+  "mecn": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+   "smiles": "CC#N"
+  },
+  "menh2": {
+   "cid": 6329,
+   "formula": "CH5N",
+   "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N",
+   "smiles": "CN"
+  },
   "menthol": {
    "cid": 1254,
    "formula": "C10H20O",
    "inchikey": "NOOLISFMXDJSKH-UHFFFAOYSA-N",
    "smiles": "CC1CCC(C(C1)O)C(C)C"
+  },
+  "meoh": {
+   "cid": 887,
+   "formula": "CH4O",
+   "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+   "smiles": "CO"
   },
   "metformin": {
    "cid": 4091,
@@ -601,11 +1711,29 @@
    "inchikey": "XZWYZXLIPXDOLR-UHFFFAOYSA-N",
    "smiles": "CN(C)C(=N)N=C(N)N"
   },
+  "methanal": {
+   "cid": 712,
+   "formula": "CH2O",
+   "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
+   "smiles": "C=O"
+  },
+  "methanamine": {
+   "cid": 6329,
+   "formula": "CH5N",
+   "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N",
+   "smiles": "CN"
+  },
   "methane": {
    "cid": 297,
    "formula": "CH4",
    "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N",
    "smiles": "C"
+  },
+  "methanoic acid": {
+   "cid": 284,
+   "formula": "CH2O2",
+   "inchikey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+   "smiles": "C(=O)O"
   },
   "methanol": {
    "cid": 887,
@@ -619,6 +1747,24 @@
    "inchikey": "FFEARJCKVFRZRR-BYPYZUCNSA-N",
    "smiles": "CSCC[C@@H](C(=O)O)N"
   },
+  "methyl alcohol": {
+   "cid": 887,
+   "formula": "CH4O",
+   "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+   "smiles": "CO"
+  },
+  "methyl cyanide": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+   "smiles": "CC#N"
+  },
+  "methyl phenyl ketone": {
+   "cid": 7410,
+   "formula": "C8H8O",
+   "inchikey": "KWOLFJPFCHCOCG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C1=CC=CC=C1"
+  },
   "methyl salicylate": {
    "cid": 4133,
    "formula": "C8H8O3",
@@ -631,11 +1777,101 @@
    "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N",
    "smiles": "CN"
   },
+  "methylbenzene": {
+   "cid": 1140,
+   "formula": "C7H8",
+   "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+   "smiles": "CC1=CC=CC=C1"
+  },
+  "methylene chloride": {
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "inchikey": "YMWUJEATGCHHMB-UHFFFAOYSA-N",
+   "smiles": "C(Cl)Cl"
+  },
+  "methylsulfinylmethane": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+   "smiles": "CS(=O)C"
+  },
+  "milk acid": {
+   "cid": 612,
+   "formula": "C3H6O3",
+   "inchikey": "JVTAAEKCZFNVCJ-UHFFFAOYSA-N",
+   "smiles": "CC(C(=O)O)O"
+  },
+  "milk sugar": {
+   "cid": 6134,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
+   "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
+  },
   "morphine": {
    "cid": 5288826,
    "formula": "C17H19NO3",
    "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O"
+  },
+  "muriatic acid": {
+   "cid": 313,
+   "formula": "ClH",
+   "inchikey": "VEXZGXHMUGYJMC-UHFFFAOYSA-N",
+   "smiles": "Cl"
+  },
+  "n,n-dimethylformamide": {
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+   "smiles": "CN(C)C=O"
+  },
+  "n,n-dimethylmethanamide": {
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+   "smiles": "CN(C)C=O"
+  },
+  "n-(4-hydroxyphenyl)acetamide": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "n-butane": {
+   "cid": 7843,
+   "formula": "C4H10",
+   "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N",
+   "smiles": "CCCC"
+  },
+  "n-hexane": {
+   "cid": 8058,
+   "formula": "C6H14",
+   "inchikey": "VLKZOEOYAKHREP-UHFFFAOYSA-N",
+   "smiles": "CCCCCC"
+  },
+  "n2o": {
+   "cid": 948,
+   "formula": "N2O",
+   "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+   "smiles": "[N-]=[N+]=O"
+  },
+  "nacl": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+   "smiles": "[Na+].[Cl-]"
+  },
+  "nahco3": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+   "smiles": "C(=O)(O)[O-].[Na+]"
+  },
+  "naoh": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+   "smiles": "[OH-].[Na+]"
   },
   "naphthalene": {
    "cid": 931,
@@ -648,6 +1884,12 @@
    "formula": "C14H14O3",
    "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N",
    "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O"
+  },
+  "nh3": {
+   "cid": 222,
+   "formula": "H3N",
+   "inchikey": "QGZKDVFQNNGYKY-UHFFFAOYSA-N",
+   "smiles": "N"
   },
   "niacin": {
    "cid": 938,
@@ -685,6 +1927,48 @@
    "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
    "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
   },
+  "nitroglycerine": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
+  },
+  "nitrous oxide": {
+   "cid": 948,
+   "formula": "N2O",
+   "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+   "smiles": "[N-]=[N+]=O"
+  },
+  "o3": {
+   "cid": 24823,
+   "formula": "O3",
+   "inchikey": "CBENFWSGALASAD-UHFFFAOYSA-N",
+   "smiles": "[O-][O+]=O"
+  },
+  "octadec-9-enoic acid": {
+   "cid": 965,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCC=CCCCCCCCC(=O)O"
+  },
+  "octadeca-9,12-dienoic acid": {
+   "cid": 3931,
+   "formula": "C18H32O2",
+   "inchikey": "OYHQOLUKZRVURQ-UHFFFAOYSA-N",
+   "smiles": "CCCCCC=CCC=CCCCCCCCC(=O)O"
+  },
+  "octadecanoic acid": {
+   "cid": 5281,
+   "formula": "C18H36O2",
+   "inchikey": "QIQXTHQIDYTFRH-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCCCCCCCCCCC(=O)O"
+  },
+  "oestradiol": {
+   "cid": 5757,
+   "formula": "C18H24O2",
+   "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
+   "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O"
+  },
   "oleic acid": {
    "cid": 445639,
    "formula": "C18H34O2",
@@ -697,11 +1981,35 @@
    "inchikey": "SUBDBMMJDZJVOS-UHFFFAOYSA-N",
    "smiles": "CC1=CN=C(C(=C1OC)C)CS(=O)C2=NC3=C(N2)C=C(C=C3)OC"
   },
+  "orthophosphoric acid": {
+   "cid": 1004,
+   "formula": "H3O4P",
+   "inchikey": "NBIIXXVUZAFLBC-UHFFFAOYSA-N",
+   "smiles": "OP(=O)(O)O"
+  },
+  "oxalic acid": {
+   "cid": 971,
+   "formula": "C2H2O4",
+   "inchikey": "MUBZPKHOEPUJKR-UHFFFAOYSA-N",
+   "smiles": "C(=O)(C(=O)O)O"
+  },
   "oxaloacetic acid": {
    "cid": 970,
    "formula": "C4H4O5",
    "inchikey": "KHPXUQMNIQBQEV-UHFFFAOYSA-N",
    "smiles": "C(C(=O)C(=O)O)C(=O)O"
+  },
+  "oxidane": {
+   "cid": 962,
+   "formula": "H2O",
+   "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+   "smiles": "O"
+  },
+  "oxolane": {
+   "cid": 8028,
+   "formula": "C4H8O",
+   "inchikey": "WYURNTSHIVDZCO-UHFFFAOYSA-N",
+   "smiles": "C1CCOC1"
   },
   "oxygen": {
    "cid": 977,
@@ -739,6 +2047,12 @@
    "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
    "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
   },
+  "phe": {
+   "cid": 6140,
+   "formula": "C9H11NO2",
+   "inchikey": "COLNVLDHVKWLRT-QMMMGPOBSA-N",
+   "smiles": "C1=CC=C(C=C1)C[C@@H](C(=O)O)N"
+  },
   "phenanthrene": {
    "cid": 995,
    "formula": "C14H10",
@@ -750,6 +2064,24 @@
    "formula": "C6H6O",
    "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
    "smiles": "C1=CC=C(C=C1)O"
+  },
+  "phenylalanine": {
+   "cid": 6140,
+   "formula": "C9H11NO2",
+   "inchikey": "COLNVLDHVKWLRT-QMMMGPOBSA-N",
+   "smiles": "C1=CC=C(C=C1)C[C@@H](C(=O)O)N"
+  },
+  "phenylamine": {
+   "cid": 6115,
+   "formula": "C6H7N",
+   "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)N"
+  },
+  "phenylethene": {
+   "cid": 7501,
+   "formula": "C8H8",
+   "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+   "smiles": "C=CC1=CC=CC=C1"
   },
   "phosphoric acid": {
    "cid": 1004,
@@ -769,11 +2101,47 @@
    "inchikey": "RJKFOVLPORLFTN-LEKSSAKUSA-N",
    "smiles": "CC(=O)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CCC4=CC(=O)CC[C@]34C)C"
   },
+  "propan-2-ol": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
+  "propan-2-one": {
+   "cid": 180,
+   "formula": "C3H6O",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C"
+  },
   "propane": {
    "cid": 6334,
    "formula": "C3H8",
    "inchikey": "ATUOYWHBWRKTHZ-UHFFFAOYSA-N",
    "smiles": "CCC"
+  },
+  "propane-1,2,3-triol": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+   "smiles": "C(C(CO)O)O"
+  },
+  "propane-1,2,3-triyl trinitrate": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
+  },
+  "propanone": {
+   "cid": 180,
+   "formula": "C3H6O",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C"
+  },
+  "provitamin a": {
+   "cid": 5280489,
+   "formula": "C40H56",
+   "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C"
   },
   "purine": {
    "cid": 1044,
@@ -798,6 +2166,12 @@
    "formula": "C4H4N2",
    "inchikey": "CZPWVGJYEJSRLH-UHFFFAOYSA-N",
    "smiles": "C1=CN=CN=C1"
+  },
+  "pyrimidine-2,4-dione": {
+   "cid": 1174,
+   "formula": "C4H4N2O2",
+   "inchikey": "ISAKRJDGNUQOIC-UHFFFAOYSA-N",
+   "smiles": "C1=CNC(=O)NC1=O"
   },
   "pyruvic acid": {
    "cid": 1060,
@@ -829,11 +2203,23 @@
    "inchikey": "SRBFZHDQGSBBOR-SOOFDHNKSA-N",
    "smiles": "C1[C@H]([C@H]([C@H](C(O1)O)O)O)O"
   },
+  "rubbing alcohol": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
   "saccharin": {
    "cid": 5143,
    "formula": "C7H5NO3S",
    "inchikey": "CVHZOJJKTDOEJC-UHFFFAOYSA-N",
    "smiles": "C1=CC=C2C(=C1)C(=O)NS2(=O)=O"
+  },
+  "saccharose": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
   },
   "salicylic acid": {
    "cid": 338,
@@ -864,6 +2250,12 @@
    "formula": "ClNa",
    "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
    "smiles": "[Na+].[Cl-]"
+  },
+  "sodium hydrogen carbonate": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+   "smiles": "C(=O)(O)[O-].[Na+]"
   },
   "sodium hydroxide": {
    "cid": 14798,
@@ -907,11 +2299,59 @@
    "inchikey": "QAOWNCQODCNURD-UHFFFAOYSA-N",
    "smiles": "OS(=O)(=O)O"
   },
+  "t-buoh": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "t-butanol": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "table salt": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+   "smiles": "[Na+].[Cl-]"
+  },
+  "table sugar": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
+  },
+  "tartaric acid": {
+   "cid": 444305,
+   "formula": "C4H6O6",
+   "inchikey": "FEWJPZIEWOKRBE-JCYAYHJZSA-N",
+   "smiles": "[C@@H]([C@H](C(=O)O)O)(C(=O)O)O"
+  },
+  "tert-butanol": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "tert-butyl alcohol": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
   "testosterone": {
    "cid": 6013,
    "formula": "C19H28O2",
    "inchikey": "MUMGGOZAMZWBJJ-DYKIIFRCSA-N",
    "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=CC(=O)CC[C@]34C"
+  },
+  "tetrachloromethane": {
+   "cid": 5943,
+   "formula": "CCl4",
+   "inchikey": "VZGDMQKNWNREIO-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)(Cl)Cl"
   },
   "tetracycline": {
    "cid": 54675776,
@@ -930,6 +2370,12 @@
    "formula": "C7H8N4O2",
    "inchikey": "YAPQBXQYLJRXSA-UHFFFAOYSA-N",
    "smiles": "CN1C=NC2=C1C(=O)NC(=O)N2C"
+  },
+  "thf": {
+   "cid": 8028,
+   "formula": "C4H8O",
+   "inchikey": "WYURNTSHIVDZCO-UHFFFAOYSA-N",
+   "smiles": "C1CCOC1"
   },
   "thiamine": {
    "cid": 1130,
@@ -955,6 +2401,12 @@
    "inchikey": "XUIIKFGFIJCVMT-LBPRGKRZSA-N",
    "smiles": "C1=C(C=C(C(=C1I)OC2=CC(=C(C(=C2)I)O)I)I)C[C@@H](C(=O)O)N"
   },
+  "tnt": {
+   "cid": 8376,
+   "formula": "C7H5N3O6",
+   "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+   "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]"
+  },
   "tocopherol": {
    "cid": 14986,
    "formula": "C28H48O2",
@@ -967,11 +2419,53 @@
    "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N",
    "smiles": "CC1=CC=CC=C1"
   },
+  "trans-butenedioic acid": {
+   "cid": 444972,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-OWOJBTEDSA-N",
+   "smiles": "C(=C/C(=O)O)\\C(=O)O"
+  },
+  "trichloromethane": {
+   "cid": 6212,
+   "formula": "CHCl3",
+   "inchikey": "HEDRZPFGACZZDS-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)Cl"
+  },
+  "trinitrotoluene": {
+   "cid": 8376,
+   "formula": "C7H5N3O6",
+   "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+   "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]"
+  },
+  "trioxygen": {
+   "cid": 24823,
+   "formula": "O3",
+   "inchikey": "CBENFWSGALASAD-UHFFFAOYSA-N",
+   "smiles": "[O-][O+]=O"
+  },
+  "trp": {
+   "cid": 6305,
+   "formula": "C11H12N2O2",
+   "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
+   "smiles": "C1=CC=C2C(=C1)C(=CN2)C[C@@H](C(=O)O)N"
+  },
   "tryptophan": {
    "cid": 6305,
    "formula": "C11H12N2O2",
    "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
    "smiles": "C1=CC=C2C(=C1)C(=CN2)C[C@@H](C(=O)O)N"
+  },
+  "tylenol": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "tyr": {
+   "cid": 6057,
+   "formula": "C9H11NO3",
+   "inchikey": "OUYCCCASQSFEME-QMMMGPOBSA-N",
+   "smiles": "C1=CC(=CC=C1C[C@@H](C(=O)O)N)O"
   },
   "tyrosine": {
    "cid": 6057,
@@ -1009,6 +2503,24 @@
    "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
    "smiles": "COC1=C(C=CC(=C1)C=O)O"
   },
+  "vinylbenzene": {
+   "cid": 7501,
+   "formula": "C8H8",
+   "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+   "smiles": "C=CC1=CC=CC=C1"
+  },
+  "vitamin a": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C"
+  },
+  "vitamin c": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
   "warfarin": {
    "cid": 54678486,
    "formula": "C19H16O4",
@@ -1020,9 +2532,15 @@
    "formula": "H2O",
    "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
    "smiles": "O"
+  },
+  "wood alcohol": {
+   "cid": 887,
+   "formula": "CH4O",
+   "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+   "smiles": "CO"
   }
  },
- "generated": "2026-09-09T04:58:56+00:00",
+ "generated": "2026-09-09T08:11:27+00:00",
  "note": "PubChem 응답을 그대로 받아 적은 것. 여기서 구조를 추론하지 않는다.",
  "source": "PubChem PUG REST /compound/name/{}/property/InChIKey,MolecularFormula"
 }
