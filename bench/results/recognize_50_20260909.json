@@ -1,0 +1,1109 @@
+{
+ "engine_kind": "real",
+ "engines": [
+  "molscribe@.venv310",
+  "decimer"
+ ],
+ "items": [
+  {
+   "index": 1,
+   "name": "Ethanol",
+   "smiles": "CCO",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r01_plain",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CCO",
+     "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+     "confidence": 0.87
+    },
+    {
+     "engine": "decimer",
+     "raw": "CCO",
+     "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 2,
+   "name": "Acetic acid",
+   "smiles": "CC(=O)O",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r02_large",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(C)O.O",
+     "inchikey": "XTUSEBKMEQERQV-UHFFFAOYSA-N",
+     "confidence": 0.68
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(=O)O",
+     "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 3,
+   "name": "Acetone",
+   "smiles": "CC(C)=O",
+   "variant": "small",
+   "path": "bench/decks/recognize_set/r03_small",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(C)=O",
+     "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+     "confidence": 0.72
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(=O)C",
+     "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 4,
+   "name": "Urea",
+   "smiles": "NC(N)=O",
+   "variant": "thick",
+   "path": "bench/decks/recognize_set/r04_thick",
+   "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "NC(N)=O",
+     "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+     "confidence": 0.88
+    },
+    {
+     "engine": "decimer",
+     "raw": "C(=O)(N)N",
+     "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 5,
+   "name": "Glycine",
+   "smiles": "NCC(=O)O",
+   "variant": "rotated",
+   "path": "bench/decks/recognize_set/r05_rotated",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "NCC(=O)O",
+     "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+     "confidence": 0.92
+    },
+    {
+     "engine": "decimer",
+     "raw": "C(C(=O)O)N",
+     "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 6,
+   "name": "L-Lactic acid",
+   "smiles": "C[C@H](O)C(=O)O",
+   "variant": "serif",
+   "path": "bench/decks/recognize_set/r06_serif",
+   "inchikey": "JVTAAEKCZFNVCJ-REOHCLBHSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C#CC(=O)O",
+     "inchikey": "UORVCLMRJXCDCP-UHFFFAOYSA-N",
+     "confidence": 0.8
+    },
+    {
+     "engine": "decimer",
+     "raw": "C[C@@H](C(=O)O)O",
+     "inchikey": "JVTAAEKCZFNVCJ-REOHCLBHSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 7,
+   "name": "L-Alanine",
+   "smiles": "C[C@H](N)C(=O)O",
+   "variant": "noisy",
+   "path": "bench/decks/recognize_set/r07_noisy",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C[C@H](N)C(=O)O",
+     "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+     "confidence": 0.88
+    },
+    {
+     "engine": "decimer",
+     "raw": "C[C@@H](C(=O)O)N",
+     "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 8,
+   "name": "Benzene",
+   "smiles": "c1ccccc1",
+   "variant": "jpeg",
+   "path": "bench/decks/recognize_set/r08_jpeg",
+   "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "c1ccccc1",
+     "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+     "confidence": 0.84
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=CC=C1",
+     "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 9,
+   "name": "Toluene",
+   "smiles": "Cc1ccccc1",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r09_plain",
+   "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "Cc1ccccc1",
+     "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C=C1)C(F)(F)F",
+     "inchikey": "GETTZEONDQJALK-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 10,
+   "name": "Phenol",
+   "smiles": "Oc1ccccc1",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r10_large",
+   "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "Oc1ccccc1",
+     "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C=C1)O",
+     "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 11,
+   "name": "Aniline",
+   "smiles": "Nc1ccccc1",
+   "variant": "small",
+   "path": "bench/decks/recognize_set/r11_small",
+   "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "Nc1ccccc1",
+     "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C=C1)N",
+     "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 12,
+   "name": "Pyridine",
+   "smiles": "c1ccncc1",
+   "variant": "thick",
+   "path": "bench/decks/recognize_set/r12_thick",
+   "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "c1ccncc1",
+     "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CN=CC=C1",
+     "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 13,
+   "name": "Furan",
+   "smiles": "c1ccoc1",
+   "variant": "rotated",
+   "path": "bench/decks/recognize_set/r13_rotated",
+   "inchikey": "YLQBMQCUIZJEEH-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C1=COCC1",
+     "inchikey": "JKTCBAGSMQIFNL-UHFFFAOYSA-N",
+     "confidence": 0.8
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=COC=C1",
+     "inchikey": "YLQBMQCUIZJEEH-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 14,
+   "name": "Thiophene",
+   "smiles": "c1ccsc1",
+   "variant": "serif",
+   "path": "bench/decks/recognize_set/r14_serif",
+   "inchikey": "YTPLMLYBLZKORZ-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C1CCSCC1",
+     "inchikey": "YPWFISCTZQNZAU-UHFFFAOYSA-N",
+     "confidence": 0.7
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CSC=C1",
+     "inchikey": "YTPLMLYBLZKORZ-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 15,
+   "name": "Imidazole",
+   "smiles": "c1c[nH]cn1",
+   "variant": "noisy",
+   "path": "bench/decks/recognize_set/r15_noisy",
+   "inchikey": "RAXXELZNTBOGNW-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "c1c[nH]cn1",
+     "inchikey": "RAXXELZNTBOGNW-UHFFFAOYSA-N",
+     "confidence": 0.87
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CN=CN1",
+     "inchikey": "RAXXELZNTBOGNW-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 16,
+   "name": "Cyclohexane",
+   "smiles": "C1CCCCC1",
+   "variant": "jpeg",
+   "path": "bench/decks/recognize_set/r16_jpeg",
+   "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C1CCCCC1",
+     "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+     "confidence": 0.81
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1CCCCC1",
+     "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 17,
+   "name": "Cyclohexanol",
+   "smiles": "OC1CCCCC1",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r17_plain",
+   "inchikey": "HPXRVTGHNJAIIH-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "OC1CCCCC1",
+     "inchikey": "HPXRVTGHNJAIIH-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1CCC(CC1)O",
+     "inchikey": "HPXRVTGHNJAIIH-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 18,
+   "name": "Nitrobenzene",
+   "smiles": "O=[N+]([O-])c1ccccc1",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r18_large",
+   "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "O=[N+]([O-])c1ccccc1",
+     "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N",
+     "confidence": 0.91
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C=C1)[N+](=O)[O-]",
+     "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 19,
+   "name": "Benzoic acid",
+   "smiles": "OC(=O)c1ccccc1",
+   "variant": "small",
+   "path": "bench/decks/recognize_set/r19_small",
+   "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "O=C(O)c1ccccc1",
+     "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+     "confidence": 0.85
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C=C1)C(=O)O",
+     "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 20,
+   "name": "Salicylic acid",
+   "smiles": "OC(=O)c1ccccc1O",
+   "variant": "thick",
+   "path": "bench/decks/recognize_set/r20_thick",
+   "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "O=C(O)c1ccccc1O",
+     "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C(=C1)C(=O)O)O",
+     "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 21,
+   "name": "Vanillin",
+   "smiles": "COc1cc(C=O)ccc1O",
+   "variant": "rotated",
+   "path": "bench/decks/recognize_set/r21_rotated",
+   "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "COc1cc(C=O)ccc1O",
+     "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
+     "confidence": 0.84
+    },
+    {
+     "engine": "decimer",
+     "raw": "COC1=C(C=CC(=C1)C=O)O",
+     "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 22,
+   "name": "Eugenol",
+   "smiles": "C=CCc1ccc(O)c(OC)c1",
+   "variant": "serif",
+   "path": "bench/decks/recognize_set/r22_serif",
+   "inchikey": "RRAFCDWBNXTKKO-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C=CCc1ccc(O)c(OC)c1",
+     "inchikey": "RRAFCDWBNXTKKO-UHFFFAOYSA-N",
+     "confidence": 0.83
+    },
+    {
+     "engine": "decimer",
+     "raw": "C=CCC1=CC(=C(C=C1)O)OC",
+     "inchikey": "RRAFCDWBNXTKKO-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 23,
+   "name": "Cinnamaldehyde",
+   "smiles": "O=C/C=C/c1ccccc1",
+   "variant": "noisy",
+   "path": "bench/decks/recognize_set/r23_noisy",
+   "inchikey": "KJPRLNWUNMBNBZ-QPJJXVBHSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "O=C/C=C/c1ccccc1",
+     "inchikey": "KJPRLNWUNMBNBZ-QPJJXVBHSA-N",
+     "confidence": 0.74
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C(C=C1)C=CC=O",
+     "inchikey": "KJPRLNWUNMBNBZ-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 24,
+   "name": "Dopamine",
+   "smiles": "NCCc1ccc(O)c(O)c1",
+   "variant": "jpeg",
+   "path": "bench/decks/recognize_set/r24_jpeg",
+   "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "NCCc1ccc(O)c(O)c1",
+     "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+     "confidence": 0.81
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC(=C(C=C1CCN)O)O",
+     "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 25,
+   "name": "Aspirin",
+   "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r25_plain",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(=O)Oc1ccccc1C(=O)O",
+     "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(=O)OC1=CC=CC=C1C(=O)O",
+     "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 26,
+   "name": "Paracetamol",
+   "smiles": "CC(=O)Nc1ccc(O)cc1",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r26_large",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(=O)Nc1ccc(O)cc1",
+     "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(=O)NC1=CC=C(C=C1)O",
+     "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 27,
+   "name": "Ibuprofen",
+   "smiles": "CC(C)Cc1ccc(C(C)C(=O)O)cc1",
+   "variant": "small",
+   "path": "bench/decks/recognize_set/r27_small",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(C)Cc1ccc(C(C)C(=O)O)cc1",
+     "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+     "confidence": 0.84
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
+     "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 28,
+   "name": "Caffeine",
+   "smiles": "Cn1cnc2c1c(=O)n(C)c(=O)n2C",
+   "variant": "thick",
+   "path": "bench/decks/recognize_set/r28_thick",
+   "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "Cn1c(=O)c2c(ncn2C)n(C)c1=O",
+     "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+     "confidence": 0.88
+    },
+    {
+     "engine": "decimer",
+     "raw": "CN1C=NC2=C1C(=O)N(C)C(=O)N2C",
+     "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 29,
+   "name": "Metformin",
+   "smiles": "CN(C)C(=N)NC(N)=N",
+   "variant": "rotated",
+   "path": "bench/decks/recognize_set/r29_rotated",
+   "inchikey": "XZWYZXLIPXDOLR-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CN(C)C(=N)NC(=N)N",
+     "inchikey": "XZWYZXLIPXDOLR-UHFFFAOYSA-N",
+     "confidence": 0.91
+    },
+    {
+     "engine": "decimer",
+     "raw": "CN(C)C(=N)NC(=N)N",
+     "inchikey": "XZWYZXLIPXDOLR-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 30,
+   "name": "Adrenaline",
+   "smiles": "CNC[C@H](O)c1ccc(O)c(O)c1",
+   "variant": "serif",
+   "path": "bench/decks/recognize_set/r30_serif",
+   "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CNC[C@H](O)c1ccc(O)c(O)c1",
+     "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
+     "confidence": 0.87
+    },
+    {
+     "engine": "decimer",
+     "raw": "CNC[C@@H](C1=CC(=C(C=C1)O)O)O",
+     "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 31,
+   "name": "Citric acid",
+   "smiles": "OC(=O)CC(O)(CC(=O)O)C(=O)O",
+   "variant": "noisy",
+   "path": "bench/decks/recognize_set/r31_noisy",
+   "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "O=C(O)CC(O)(CC(=O)O)C(=O)O",
+     "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "C(C(=O)O)C(CC(=O)O)(C(=O)O)O",
+     "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 32,
+   "name": "Naphthalene",
+   "smiles": "c1ccc2ccccc2c1",
+   "variant": "jpeg",
+   "path": "bench/decks/recognize_set/r32_jpeg",
+   "inchikey": "UFWIBTONFRDIAS-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "c1ccc2ccccc2c1",
+     "inchikey": "UFWIBTONFRDIAS-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C2C=CC=CC2=C1",
+     "inchikey": "UFWIBTONFRDIAS-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 33,
+   "name": "Anthracene",
+   "smiles": "c1ccc2cc3ccccc3cc2c1",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r33_plain",
+   "inchikey": "MWPLVEDNUUSJAV-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "c1ccc2cc3ccccc3cc2c1",
+     "inchikey": "MWPLVEDNUUSJAV-UHFFFAOYSA-N",
+     "confidence": 0.92
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C2C=C3C=CC=CC3=CC2=C1",
+     "inchikey": "MWPLVEDNUUSJAV-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 34,
+   "name": "Indole",
+   "smiles": "c1ccc2[nH]ccc2c1",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r34_large",
+   "inchikey": "SIKJAQJRHWYJAI-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "c1ccc2[nH]ccc2c1",
+     "inchikey": "SIKJAQJRHWYJAI-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C2C(=C1)C=CN2",
+     "inchikey": "SIKJAQJRHWYJAI-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 35,
+   "name": "Adenine",
+   "smiles": "Nc1ncnc2[nH]cnc12",
+   "variant": "small",
+   "path": "bench/decks/recognize_set/r35_small",
+   "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "Nc1ncnc2[nH]cnc12",
+     "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=NC2=C(N)N=CN=C2N1",
+     "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 36,
+   "name": "Thymine",
+   "smiles": "Cc1c[nH]c(=O)[nH]c1=O",
+   "variant": "thick",
+   "path": "bench/decks/recognize_set/r36_thick",
+   "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "Cc1c[nH]c(=O)[nH]c1=O",
+     "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+     "confidence": 0.85
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC1=CNC(=O)NC1=O",
+     "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 37,
+   "name": "Nicotine",
+   "smiles": "CN1CCC[C@H]1c1cccnc1",
+   "variant": "rotated",
+   "path": "bench/decks/recognize_set/r37_rotated",
+   "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CN1CCC[C@H]1c1cccnc1",
+     "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N",
+     "confidence": 0.91
+    },
+    {
+     "engine": "decimer",
+     "raw": "CN1CCC[C@H]1C2=CC=CN=C2",
+     "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 38,
+   "name": "Menthol",
+   "smiles": "CC(C)[C@@H]1CC[C@@H](C)C[C@H]1O",
+   "variant": "serif",
+   "path": "bench/decks/recognize_set/r38_serif",
+   "inchikey": "NOOLISFMXDJSKH-KXUCPTDWSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(C)[C@@H]1CC[C@@H](C)C[C@H]1O",
+     "inchikey": "NOOLISFMXDJSKH-KXUCPTDWSA-N",
+     "confidence": 0.83
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(C)[C@@H]1CC[C@@H](C)C[C@H]1O",
+     "inchikey": "NOOLISFMXDJSKH-KXUCPTDWSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 39,
+   "name": "Limonene",
+   "smiles": "CC1=CC[C@H](CC1)C(=C)C",
+   "variant": "noisy",
+   "path": "bench/decks/recognize_set/r39_noisy",
+   "inchikey": "XMGQYMWWDOXHJM-SNVBAGLBSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "C=C(C)[C@@H]1CC=C(C)CC1",
+     "inchikey": "XMGQYMWWDOXHJM-SNVBAGLBSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "C=C(C)[C@@H]1CC=C(C)CC1",
+     "inchikey": "XMGQYMWWDOXHJM-SNVBAGLBSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 40,
+   "name": "Serotonin",
+   "smiles": "NCCc1c[nH]c2ccc(O)cc12",
+   "variant": "jpeg",
+   "path": "bench/decks/recognize_set/r40_jpeg",
+   "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "NCCc1c[nH]c2ccc(O)cc12",
+     "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+     "confidence": 0.8
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC2=C(C=C1O)C(=CN2)CCN",
+     "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 41,
+   "name": "Melatonin",
+   "smiles": "COc1ccc2[nH]cc(CCNC(C)=O)c2c1",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r41_plain",
+   "inchikey": "DRLFMBDRBRZALE-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "COc1ccc2[nH]cc(CCNC(C)=O)c2c1",
+     "inchikey": "DRLFMBDRBRZALE-UHFFFAOYSA-N",
+     "confidence": 0.85
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(=O)NCCC1=CNC2=C1C=C(C=C2)OC",
+     "inchikey": "DRLFMBDRBRZALE-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 42,
+   "name": "L-Tryptophan",
+   "smiles": "N[C@@H](Cc1c[nH]c2ccccc12)C(=O)O",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r42_large",
+   "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "N[C@@H](Cc1c[nH]c2ccccc12)C(=O)O",
+     "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "C1=CC=C2C(=C1)C(=CN2)CC(C(=O)O)N",
+     "inchikey": "QIVBCDIJIAJPQS-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 43,
+   "name": "Camphor",
+   "smiles": "CC1(C)[C@@H]2CC[C@@]1(C)C(=O)C2",
+   "variant": "small",
+   "path": "bench/decks/recognize_set/r43_small",
+   "inchikey": "DSSYKIVIOFKYAU-XCBNKYQSSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "[H][C@@]12CC[C@@](C)(C(=O)C1)C2(C)C",
+     "inchikey": "DSSYKIVIOFKYAU-XCBNKYQSSA-N",
+     "confidence": 0.86
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC1(C)[C@H]2CC[C@@]1(C)C(=O)C2",
+     "inchikey": "DSSYKIVIOFKYAU-XVKPBYJWSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 44,
+   "name": "Warfarin",
+   "smiles": "CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O",
+   "variant": "thick",
+   "path": "bench/decks/recognize_set/r44_thick",
+   "inchikey": "PJVWKTKQMONHTI-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O",
+     "inchikey": "PJVWKTKQMONHTI-UHFFFAOYSA-N",
+     "confidence": 0.89
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC(=O)CC(C1=CC=CC=C1)C2=C(C3=CC=CC=C3OC2=O)O",
+     "inchikey": "PJVWKTKQMONHTI-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 45,
+   "name": "Diazepam",
+   "smiles": "CN1C(=O)CN=C(c2ccccc2)c2cc(Cl)ccc21",
+   "variant": "rotated",
+   "path": "bench/decks/recognize_set/r45_rotated",
+   "inchikey": "AAOVKJBEBIDNHE-UHFFFAOYSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "CN1C(=O)CN=C(c2ccccc2)c2cc(Cl)ccc21",
+     "inchikey": "AAOVKJBEBIDNHE-UHFFFAOYSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "CN1C2=C(C=C(C=C2)Cl)C(=NCC1=O)C3=CC=CC=C3",
+     "inchikey": "AAOVKJBEBIDNHE-UHFFFAOYSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 46,
+   "name": "Penicillin G",
+   "smiles": "CC1(C)S[C@@H]2[C@H](NC(=O)Cc3ccccc3)C(=O)N2[C@H]1C(=O)O",
+   "variant": "serif",
+   "path": "bench/decks/recognize_set/r46_serif",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "[H][C@]12SC(C)(C)[C@H](C(=O)O)N1C(=O)[C@H]2NC(=O)Cc1ccccc1",
+     "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+     "confidence": 0.9
+    },
+    {
+     "engine": "decimer",
+     "raw": "CC1(C)[C@H](C(=O)O)N2C(=O)[C@H]([C@@]2(C)S1)NC(=O)CC3=CC=CC=C3",
+     "inchikey": "IYLXRCZJAGZMOX-IIYDPXPESA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 47,
+   "name": "Cocaine",
+   "smiles": "COC(=O)[C@H]1[C@@H]2CC[C@@H](C[C@@H]1OC(=O)c1ccccc1)N2C",
+   "variant": "noisy",
+   "path": "bench/decks/recognize_set/r47_noisy",
+   "inchikey": "ZPUCINDJVBIVPJ-AJNGGQMLSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "[H][C@]12CC[C@@]([H])([C@H](C(=O)OC)[C@@H](OC(=O)c3ccccc3)C1)N2C",
+     "inchikey": "ZPUCINDJVBIVPJ-AJNGGQMLSA-N",
+     "confidence": 0.85
+    },
+    {
+     "engine": "decimer",
+     "raw": "CN1[C@H]2CC[C@H]1[C@@H]([C@H](C2)OC(=O)C3=CC=CC=C3)C(=O)OC",
+     "inchikey": "ZPUCINDJVBIVPJ-AJNGGQMLSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 48,
+   "name": "Morphine",
+   "smiles": "CN1CC[C@]23c4c5ccc(O)c4O[C@H]2[C@@H](O)C=C[C@H]3[C@H]1C5",
+   "variant": "jpeg",
+   "path": "bench/decks/recognize_set/r48_jpeg",
+   "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "[H][C@@]12C=C[C@H](O)[C@]3([H])Oc4c(O)ccc5c4[C@]13CCN(C)[C@]2([H])C5",
+     "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
+     "confidence": 0.75
+    },
+    {
+     "engine": "decimer",
+     "raw": "CN1CC[C@@]23[C@H]4C=C[C@@H]([C@@H]2OC5=C3C(=CC=C5O)C[C@H]41)O",
+     "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 49,
+   "name": "Testosterone",
+   "smiles": "C[C@]12CC[C@H]3[C@@H](CCC4=CC(=O)CC[C@@]34C)[C@@H]1CC[C@@H]2O",
+   "variant": "plain",
+   "path": "bench/decks/recognize_set/r49_plain",
+   "inchikey": "MUMGGOZAMZWBJJ-VIUKOLAESA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "[H][C@@]12CCC3=CC(=O)CC[C@@]3(C)[C@@]1([H])CC[C@]1(C)[C@@H](O)CC[C@@]21[H]",
+     "inchikey": "MUMGGOZAMZWBJJ-VIUKOLAESA-N",
+     "confidence": 0.88
+    },
+    {
+     "engine": "decimer",
+     "raw": "C[C@@]12CCC(=O)C=C2CC[C@H]3[C@@H]4CC[C@@H]([C@@]4(C)CC[C@@H]31)O",
+     "inchikey": "MUMGGOZAMZWBJJ-DYKIIFRCSA-N",
+     "confidence": null
+    }
+   ]
+  },
+  {
+   "index": 50,
+   "name": "Ascorbic acid",
+   "smiles": "OC[C@H](O)[C@H]1OC(=O)C(O)=C1O",
+   "variant": "large",
+   "path": "bench/decks/recognize_set/r50_large",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "reads": [
+    {
+     "engine": "molscribe@.venv310",
+     "raw": "O=C1O[C@H]([C@@H](O)CO)C(O)=C1O",
+     "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+     "confidence": 0.88
+    },
+    {
+     "engine": "decimer",
+     "raw": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O",
+     "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+     "confidence": null
+    }
+   ]
+  }
+ ]
+}
