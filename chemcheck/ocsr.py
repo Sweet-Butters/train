@@ -15,9 +15,34 @@ from .bridge import Worker
 
 @dataclass(frozen=True)
 class Prediction:
+    """인식기 하나가 그림 한 장에 낸 답.
+
+    confidence 는 **인식기마다 다른 자다.** 같은 0.9 가 같은 뜻이 아니다.
+      - molscribe: 모델이 내는 전체 점수(overall_score). verdict 의 0.8 문턱은 이 자로
+        정한 숫자다.
+      - decimer: 디코더가 토큰마다 낸 softmax 확률의 평균 (decimer_confidence).
+        MolScribe 의 0.8 과 견줄 수 없는 다른 자다. 이 값의 분포는 아직 실측하지
+        않았다 - D 의 50장 결과에서 엔진별로 보고 문턱을 따로 정한다. 그 전에는
+        이 값을 문턱에 태우지 않는다 (verdict.judge 의 max(confidence) 는 엔진을
+        가리지 않으므로 거기서 decimer 를 빼야 한다).
+      - 신뢰도를 주지 않는 인식기는 NaN. 없는 값을 지어내지 않는다.
+    """
     smiles: str
     confidence: float
     engine: str
+
+
+def decimer_confidence(tokens_with_confidence) -> float:
+    """DECIMER 의 토큰별 신뢰도 [(토큰, 확률), ...] 를 값 하나로. 토큰이 없으면 NaN.
+
+    평균이다 - 최솟값이 아니다. 긴 SMILES 에서 토큰 하나가 흔들린 것과 짧은 SMILES
+    전체가 흔들린 것을 구분하려면 분포를 봐야 하는데, 그 분포는 D 의 50장 결과에서
+    본다. 그 전까지는 가장 단순한 요약을 둔다.
+    """
+    confs = [float(c) for _tok, c in tokens_with_confidence]
+    if not confs:
+        return float("nan")
+    return sum(confs) / len(confs)
 
 
 class Engine:
@@ -162,11 +187,11 @@ class DecimerEngine(Engine):
     def recognize(self, image_path: Path) -> Prediction | None:
         if not self.available():
             return None
-        smiles = self._predict(str(image_path))
+        smiles, tokens = self._predict(str(image_path), confidence=True)
         if not smiles:
             return None
-        # DECIMER 기본 경로는 신뢰도를 주지 않는다. 없는 값을 지어내지 않고 표시만 한다.
-        return Prediction(smiles, float("nan"), self.name)
+        # 토큰별 softmax 확률의 평균. MolScribe 의 점수와 같은 자가 아니다 - Prediction 참고.
+        return Prediction(smiles, decimer_confidence(tokens), self.name)
 
 
 class SubprocessEngine(Engine):

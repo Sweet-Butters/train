@@ -85,11 +85,13 @@ def load_decimer(_checkpoint: str | None):
     from DECIMER import predict_SMILES
 
     def recognize(path: str) -> dict:
-        smiles = predict_SMILES(path)
+        smiles, tokens = predict_SMILES(path, confidence=True)
         if not smiles:
             return {"error": "빈 SMILES"}
-        # DECIMER 는 신뢰도를 주지 않는다. 없는 값을 지어내지 않는다.
-        return {"smiles": smiles, "confidence": None}
+        # 토큰별 softmax 확률의 평균 (chemcheck.ocsr.decimer_confidence 와 같은 식).
+        # MolScribe 의 점수와 같은 자가 아니다. 토큰이 없으면 None -> 부르는 쪽이 NaN.
+        confs = [float(c) for _tok, c in tokens]
+        return {"smiles": smiles, "confidence": sum(confs) / len(confs) if confs else None}
 
     return recognize
 
