@@ -108,7 +108,7 @@ async function resolveName(name) {
 }
 
 async function identifyByKey(inchikey) {
-  if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "내장 표" };
+  if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "정본 · 내장 표" };
   // Title(관용명)과 IUPACName 을 함께 받는다 - 새로 만난 분자는 관용명이 없고
   // IUPAC 명만 있는 경우가 많다. 둘 다 없으면 진짜 미등재다.
   const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title,IUPACName/JSON`);
@@ -116,7 +116,7 @@ async function identifyByKey(inchikey) {
   if (res.status === 429 || res.status === 503) throw new Error("PubChem 이 잠시 응답하지 않습니다");
   if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
   const p = (await res.json()).PropertyTable.Properties[0];
-  return { title: p.Title, iupac: p.IUPACName, cid: p.CID, source: "PubChem" };
+  return { title: p.Title, iupac: p.IUPACName, cid: p.CID, source: "정본 · PubChem" };
 }
 
 // ============================================================ RDKit 계산 (그림·InChIKey·화학식)
@@ -243,7 +243,7 @@ function syncResult() {
 function renderMol(data) {
   currentMol = data;
   $("molDraw").innerHTML = data.svg || "";
-  $("molSource").textContent = "정본 · " + (data.source || "");
+  $("molSource").textContent = data.source || "정본";
   $("molTitle").textContent = data.title || "(PubChem 에 이름 없음)";
   const dl = $("molFacts"); dl.innerHTML = "";
   const cidLink = data.cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${data.cid}`, text: `CID ${data.cid}` } : null;
@@ -556,7 +556,7 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100620");
+    const mod = await import("./crop.js?v=202609100625");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: onImageLoaded }) || null;
       // crop.js 가 자기 영역 안에 [사진 찍기]/[파일 선택] 을 이미 갖고 있다.
@@ -652,7 +652,7 @@ async function handleImageInner(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100620");
+    const mod = await import("./ocr.js?v=202609100625");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
@@ -864,6 +864,15 @@ function appendCandidates(card, json) {
 function appendIdentification(card, json) {
   const read = json.read || {};
   if (!read.smiles) return false;
+  const bad = unreadableMarks(read.smiles);
+  if (bad) {
+    const p = document.createElement("p");
+    p.className = "verdict-note";
+    p.textContent = "그림에서 구조를 제대로 읽지 못했습니다 - " + bad +
+      ". 구조 부분만 더 가까이, 정면에서 다시 찍거나 잘라 보세요.";
+    card.appendChild(p);
+    return true;
+  }
 
   const h = document.createElement("p");
   h.className = "verdict-grade";
@@ -947,8 +956,22 @@ function appendIdentification(card, json) {
 // 그림만 넣었을 때는 대조할 정본이 없다. 그래도 화면의 큰 카드는 비워 두지 않는다 -
 // **그림에서 읽은 구조**를 거기에 채우고, 이름은 내장 표 -> PubChem 순으로 역조회한다.
 // 사용자가 기대하는 것은 판정이 아니라 "이게 무슨 화합물인가" 다.
+// 서버와 같은 규칙을 화면에도 둔다(방어를 두 겹으로). '*' 는 인식기가 원자를
+// 특정하지 못한 자리이고, 조각이 여럿이면 결합을 잇지 못한 것이다 - 둘 다
+// "읽었다" 고 부를 수 없으므로 큰 카드에 올리지 않는다.
+function unreadableMarks(smiles) {
+  if (!smiles) return null;
+  const stars = (smiles.match(/\*/g) || []).length;
+  if (stars) return `인식기가 원자를 특정하지 못한 자리가 ${stars} 곳입니다`;
+  const parts = smiles.split(".").filter((x) => x.trim());
+  if (parts.length > 3) return `구조가 ${parts.length} 조각으로 끊겨 있습니다`;
+  return null;
+}
+
 function renderReadAsMain(read) {
   if (!read || !read.smiles || !RDKit) return;
+  const bad = unreadableMarks(read.smiles);
+  if (bad) { hideMol(); return; }        // 쓰레기를 "읽은 구조" 로 올리지 않는다
   let mol = null, svg = "", smiles = read.smiles, formula = null;
   try {
     mol = RDKit.get_mol(read.smiles);
