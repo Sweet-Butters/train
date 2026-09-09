@@ -51,6 +51,19 @@ python -m chemcheck 슬라이드.pdf      # .pptx 도 가능
 
 구조 인식기(OCSR)를 설치하면 그림 판정이 켜집니다. 없으면 이름 추출까지만 동작하고 그림은 전부 판정 불가로 보고합니다.
 
+### 인식기 두 개를 함께 세웁니다
+
+합의가 깨지면 판정을 보류하므로, 인식기가 둘일 때 비로소 합의 게이트가 제 일을 합니다. 게다가 둘은 서로의 결핍을 메웁니다 — MolScribe는 신뢰도 점수를 주고, DECIMER는 주지 않습니다.
+
+```bash
+bash scripts/fetch_decimer.sh   # DECIMER 가중치 (약 600MB)
+bash scripts/setup_ocsr.sh      # MolScribe 환경 + 체크포인트 (1.13GB)
+```
+
+둘은 **한 프로세스에 같이 올릴 수 없습니다.** MolScribe 1.1.1은 `torch<2.0`에 고정돼 있고 torch 1.x는 Python 3.11 이후 휠이 없는 반면, DECIMER는 Python 3.13/TensorFlow에서 돕니다. 그래서 MolScribe는 `.venv310`에 따로 두고 `scripts/ocsr_worker.py`를 통해 프로세스 너머로 부릅니다. 워커는 한 번만 띄웁니다 — 이미지마다 새로 띄우면 1.13GB 체크포인트를 매번 읽게 됩니다.
+
+한쪽만 설치해도 동작합니다. 없는 인식기는 없다고 보고할 뿐입니다.
+
 ## 데모 자료 만들기
 
 ```bash

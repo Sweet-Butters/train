@@ -6,6 +6,11 @@
 """
 from __future__ import annotations
 
+import contextlib
+import json
+import queue
+import subprocess
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -99,19 +104,176 @@ class DecimerEngine(Engine):
         return Prediction(smiles, float("nan"), self.name)
 
 
+class SubprocessEngine(Engine):
+    """다른 파이썬 환경에 있는 인식기를 프로세스 너머로 쓴다.
+
+    MolScribe 는 torch<2.0 에 고정돼 있어 py3.10 환경이 필요하고, DECIMER 는
+    py3.13/TF 에서 돈다. 한 프로세스에 같이 올릴 수 없다. 그렇다고 이미지마다
+    프로세스를 새로 띄우면 1.13GB 체크포인트를 매번 읽는다. 그래서 워커를
+    한 번 띄워 두고 줄 단위로 주고받는다 (scripts/ocsr_worker.py).
+
+    워커가 죽거나 대답이 없으면 인식 결과를 내지 않는다. 그러면 판정은
+    보류된다 - 틀린 답을 내는 것보다 낫다.
+    """
+
+    WORKER = Path(__file__).resolve().parents[1] / "scripts" / "ocsr_worker.py"
+
+    def __init__(
+        self,
+        python: Path,
+        engine: str,
+        checkpoint: Path | None = None,
+        load_timeout: float = 600.0,
+        call_timeout: float = 180.0,
+    ):
+        self.python = Path(python)
+        self.engine = engine
+        self.checkpoint = checkpoint
+        self.load_timeout = load_timeout
+        self.call_timeout = call_timeout
+        self.name = f"{engine}@{self.python.parents[1].name}"
+        self.unavailable_reason: str | None = None
+        self._proc = None
+        self._replies: "queue.Queue[str | None]" = queue.Queue()
+
+    def available(self) -> bool:
+        # 무거운 적재를 여기서 하지 않는다. 있을 법한지만 본다.
+        # 실제로 못 띄우면 recognize 가 아무 것도 내지 않고, 판정은 보류된다.
+        if self.unavailable_reason is not None:
+            return False
+        if not self.python.exists():
+            self.unavailable_reason = f"파이썬 환경 없음: {self.python}"
+            return False
+        if not self.WORKER.exists():
+            self.unavailable_reason = f"워커 없음: {self.WORKER}"
+            return False
+        if self.checkpoint is not None and not self.checkpoint.exists():
+            self.unavailable_reason = f"체크포인트 없음: {self.checkpoint}"
+            return False
+        return True
+
+    def _pump(self, stdout) -> None:
+        for line in stdout:
+            self._replies.put(line)
+        self._replies.put(None)  # 워커가 죽었다
+
+    def _start(self) -> bool:
+        if self._proc is not None:
+            return True
+        if not self.available():
+            return False
+        cmd = [str(self.python), "-u", str(self.WORKER), self.engine]
+        if self.checkpoint is not None:
+            cmd += ["--checkpoint", str(self.checkpoint)]
+        try:
+            self._proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                cwd=str(self.WORKER.parents[1]),
+                text=True,
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            self.unavailable_reason = f"워커를 띄우지 못함: {exc}"
+            return False
+
+        threading.Thread(target=self._pump, args=(self._proc.stdout,), daemon=True).start()
+
+        hello = self._reply(self.load_timeout)  # 모델 적재를 기다린다
+        if hello is None or not hello.get("ready"):
+            reason = (hello or {}).get("error", "응답 없음")
+            self.unavailable_reason = f"워커 적재 실패: {reason}"
+            self._stop()
+            return False
+        return True
+
+    def _reply(self, timeout: float) -> dict | None:
+        try:
+            line = self._replies.get(timeout=timeout)
+        except queue.Empty:
+            return None
+        if line is None:
+            return None
+        try:
+            return json.loads(line)
+        except json.JSONDecodeError:
+            return None
+
+    def _stop(self) -> None:
+        if self._proc is None:
+            return
+        with contextlib.suppress(Exception):
+            self._proc.stdin.close()
+        with contextlib.suppress(Exception):
+            self._proc.terminate()
+        self._proc = None
+
+    def recognize(self, image_path: Path) -> Prediction | None:
+        if not self._start():
+            return None
+        try:
+            self._proc.stdin.write(f"{image_path}\n")
+            self._proc.stdin.flush()
+        except OSError as exc:
+            self.unavailable_reason = f"워커가 죽었다: {exc}"
+            self._stop()
+            return None
+
+        reply = self._reply(self.call_timeout)
+        if reply is None:
+            # 대답이 없다 = 죽었거나 멎었다. 되살릴 수 없으니 접는다.
+            self.unavailable_reason = "워커가 응답하지 않음"
+            self._stop()
+            return None
+        if "smiles" not in reply:
+            return None  # 이 장만 실패. 워커는 살아 있다.
+
+        confidence = reply.get("confidence")
+        # 신뢰도를 주지 않는 인식기는 NaN 으로 남긴다. 없는 값을 지어내지 않는다.
+        return Prediction(
+            reply["smiles"],
+            float("nan") if confidence is None else float(confidence),
+            self.name,
+        )
+
+
 # 인식기를 못 쓴 이유. 조용히 사라지면 사용자가 원인을 알 수 없다.
 LAST_DIAGNOSTICS: list[str] = []
 
 
+# MolScribe 전용 환경. torch<2.0 고정 때문에 py3.10 으로 따로 만든다.
+# scripts/setup_ocsr.sh 가 여기에 깐다.
+VENV310_PYTHON = Path(__file__).resolve().parents[1] / ".venv310" / "Scripts" / "python.exe"
+
+
 def load_engines(molscribe_checkpoint: Path | None = None) -> list[Engine]:
-    """설치돼 있고 실제로 쓸 수 있는 인식기만 돌려준다."""
+    """설치돼 있고 실제로 쓸 수 있는 인식기만 돌려준다.
+
+    두 인식기를 함께 세우는 것이 목적이다. 합의가 깨지면 판정을 보류하므로,
+    인식기가 둘일 때 비로소 합의 게이트가 제 일을 한다.
+    """
     LAST_DIAGNOSTICS.clear()
-    engines: list[Engine] = [MolScribeEngine(molscribe_checkpoint)]
+    engines: list[Engine] = []
+
+    # MolScribe: 같은 프로세스에 올릴 수 있으면 그렇게 하고, 아니면 옆 환경에 맡긴다.
+    local = MolScribeEngine(molscribe_checkpoint)
+    if local.available():
+        engines.append(local)
+    else:
+        bridged = SubprocessEngine(VENV310_PYTHON, "molscribe", molscribe_checkpoint)
+        if bridged.available():
+            engines.append(bridged)
+        elif bridged.unavailable_reason:
+            LAST_DIAGNOSTICS.append(f"molscribe: {bridged.unavailable_reason}")
+
     decimer = DecimerEngine()
     # DECIMER는 신뢰도를 주지 않으므로 자체 일관성 검사로 감싼다.
     engines.append(SelfConsistent(decimer) if decimer.available() else decimer)
     if decimer.unavailable_reason:
         LAST_DIAGNOSTICS.append(f"decimer: {decimer.unavailable_reason}")
+
     return [e for e in engines if e.available()]
 
 

@@ -122,9 +122,69 @@ def test_broken_engine_does_not_crash() -> None:
     print("통과: 인식기가 깨져도 터지지 않고 판정만 보류한다.")
 
 
+STUB_WORKER = '''
+import json, sys
+
+def emit(o):
+    sys.stdout.write(json.dumps(o) + "\\n")
+    sys.stdout.flush()
+
+emit({"ready": True})
+for line in sys.stdin:
+    path = line.strip()
+    if not path:
+        continue
+    if "die" in path:          # 워커가 죽는 상황
+        break
+    if "noconf" in path:       # 신뢰도를 주지 않는 인식기
+        emit({"smiles": "CC(=O)Oc1ccccc1C(=O)O", "confidence": None})
+    else:
+        emit({"smiles": "c1ccccc1", "confidence": 0.91})
+'''
+
+
+def test_subprocess_bridge_speaks_the_protocol() -> None:
+    """옆 환경의 인식기를 프로세스 너머로 쓰는 다리 검증.
+
+    진짜 MolScribe 는 1.13GB 에 장당 30초라 테스트에서 부를 수 없다. 프로토콜만
+    스텁 워커로 본다: 적재 악수, 요청-응답, 신뢰도 없는 응답, 그리고 워커가
+    죽었을 때 조용히 접히는지.
+    """
+    import math
+    import sys
+
+    from chemcheck.ocsr import SubprocessEngine
+
+    with tempfile.TemporaryDirectory() as tmp:
+        worker = Path(tmp) / "stub_worker.py"
+        worker.write_text(STUB_WORKER, encoding="utf-8")
+
+        engine = SubprocessEngine(Path(sys.executable), "stub",
+                                  load_timeout=30.0, call_timeout=10.0)
+        engine.WORKER = worker
+
+        assert engine.available(), f"다리를 못 씀: {engine.unavailable_reason}"
+
+        pred = engine.recognize(Path("slide.png"))
+        assert pred is not None and pred.smiles == "c1ccccc1", f"예측 없음: {pred}"
+        assert abs(pred.confidence - 0.91) < 1e-9, f"신뢰도 어긋남: {pred.confidence}"
+
+        pred = engine.recognize(Path("noconf.png"))
+        assert pred is not None and math.isnan(pred.confidence), \
+            "신뢰도를 주지 않는 인식기의 값을 지어냈다"
+
+        assert engine.recognize(Path("die.png")) is None, "죽은 워커가 예측을 냈다"
+        assert engine.unavailable_reason, "워커가 죽은 이유를 남기지 않았다"
+
+    print(f"  다리 -> 예측 전달·NaN 보존·죽으면 접힘: {engine.unavailable_reason}")
+    print("통과: 인식기를 옆 환경에서 돌려도 프로토콜이 지켜진다.")
+
+
 if __name__ == "__main__":
     test_detects_planted_errors()
     print()
     test_self_consistency_forces_abstain()
     print()
     test_broken_engine_does_not_crash()
+    print()
+    test_subprocess_bridge_speaks_the_protocol()
