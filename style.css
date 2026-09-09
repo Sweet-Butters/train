@@ -61,11 +61,13 @@ dl.facts dd { margin: 0; font-family: ui-monospace, Consolas, monospace; word-br
 /* ---------- 대조 결과 - 화면의 주인공 ---------- */
 .verdict-section { margin-top: 18px; }
 .verdict-card { background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 20px; }
+.result-placeholder { color: var(--mute); font-size: 14px; padding: 4px; margin: 0; }
 
 .verdict-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; padding: 6px 4px; margin: 0 0 12px; border-radius: 6px; }
 .verdict-pill.match { color: var(--ok); }
 .verdict-pill.mismatch { color: var(--bad); }
 .verdict-pill.unreadable { color: var(--mute); }
+.grade-badge { font-size: 12px; font-weight: 400; color: var(--mute); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; vertical-align: middle; }
 
 .drawbox-inline { max-width: 300px; margin: 4px 0 14px; }
 .drawlabel { color: var(--mute); font-size: 12px; margin: 0 0 4px; text-align: center; }
