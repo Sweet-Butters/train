@@ -43,6 +43,36 @@ def _bucket(reason: str) -> str:
     return reason
 
 
+def document_note(results: list) -> list[str]:
+    """문서 수준의 진단. 장별 사유로는 말할 수 없는 것을 말한다.
+
+    보류 사유는 장 단위로 붙는데, 원인이 문서 전체에 있으면 그 사유가 사람을
+    속인다. 텍스트 레이어가 없는 PDF 에서 '그림 옆에서 이름을 찾지 못함'은
+    거짓이다 - 이름은 그림 옆에 있고, 다만 픽셀이라 읽지 못한 것이다. 그대로
+    두면 사용자는 멀쩡히 적혀 있는 이름을 찾으러 간다.
+    """
+    images = sum(len(r.slide.images) for r in results)
+    if not images:
+        return []
+    text_chars = sum(len(r.slide.text.strip()) for r in results)
+    named = sum(1 for r in results if r.references)
+
+    if text_chars == 0:
+        return [
+            "  이 문서에는 글자가 하나도 없습니다 - 텍스트 레이어가 없는 PDF입니다.",
+            "  이름이 그림 안에 픽셀로만 있어 읽을 수 없습니다. 슬라이드에 이름이",
+            "  적혀 있어도 마찬가지입니다.",
+            "  원본 PPTX 가 있으면 그것을 넣으십시오. 없으면 이 문서는 지금 형태로는",
+            "  검사할 수 없습니다 (이름을 읽으려면 OCR 이 필요한데 이 도구에는 없습니다).",
+        ]
+    if named == 0:
+        return [
+            "  글자는 읽었으나 PubChem 이 화합물로 인정한 이름이 하나도 없습니다.",
+            "  자료에 이름이 있는데도 이렇다면 이름 해석 쪽 문제일 수 있습니다.",
+        ]
+    return []
+
+
 def summary_lines(results: list) -> list[str]:
     """요약. 판정률이 먼저 온다.
 
@@ -67,13 +97,20 @@ def summary_lines(results: list) -> list[str]:
         out.append(f"  {MARK[verdict]} {counts[verdict]:4d}")
 
     if silent:
-        reasons = Counter(_bucket(f.reason)
-                          for r in results for _, f in r.findings
-                          if f.verdict is Verdict.ABSTAIN)
+        images = sum(len(r.slide.images) for r in results)
+        no_text = images > 0 and sum(len(r.slide.text.strip()) for r in results) == 0
+        reasons = Counter(
+            "이름을 읽을 수 없음 (문서에 텍스트 레이어가 없음)" if no_text else _bucket(f.reason)
+            for r in results for _, f in r.findings
+            if f.verdict is Verdict.ABSTAIN)
         out.append("")
         out.append(f"  {MARK[Verdict.ABSTAIN]} {silent:4d}")
         for reason, n in reasons.most_common():
             out.append(f"        {n:4d}  {reason}")
+        note = document_note(results)
+        if note:
+            out.append("")
+            out.extend(note)
 
     if not judged:
         out.append("")
@@ -116,13 +153,21 @@ def main(argv: list[str] | None = None) -> int:
         work = args.keep or Path(tmp)
         results = run(args.file, work, engines, checkpoint)
 
+    # 문서에 글자가 하나도 없으면 '이름을 찾지 못함'은 거짓이다. 이름은 그림 옆에
+    # 있고 우리가 못 읽은 것이다. verdict.py 는 동결이므로 보여줄 때 바로잡는다.
+    no_text = (sum(len(r.slide.images) for r in results) > 0
+               and sum(len(r.slide.text.strip()) for r in results) == 0)
+
     for r in results:
         names = ", ".join(f"{ref.name}" for ref in r.references) or "(이름 없음)"
         print(f"── {r.slide.index}장  이름: {names}")
         if not r.slide.images:
             print("     그림 없음")
         for image, finding in r.findings:
-            print(f"     {MARK[finding.verdict]} {image.name}  {finding.reason}")
+            reason = finding.reason
+            if no_text and finding.verdict is Verdict.ABSTAIN:
+                reason = "이름을 읽을 수 없음 (문서에 텍스트 레이어가 없음)"
+            print(f"     {MARK[finding.verdict]} {image.name}  {reason}")
         print()
 
     for line in summary_lines(results):
