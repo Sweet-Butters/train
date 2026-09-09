@@ -16,6 +16,13 @@
 <p>파일을 선택하면 <code>readLabels(blob)</code> 결과를 JSON 으로 보여준다. file:// 로 열어도 동작해야 한다.</p>
 
 <input id="file-input" type="file" accept="image/*" />
+<p>
+  또는 저장소에 있는 실측 자료(<code>web/evidence/</code>)를 바로 시험:
+  <button type="button" data-evidence="evidence/caffeine_gpt.png">caffeine_gpt.png</button>
+  <button type="button" data-evidence="evidence/caffeine_gemini.jpeg">caffeine_gemini.jpeg</button>
+  <button type="button" data-evidence="evidence/alanine_gpt.png">alanine_gpt.png</button>
+  <button type="button" data-evidence="evidence/alanine_gemini.jpeg">alanine_gemini.jpeg</button>
+</p>
 <div id="results"></div>
 
 <script type="module">
@@ -55,6 +62,15 @@
       runOne(file.name, file);
     }
   });
+
+  for (const btn of document.querySelectorAll('button[data-evidence]')) {
+    btn.addEventListener('click', async () => {
+      const path = btn.dataset.evidence;
+      const resp = await fetch(path);
+      const blob = await resp.blob();
+      runOne(path.split('/').pop(), blob);
+    });
+  }
 
   // 자동화(Playwright)에서 호출: 외부에서 blob 을 넣어 readLabels 를 돌린다.
   window.__runOcrOn = async (name, blob) => runOne(name, blob);
