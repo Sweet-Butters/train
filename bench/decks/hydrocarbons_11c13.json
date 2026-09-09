@@ -1,0 +1,56 @@
+{
+  "source": {
+    "file": "11C13 PPT.pptx",
+    "slides": 398,
+    "subject": "탄화수소 (알케인·알켄·알카인) 강의 덱",
+    "note": "저작물이라 저장소에 담지 않는다. --deck 으로 로컬 경로를 준다.",
+    "image_naming": "extract.py 의 s{장:03d}_{번호:02d}.{확장자} 규칙에 기댄다. 그 규칙이 바뀌면 이 매니페스트도 바뀌어야 한다."
+  },
+  "labeling": {
+    "by": "사람이 그림을 직접 보고 붙였다. 슬라이드 원문 텍스트로 교차 확인했다.",
+    "scope": "판정 후보 128장 278그림 중 고유 그림 80개에서 앞의 32개",
+    "rule": "라벨은 자료의 사실을 적는다. 도구가 무엇을 볼 수 있었는지는 라벨에 넣지 않는다."
+  },
+  "entries": [
+    {"slide": 3, "image": "s003_01.jpg", "truth": "not_structure", "smiles": "", "note": "주유소 주유기 사진"},
+    {"slide": 3, "image": "s003_02.jpg", "truth": "not_structure", "smiles": "", "note": "CNG 표지판"},
+    {"slide": 3, "image": "s003_03.jpg", "truth": "not_structure", "smiles": "", "note": "프로판 가스통 사진"},
+    {"slide": 11, "image": "s011_01.png", "truth": "not_structure", "smiles": "", "note": "생각하는 사람 클립아트 (덱 전체에 9회 반복)"},
+    {"slide": 12, "image": "s012_02.jpg", "truth": "same", "smiles": "C", "note": "메탄의 정사면체 궤도 그림. 슬라이드 원문 'Methane 109.5°'. 골격식이 아니라 3D 궤도 표현이라 OCSR 이 읽을 수 있을지는 별개 문제"},
+    {"slide": 21, "image": "s021_01.jpg", "truth": "not_structure", "smiles": "", "note": "생각하는 사람 실루엣 (11회 반복)"},
+
+    {"slide": 26, "image": "s026_01.png", "truth": "same", "smiles": "CCCCCC", "note": "헥세인. 슬라이드 원문에 'Hexane' 이 있다. 그런데 참조 예산(3개)에서 밀려 도구는 이 이름을 못 본다 - 여기서 오탐이 난다"},
+    {"slide": 26, "image": "s026_02.png", "truth": "same", "smiles": "CC(C)CCC", "note": "2-메틸펜테인. 참조에 들어 있다"},
+    {"slide": 26, "image": "s026_03.png", "truth": "same", "smiles": "CCC(C)CC", "note": "3-메틸펜테인. 참조에 들어 있다"},
+    {"slide": 26, "image": "s026_04.png", "truth": "same", "smiles": "CC(C)C(C)C", "note": "2,3-다이메틸뷰테인. 참조에 들어 있다"},
+    {"slide": 26, "image": "s026_05.png", "truth": "same", "smiles": "CCC(C)(C)C", "note": "2,2-다이메틸뷰테인. 슬라이드 원문에 있으나 참조 예산에서 밀렸다 - 여기서 오탐이 난다"},
+
+    {"slide": 29, "image": "s029_01.png", "truth": "not_structure", "smiles": "", "note": "금속 격자 도해 (29회 반복)"},
+    {"slide": 44, "image": "s044_02.png", "truth": "not_structure", "smiles": "", "note": "검은 사각형 (내용 없음)"},
+    {"slide": 48, "image": "s048_01.png", "truth": "not_structure", "smiles": "", "note": "소년 클립아트"},
+    {"slide": 76, "image": "s076_01.jpg", "truth": "not_structure", "smiles": "", "note": "아인슈타인 캐리커처"},
+    {"slide": 95, "image": "s095_01.gif", "truth": "not_structure", "smiles": "", "note": "불꽃 사진"},
+    {"slide": 95, "image": "s095_02.jpg", "truth": "not_structure", "smiles": "", "note": "파란 불꽃 그림"},
+    {"slide": 96, "image": "s096_01.png", "truth": "not_structure", "smiles": "", "note": "불꽃 클립아트"},
+    {"slide": 105, "image": "s105_01.jpg", "truth": "not_structure", "smiles": "", "note": "3D 인물 클립아트"},
+
+    {"slide": 113, "image": "s113_01.gif", "truth": "same", "smiles": "CC", "note": "에테인 공-막대 모형. 슬라이드 원문 'Conformers of Ethane'. 골격식이 아니다"},
+
+    {"slide": 138, "image": "s138_01.png", "truth": "not_structure", "smiles": "", "note": "sp2 궤도 도해"},
+    {"slide": 138, "image": "s138_02.png", "truth": "not_structure", "smiles": "", "note": "sp2 궤도 도해"},
+    {"slide": 142, "image": "s142_01.png", "truth": "not_structure", "smiles": "", "note": "파이 결합 궤도 도해"},
+    {"slide": 143, "image": "s143_02.png", "truth": "not_structure", "smiles": "", "note": "노란 막대 장식"},
+
+    {"slide": 154, "image": "s154_01.png", "truth": "same", "smiles": "C1CCC1", "note": "사이클로뷰테인. 슬라이드 원문에 'Cyclobutane' 이 있으나 참조 예산에서 밀렸다 - 여기서 오탐이 난다"},
+
+    {"slide": 155, "image": "s155_01.png", "truth": "not_structure", "smiles": "", "note": "녹색 궤도 그림. 덱 전체에서 46회로 최다 반복"},
+
+    {"slide": 170, "image": "s170_01.png", "truth": "no_claim", "smiles": "C=CC=CC=C", "note": "1,3,5-헥사트라이엔 골격식. 슬라이드 원문은 '이 화합물에서 기하이성질을 보이는 이중결합 수를 찾아라'로 화합물 이름을 대지 않는다. 검사할 주장이 없으므로 물러나야 한다. 도구가 잡은 참조는 'Sol'(당의 동의어)뿐이다"},
+    {"slide": 170, "image": "s170_02.jpg", "truth": "not_structure", "smiles": "", "note": "빨간 X 표시"},
+
+    {"slide": 214, "image": "s214_01.png", "truth": "not_structure", "smiles": "", "note": "쐐기 결합 기호 조각"},
+    {"slide": 214, "image": "s214_02.png", "truth": "not_structure", "smiles": "", "note": "빗금 쐐기 결합 기호 조각"},
+    {"slide": 220, "image": "s220_01.png", "truth": "not_structure", "smiles": "", "note": "시험관 사진"},
+    {"slide": 224, "image": "s224_01.jpg", "truth": "not_structure", "smiles": "", "note": "물음표 든 3D 인물 클립아트"}
+  ]
+}

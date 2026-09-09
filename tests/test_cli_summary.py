@@ -16,7 +16,9 @@ sys.path.insert(0, str(ROOT))
 from bench.cases import CORPUS  # noqa: E402
 from chemcheck.cli import summary_lines  # noqa: E402
 from chemcheck.ocsr import Engine, Prediction  # noqa: E402
-from chemcheck.pipeline import run  # noqa: E402
+from chemcheck.extract import Slide  # noqa: E402
+from chemcheck.pipeline import SlideResult, run  # noqa: E402
+from chemcheck.verdict import Finding, Verdict  # noqa: E402
 
 DECK = ROOT / "bench" / "decks" / "synthetic.pptx"
 
@@ -98,6 +100,47 @@ def test_no_images_says_so() -> None:
     print("통과: 분모가 0일 때 터지지 않는다.")
 
 
+def _fake(text: str, n_images: int, reason: str) -> list:
+    """추출 결과를 손으로 짓는다. 저작물 자료 없이 문서 수준 진단을 재기 위해서."""
+    slide = Slide(1, text, [Path(f"s001_{i:02d}.png") for i in range(1, n_images + 1)])
+    findings = [(img, Finding(Verdict.ABSTAIN, reason)) for img in slide.images]
+    return [SlideResult(slide, [], findings)]
+
+
+def test_no_text_layer_is_not_blamed_on_the_slide() -> None:
+    """글자가 없는 PDF 에서 '그림 옆에 이름이 없다'는 거짓이다.
+
+    이름은 그림 옆에 있고 우리가 못 읽은 것이다. 그대로 두면 사용자는 멀쩡히
+    적혀 있는 이름을 찾으러 간다.
+    """
+    results = _fake("", 3, "그림 옆에서 화합물 이름을 찾지 못함")
+    text = "\n".join(summary_lines(results))
+
+    assert "텍스트 레이어" in text, f"문서 수준 진단이 없다:\n{text}"
+    assert "그림 옆에 이름이 없음" not in text, "장 탓으로 돌리는 사유가 남아 있다"
+    assert "PPTX" in text, "다음에 무엇을 하라는 안내가 없다"
+    print("  글자 0자 문서 -> 문서 탓으로 바로잡고 다음 행동을 알려준다")
+    print("통과: 파일 형식 문제를 슬라이드 내용 문제로 말하지 않는다.")
+
+
+def test_text_present_but_no_names_says_something_else() -> None:
+    """글자는 읽혔는데 이름이 하나도 안 잡히는 것은 다른 문제다."""
+    results = _fake("고분자 합성 메커니즘", 2, "그림 옆에서 화합물 이름을 찾지 못함")
+    text = "\n".join(summary_lines(results))
+
+    assert "텍스트 레이어" not in text, "글자가 있는데 없다고 한다"
+    assert "인정한 이름이 하나도 없습니다" in text, f"이 경우의 진단이 없다:\n{text}"
+    print("  글자는 있고 이름은 없음 -> 이름 해석 쪽을 가리킨다")
+    print("통과: 두 상황을 구분한다.")
+
+
+def test_normal_document_gets_no_note() -> None:
+    """정상 문서에는 문서 수준 경고를 달지 않는다."""
+    text = "\n".join(_summary([MixedEngine()]))
+    assert "텍스트 레이어" not in text and "인정한 이름이 하나도" not in text, text
+    print("통과: 멀쩡한 문서에 경고를 붙이지 않는다.")
+
+
 if __name__ == "__main__":
     test_coverage_comes_before_counts()
     print()
@@ -106,3 +149,9 @@ if __name__ == "__main__":
     test_nothing_judged_is_not_reported_as_clean()
     print()
     test_no_images_says_so()
+    print()
+    test_no_text_layer_is_not_blamed_on_the_slide()
+    print()
+    test_text_present_but_no_names_says_something_else()
+    print()
+    test_normal_document_gets_no_note()
