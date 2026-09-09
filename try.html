@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chemcheck · 해보기</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header container tool">
+  <a class="wordmark" href="index.html">chemcheck</a>
+  <nav class="site-nav"><a href="index.html">← 소개</a></nav>
+</header>
+
+<main class="container tool">
+  <div class="tool-head">
+    <h1>이름이나 SMILES, 또는 이미지</h1>
+    <p>정본은 곧바로 뜨고, 이미지를 주면 서버가 그림도 읽어 같은 카드 안에서 대조합니다.</p>
+  </div>
+
+  <!-- 이미지 - 입력칸 위의 드롭 영역. crop.js(C) 가 있으면 이 안을 통째로 맡아 이미지를 넣었을 때만 크롭 UI 를 보여준다. -->
+  <div class="dropzone" id="dropzone" tabindex="0">
+    <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요</p>
+    <button type="button" class="btn btn-sm" id="fileBtn">파일 선택</button>
+    <input type="file" id="fileInput" accept="image/*" hidden>
+  </div>
+  <div class="image-preview" id="imagePreview" hidden></div>
+  <p class="field-note" id="imageNote"></p>
+
+  <!-- 입력 하나 - 이름 또는 SMILES. RDKit 이 파싱하면 SMILES, 못 하면 이름. -->
+  <div class="query">
+    <input id="queryInput" placeholder="이름 또는 SMILES - 아스피린, caffeine, CC(=O)Oc1ccccc1C(=O)O" autocomplete="off" spellcheck="false">
+    <div class="suggestions" id="suggestions" hidden></div>
+  </div>
+  <p class="status-row"><span id="rdkitStatus">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</span><span id="serverStatus"></span></p>
+  <p class="err" id="err"></p>
+
+  <!-- 결과 하나 - 정본 카드가 먼저, 판정은 같은 카드 안에서 나중에 채워진다. -->
+  <article class="result" id="result" hidden>
+    <div class="canon" id="canon">
+      <div class="mol-draw" id="molDraw"></div>
+      <div>
+        <p class="eyebrow" id="molSource"></p>
+        <h2 class="mol-name" id="molTitle"></h2>
+        <dl class="facts" id="molFacts"></dl>
+        <div class="copy-row">
+          <button type="button" class="btn btn-sm" id="copyPng">PNG 복사</button>
+          <button type="button" class="btn btn-sm" id="copySvg">SVG 다운로드</button>
+          <button type="button" class="btn btn-sm" id="copySmiles">SMILES 복사</button>
+          <button type="button" class="btn btn-sm" id="copyKey">InChIKey 복사</button>
+        </div>
+        <p class="copy-note" id="copyNote"></p>
+      </div>
+    </div>
+    <div class="verdict" id="verdict" hidden></div>
+  </article>
+</main>
+
+<script src="config.js"></script>
+<script src="compounds.js"></script>
+<script src="https://unpkg.com/@rdkit/rdkit@2025.3.4-1.0.0/dist/RDKit_minimal.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
