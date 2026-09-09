@@ -12,11 +12,18 @@
 조용히 넘어가는데, 그건 판정이 아니라 침묵이다. 그래서 PDF는 페이지를
 그려서 오려내고, PPTX는 최소한 못 뽑았다는 사실을 남긴다.
 
+강의자료의 그림은 심하게 중복된다. 실측한 398장 덱은 그림 371건 중 고유한 것이
+109개였고 배경 클립아트 하나가 46번 나왔다. 장마다 뽑아 그대로 넘기면 같은 그림이
+46번 인식기를 타므로 비용도 오탐도 46배가 된다. 그래서 내용 해시가 같은 그림은
+파일 하나로 모은다. 어느 장에 나왔는지는 `Slide.images` 가 그대로 들고 있으므로
+잃지 않는다 - `figures()` 가 그것을 그림 단위로 뒤집어 준다.
+
 PDF 백엔드는 pdfminer.six(MIT) + pypdfium2(BSD-3/Apache-2.0)를 쓴다.
 PyMuPDF는 AGPL-3.0 이라 상업 이용 시 전염되므로 쓰지 않는다.
 """
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
@@ -73,9 +80,60 @@ class VectorRegion:
 class Slide:
     index: int
     text: str
+    # 이 장에 나온 그림들. 내용이 같은 그림은 덱 전체에서 한 파일이므로,
+    # 여러 장의 images 가 같은 Path 를 가리킬 수 있다. 한 장 안에서는 중복이 없다.
     images: list[Path] = field(default_factory=list)
     # 뽑지 못한 벡터 구조 후보. pipeline 은 읽지 않고 리포트가 쓴다.
     vector_regions: list[VectorRegion] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class Figure:
+    """내용이 같은 그림 하나와, 그것이 나온 장들.
+
+    같은 클립아트가 46 장에 나오면 Figure 는 하나이고 slides 가 46 개다.
+    인식기는 path 를 **한 번만** 보면 되고, 나온 판정은 slides 의 장마다 붙는다.
+    장 단위로 돌면 46 번 도는 자리다.
+    """
+
+    path: Path
+    slides: tuple[int, ...]
+
+
+def figures(slides: list[Slide]) -> list[Figure]:
+    """장 목록을 그림 단위로 뒤집는다. 처음 나온 순서를 지킨다.
+
+    같은 내용은 이미 `load()` 가 한 파일로 모아 두었으므로 여기서는 경로로
+    묶으면 충분하다 - 다시 해시하려고 64MB 를 읽지 않는다.
+    """
+    where: dict[Path, list[int]] = {}
+    for slide in slides:
+        for image in slide.images:
+            where.setdefault(image, []).append(slide.index)
+    return [Figure(path, tuple(indexes)) for path, indexes in where.items()]
+
+
+class _FigureStore:
+    """내용이 같은 그림을 한 파일로 모은다. 덱 하나마다 새로 만든다.
+
+    파일 이름은 **처음 나온 자리**로 짓는다. 내용 해시로 이름을 지으면 사람이
+    읽을 수 없게 되고, 손으로 라벨을 붙여 둔 쪽(bench 의 매니페스트)이 통째로
+    끊긴다. 두 번째 장부터는 파일을 쓰지 않고 먼저 쓴 경로를 그대로 돌려준다.
+    """
+
+    def __init__(self, out_dir: Path) -> None:
+        self._out_dir = out_dir
+        self._by_digest: dict[str, Path] = {}
+
+    def put(self, blob: bytes, name: str) -> Path:
+        digest = hashlib.sha256(blob).hexdigest()
+        known = self._by_digest.get(digest)
+        if known is not None:
+            return known
+        dest = self._out_dir / name
+        dest.write_bytes(blob)
+        self._by_digest[digest] = dest
+        return dest
 
 
 def _keep_blob(blob: bytes) -> bool:
@@ -202,25 +260,30 @@ def _pdf_regions(
     return regions
 
 
-def _render_region(page, width: float, height: float, box: Box, dest: Path) -> bool:
-    """페이지의 한 영역만 그려서 png 로 저장한다. 저장했으면 True."""
+def _render_region(page, width: float, height: float, box: Box) -> bytes | None:
+    """페이지의 한 영역만 그려서 png 바이트로 준다. 못 그리면 None.
+
+    파일로 바로 쓰지 않는다. 같은 그림인지는 바이트를 봐야 알고, 같으면 쓸
+    필요가 없다. 어디에 쓸지는 `_FigureStore` 가 정한다.
+    """
     left = max(0.0, box[0] - REGION_PAD_PT)
     bottom = max(0.0, box[1] - REGION_PAD_PT)
     right = min(width, box[2] + REGION_PAD_PT)
     top = min(height, box[3] + REGION_PAD_PT)
     if right - left <= 0 or top - bottom <= 0:
-        return False
+        return None
 
     # pypdfium2 의 crop 은 각 변에서 잘라낼 여백을 받는다.
     crop = (left, bottom, width - right, height - top)
     try:
         image = page.render(scale=RENDER_SCALE, crop=crop).to_pil()
     except Exception:
-        return False
+        return None
     if min(image.size) < MIN_IMAGE_SIDE:
-        return False
-    image.save(dest)
-    return True
+        return None
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def from_pdf(path: Path, out_dir: Path) -> list[Slide]:
@@ -235,6 +298,7 @@ def from_pdf(path: Path, out_dir: Path) -> list[Slide]:
     from pdfminer.high_level import extract_pages
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    store = _FigureStore(out_dir)
     slides: list[Slide] = []
     document = pdfium.PdfDocument(str(path))
     try:
@@ -246,10 +310,14 @@ def from_pdf(path: Path, out_dir: Path) -> list[Slide]:
             if regions:
                 page = document[page_no - 1]
                 width, height = page.get_size()
+                # 순서 있는 집합. 한 쪽 안에서 같은 그림을 두 번 내지 않는다.
+                found: dict[Path, None] = {}
                 for img_no, box in enumerate(sorted(regions), start=1):
-                    dest = out_dir / f"p{page_no:03d}_{img_no:02d}.png"
-                    if _render_region(page, width, height, box, dest):
-                        slide.images.append(dest)
+                    blob = _render_region(page, width, height, box)
+                    if blob is None:
+                        continue
+                    found[store.put(blob, f"p{page_no:03d}_{img_no:02d}.png")] = None
+                slide.images.extend(found)
             slides.append(slide)
     finally:
         document.close()
@@ -425,11 +493,16 @@ def _pptx_to_pdf(path: Path, out_dir: Path) -> Path | None:
     return converted if converted.exists() else None
 
 
-def _fill_vector_images(deck_pdf: Path, slides: list[Slide], out_dir: Path) -> None:
+def _fill_vector_images(
+    deck_pdf: Path, slides: list[Slide], store: _FigureStore
+) -> None:
     """변환된 pdf 에서 구조 자리를 오려내 각 region.image 를 채운다.
 
     슬라이드 n 장은 pdf n 쪽으로 1:1 대응한다. 자리는 이미 비율로 알고
     있으므로 다시 찾지 않고 그대로 오려낸다.
+
+    임베드 그림과 같은 store 를 쓴다. 도형으로 그린 같은 구조가 여러 장에
+    되풀이되면 - 강의자료에서 흔하다 - 그것도 한 파일이어야 한다.
     """
     import pypdfium2 as pdfium
 
@@ -441,6 +514,7 @@ def _fill_vector_images(deck_pdf: Path, slides: list[Slide], out_dir: Path) -> N
                 continue
             page = document[index]
             width, height = page.get_size()
+            seen = set(slide.images)
             for region_no, region in enumerate(slide.vector_regions, start=1):
                 # 비율(왼쪽 위 기준) -> 포인트(왼쪽 아래 기준)
                 box = (
@@ -449,9 +523,13 @@ def _fill_vector_images(deck_pdf: Path, slides: list[Slide], out_dir: Path) -> N
                     region.box[2] * width,
                     (1.0 - region.box[1]) * height,
                 )
-                dest = out_dir / f"s{slide.index:03d}_v{region_no:02d}.png"
-                if _render_region(page, width, height, box, dest):
-                    region.image = dest
+                blob = _render_region(page, width, height, box)
+                if blob is None:
+                    continue
+                dest = store.put(blob, f"s{slide.index:03d}_v{region_no:02d}.png")
+                region.image = dest
+                if dest not in seen:
+                    seen.add(dest)
                     slide.images.append(dest)
     finally:
         document.close()
@@ -466,13 +544,16 @@ def from_pptx(path: Path, out_dir: Path, render_vectors: bool = True) -> list[Sl
     from pptx import Presentation
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    store = _FigureStore(out_dir)
     slides: list[Slide] = []
     deck = Presentation(str(path))
     deck_w, deck_h = deck.slide_width, deck.slide_height
 
     for slide_no, raw in enumerate(deck.slides, start=1):
         texts: list[str] = []
-        images: list[Path] = []
+        # 순서 있는 집합. 한 장 안에서 같은 그림을 두 번 내지 않는다 -
+        # 판정이 같은데 두 번 세어질 뿐이다.
+        images: dict[Path, None] = {}
         img_no = 0
         # 그룹별 도형 조각 수. None 키는 그룹에 안 묶인 조각들.
         counts: dict[int | None, int] = {}
@@ -489,10 +570,10 @@ def from_pptx(path: Path, out_dir: Path, render_vectors: bool = True) -> list[Sl
                 blob, ext = found
                 if not _keep_blob(blob):
                     continue
+                # 번호는 중복이어도 올린다. 그래야 새로 쓰이는 파일의 이름이
+                # 중복을 모으기 전과 같아진다 - 손으로 붙인 라벨이 안 끊긴다.
                 img_no += 1
-                dest = out_dir / f"s{slide_no:03d}_{img_no:02d}.{ext}"
-                dest.write_bytes(blob)
-                images.append(dest)
+                images[store.put(blob, f"s{slide_no:03d}_{img_no:02d}.{ext}")] = None
                 continue
 
             if not _is_vector_part(shape):
@@ -521,12 +602,12 @@ def from_pptx(path: Path, out_dir: Path, render_vectors: bool = True) -> list[Sl
                 continue
             regions.append(VectorRegion(slide_no, count, group is not None, box))
 
-        slides.append(Slide(slide_no, "\n".join(texts), images, regions))
+        slides.append(Slide(slide_no, "\n".join(texts), list(images), regions))
 
     if render_vectors and any(slide.vector_regions for slide in slides):
         converted = _pptx_to_pdf(path, out_dir / "_converted")
         if converted is not None:
-            _fill_vector_images(converted, slides, out_dir)
+            _fill_vector_images(converted, slides, store)
 
     return slides
 
