@@ -52,7 +52,7 @@ function clamp(v, lo, hi) {
  * container: HTMLElement
  * onCrop(blob, meta) — meta = { full: Blob }
  */
-export function mountCropper(container, { onCrop }) {
+export function mountCropper(container, { onCrop, onLoad }) {
   injectStyle();
   container.innerHTML = "";
   const root = el("div", "cropx", container);
@@ -259,6 +259,8 @@ export function mountCropper(container, { onCrop }) {
   }
 
   function loadBlobRaw(blob) {
+    // 페이지 쪽 미리보기도 같이 갱신한다 - 무엇을 넣었는지 즉시 보이게.
+    try { if (typeof onLoad === "function") onLoad(blob); } catch (e) { /* 부수효과일 뿐 */ }
     const url = URL.createObjectURL(blob);
     const image = new Image();
     image.onload = () => {

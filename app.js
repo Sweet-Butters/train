@@ -17,6 +17,20 @@ const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초
 
 const $ = (id) => document.getElementById(id);
 
+// 실패를 화면에 드러낸다. 폰에서는 콘솔을 못 여는데, 오늘 화면 버그 셋이 전부
+// "아무 일도 안 일어남" 으로 나타났다 - 조용한 실패는 고칠 수 없다.
+function showFatal(msg) {
+  const box = document.getElementById("err") || document.body;
+  box.textContent = "문제가 생겼습니다: " + msg;
+  box.hidden = false;
+  box.style.color = "#b3261e";
+}
+window.addEventListener("error", (e) => showFatal((e && e.message) || "알 수 없는 오류"));
+window.addEventListener("unhandledrejection", (e) => {
+  const r = e && e.reason;
+  showFatal((r && (r.message || r)) || "처리되지 않은 오류");
+});
+
 // ── 결과 DOM 을 JS 가 만든다 ────────────────────────────────────────────────
 // index.html 재설계에서 <article id="result"> 가 빈 껍데기가 되면서, app.js 가
 // 기대하던 11 개 id(canon·molDraw·molTitle·molFacts·molSource·verdict·copy*)가
@@ -494,8 +508,14 @@ function setupPageImageButtons() {
       const f = camInput.files && camInput.files[0];
       camInput.value = "";                       // 같은 사진을 다시 찍어도 change 가 뜨게
       if (!f) return;
-      if (CROPPER && typeof CROPPER.load === "function") CROPPER.load(f);
-      else { showImagePreview(f); handleImage(f); }
+      showImagePreview(f);                     // 무엇을 넣었는지 즉시 보이게
+      imageNote("사진을 불러왔습니다 - 구조 부분만 드래그해 자른 뒤 확인을 누르세요.");
+      if (CROPPER && typeof CROPPER.load === "function") {
+        try { CROPPER.load(f); }
+        catch (err) { imageNote("자르기 화면을 열지 못했습니다 - 원본 그대로 검사합니다."); handleImage(f); }
+      } else {
+        handleImage(f);
+      }
     });
   }
   const clear = $("imageClear");
@@ -511,9 +531,9 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100451");
+    const mod = await import("./crop.js?v=202609100458");
     if (mod && typeof mod.mountCropper === "function") {
-      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
+      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: showImagePreview }) || null;
       usingCropper = true;
       return;
     }
@@ -562,12 +582,18 @@ function showImagePreview(blob) {
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
 async function handleImage(blob) {
+  if (!blob) { imageNote("이미지를 읽지 못했습니다 - 다시 시도해 주세요."); return; }
+  try { return await handleImageInner(blob); }
+  catch (e) { imageNote("검사 중 문제가 생겼습니다: " + ((e && e.message) || e)); }
+}
+
+async function handleImageInner(blob) {
   if (!usingCropper) showImagePreview(blob);
   imageNote("OCR 로 이름을 읽는 중…");
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100451");
+    const mod = await import("./ocr.js?v=202609100458");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
