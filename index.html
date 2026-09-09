@@ -7,67 +7,80 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="site-header">
+<header class="site-header container">
   <a class="wordmark" href="index.html">chemcheck</a>
-  <nav><a href="try.html">해보기 →</a></nav>
+  <nav class="site-nav"><a href="try.html">직접 해보기 →</a></nav>
 </header>
 
-<main>
-  <section class="hero">
+<main class="container">
+  <section class="hero section">
     <h1>LLM 이 그린 화학구조, 믿어도 될까요?</h1>
     <p class="lede">이름을 대면 정본이 곧바로 뜨고, 이미지를 주면 서버가 그림을 읽어 InChIKey 로 대조합니다.
       맞는지 틀린지는 추론이 아니라 문자열 비교입니다.</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="try.html">지금 해보기 →</a>
-      <a class="btn btn-ghost" href="#api">API 보기</a>
+      <a class="btn btn-primary" href="try.html">직접 해보기 →</a>
+      <a class="btn" href="#api">API 보기</a>
     </div>
   </section>
 
-  <section class="story">
-    <p class="eyebrow">오늘 실제로 잡은 오류</p>
-    <h2>Gemini 가 그린 "카페인", 자기 캡션과도 안 맞았다</h2>
-    <div class="story-body">
-      <img class="story-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
+  <section class="story section">
+    <p class="eyebrow">2026-09-09, 실제 데이터에서 잡은 오류</p>
+    <h2>Gemini 가 그린 "카페인"은 자기 캡션과도 맞지 않았다</h2>
+    <div class="story-grid">
+      <figure>
+        <img src="evidence/caffeine_gemini.jpeg" width="1024" height="572"
+             alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
+        <figcaption>Gemini Pro 에게 "카페인 그려줘" 라고 해서 받은 그대로. 제목·화학식·IUPAC 명은 전부 정확하다.</figcaption>
+      </figure>
       <div>
         <blockquote>
-          이름의 정본 InChIKey 는 <strong>RYYVLZVUVIJVGH</strong>. 그런데 서버가 이 그림에서 읽은 것은
-          <strong>CSXLFNRQOLIQAN</strong> — 골격부터 다르다. 카페인은 탄소 8 개인데 이 그림은 9 개로 그려져 있다.
-          N9 에 메틸이 하나 더 붙어, 사실 그릴 수 없는 분자다. 그런데도 이미지 자신은 화학식을
-          "C8H10N4O2" 라고 적어 놨다 — 캡션과 그림이 서로 다른 말을 하고 있었다.
+          이름의 정본과 그림에서 읽은 구조는 골격부터 다르다. 카페인은 탄소 8 개인데 이 그림은 9 개다.
+          N9 에 메틸이 하나 더 붙어 있어 중성 분자로는 존재할 수 없는데, 이미지는 스스로
+          <code>C8H10N4O2</code> 라고 적어 놓았다. 캡션과 그림이 서로 다른 말을 하고 있었다.
         </blockquote>
+        <ul class="keys">
+          <li><span class="k">이름의 정본</span><span class="v">RYYVLZVUVIJVGH</span></li>
+          <li><span class="k">그림에서 읽은 것</span><span class="v">CSXLFNRQOLIQAN</span></li>
+          <li><span class="k">탄소</span><span class="v">8 대 9</span></li>
+        </ul>
         <div class="cta-row">
           <a class="btn btn-primary" href="try.html?sample=caffeine_gemini">이 이미지로 직접 해보기 →</a>
+          <p class="caption">살아 있는 서버가 매번 새로 계산한다. 미리 적어둔 결과는 없다.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="how">
+  <section class="section">
     <h2>작동 방식</h2>
     <ol class="steps">
       <li>
-        <span class="num">1</span>
+        <span class="num">01</span>
         <h3>넣는다</h3>
-        <p>이름이나 SMILES 를 치거나, 이미지를 붙여넣는다.</p>
+        <p>이름이나 SMILES 를 치거나, 이미지를 붙여넣는다. 칸은 하나다.</p>
       </li>
       <li>
-        <span class="num">2</span>
+        <span class="num">02</span>
         <h3>대조한다</h3>
         <p>정본은 브라우저에서 즉시. 그림은 서버가 읽어 InChIKey 로 비교한다.</p>
       </li>
       <li>
-        <span class="num">3</span>
+        <span class="num">03</span>
         <h3>판정을 본다</h3>
-        <p>🟢 일치 · 🔴 다름 · ⚪ 판정 불가(침묵이지 경고가 아니다).</p>
+        <p class="legend">
+          <span><span class="dot match"></span>일치</span>
+          <span><span class="dot mismatch"></span>다름</span>
+          <span><span class="dot unreadable"></span>판정 불가</span>
+        </p>
+        <p>판정 불가는 경고가 아니라 침묵이다. 확신이 없으면 틀렸다고 말하지 않는다.</p>
       </li>
     </ol>
   </section>
 
-  <section class="how" id="api">
+  <section class="api section" id="api">
     <h2>API</h2>
-    <div class="api-block">
-      <p>화면이 쓰는 것과 같은 엔드포인트입니다. 그대로 붙여 코드에서 검사할 수 있습니다.</p>
-      <pre><code>POST <span data-server-url></span>/api/check
+    <p>화면이 쓰는 것과 같은 엔드포인트입니다. 그대로 붙여 코드에서 검사할 수 있습니다.</p>
+    <pre><code>POST <span data-server-url></span>/api/check
 Content-Type: multipart/form-data
 
   image: &lt;file&gt;
@@ -81,18 +94,17 @@ Content-Type: multipart/form-data
   "read":      {"smiles","inchikey","heavy_formula","engines":[...]},
   "reasons":   ["골격이 다릅니다 (...)", "중원자 조성 ..."]
 }</code></pre>
-    </div>
   </section>
 
-  <section class="how">
+  <section class="section">
     <h2>요금제</h2>
-    <div class="pricing">
-      <div class="price-card">
+    <div class="plans">
+      <div class="plan">
         <h3>웹 데모</h3>
         <p class="price">무료</p>
-        <p>지금은 심사 기간 데모입니다. 이름·SMILES 대조는 언제나 무료고, 이미지 대조는 서버가 떠 있는 동안 무료입니다.</p>
+        <p>심사 기간 데모입니다. 이름·SMILES 대조는 언제나 무료고, 이미지 대조는 서버가 떠 있는 동안 무료입니다.</p>
       </div>
-      <div class="price-card">
+      <div class="plan">
         <h3>로컬 CLI</h3>
         <p class="price">무료 · 오픈소스</p>
         <ul>
@@ -104,20 +116,21 @@ Content-Type: multipart/form-data
     </div>
   </section>
 
-  <section class="how">
+  <section class="section">
     <h2>로드맵</h2>
     <ul class="roadmap">
-      <li><span class="tag">인식기</span><span>서버에 두 번째 인식기(MolScribe)를 다시 올려 합의 판정을 복원한다 - 지금은 DECIMER 하나뿐이다.</span></li>
-      <li><span class="tag">판정</span><span>입체화학까지 본다 - 지금은 InChIKey 앞 14자(골격)만 비교한다.</span></li>
+      <li><span class="tag">인식기</span><span>서버에 두 번째 인식기(MolScribe)를 다시 올려 합의 판정을 복원한다. 지금은 DECIMER 하나뿐이다.</span></li>
+      <li><span class="tag">판정</span><span>입체화학까지 본다. 지금은 InChIKey 앞 14자(골격)만 비교한다.</span></li>
       <li><span class="tag">이미지</span><span>슬라이드 한 장에 구조가 여럿일 때 자동으로 나눠 보내는 분할기.</span></li>
       <li><span class="tag">검증</span><span>90장 평가 코퍼스로 판정 정확도를 잰다.</span></li>
     </ul>
   </section>
 </main>
 
-<footer class="site-footer">
-  chemcheck - LLM 이 그린 화학구조를 이름의 정본과 대조합니다. 서버: Cloud Run · 인식기: DECIMER.
+<footer class="site-footer container">
+  chemcheck. LLM 이 그린 화학구조를 이름의 정본과 대조합니다. 서버: Cloud Run · 인식기: DECIMER.
 </footer>
+
 <script src="config.js"></script>
 <script>for (const el of document.querySelectorAll("[data-server-url]")) el.textContent = window.CHEMCHECK_SERVER;</script>
 </body>

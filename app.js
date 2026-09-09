@@ -19,7 +19,7 @@ const $ = (id) => document.getElementById(id);
 let RDKit = null;
 let currentMol = null;
 
-function status(t) { $("status").textContent = t; }
+function status(t) { $("rdkitStatus").textContent = t; }
 function fail(msg) { $("err").textContent = msg; }
 function clearErr() { $("err").textContent = ""; }
 
@@ -177,14 +177,21 @@ function hideSuggestions() { const box = $("suggestions"); box.hidden = true; bo
 
 // ============================================================ 결과 카드 - 하나. 정본이 먼저, 판정은 같은 카드 안에서 나중에.
 
+// 카드(#result)는 정본(#canon)이나 판정(#verdict) 중 하나라도 있을 때만 보인다.
+// 이름 없이 이미지만 넣으면 정본 없이 판정 슬롯만 뜬다 - 그래도 카드는 하나다.
+function syncResult() {
+  const hasMol = !!currentMol, hasVerdict = !$("verdict").hidden;
+  $("canon").hidden = !hasMol;
+  $("result").hidden = !(hasMol || hasVerdict);
+}
 function renderMol(data) {
   currentMol = data;
-  $("result").hidden = false;
   $("molDraw").innerHTML = data.svg || "";
+  $("molSource").textContent = "정본 · " + (data.source || "");
   $("molTitle").textContent = data.title || "(PubChem 에 이름 없음)";
   const dl = $("molFacts"); dl.innerHTML = "";
   const cidLink = data.cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${data.cid}`, text: `CID ${data.cid}` } : null;
-  const rows = [["출처", data.source], ["PubChem", cidLink], ["화학식", data.formula], ["SMILES", data.smiles], ["InChIKey", data.inchikey]];
+  const rows = [["PubChem", cidLink], ["화학식", data.formula], ["SMILES", data.smiles], ["InChIKey", data.inchikey]];
   for (const [k, val] of rows) {
     if (val === undefined || val === null || val === "") continue;
     const dt = document.createElement("dt"); dt.textContent = k;
@@ -194,9 +201,16 @@ function renderMol(data) {
     dl.append(dt, dd);
   }
   $("copyNote").textContent = "";
+  syncResult();
 }
-function hideMol() { currentMol = null; $("result").hidden = true; }
-function hideVerdict() { $("verdict").hidden = true; $("verdict").innerHTML = ""; }
+function hideMol() { currentMol = null; syncResult(); }
+function hideVerdict() { const v = $("verdict"); v.hidden = true; v.innerHTML = ""; v.className = "verdict"; syncResult(); }
+// 판정 슬롯을 비우고 연다. state 는 match / mismatch / unreadable / "" (대기·안내).
+function openVerdict(state) {
+  const v = $("verdict"); v.hidden = false; v.innerHTML = ""; v.className = "verdict" + (state ? " " + state : "");
+  syncResult();
+  return v;
+}
 
 async function attemptResolve(raw) {
   raw = raw.trim();
@@ -305,12 +319,14 @@ $("copyKey").addEventListener("click", () => copyText(currentMol && currentMol.i
 
 // ============================================================ 이미지 입력 - crop.js(C)·ocr.js(O) 있으면 쓰고 없으면 대체. 임계 경로 아님.
 
+let usingCropper = false; // crop.js 가 붙으면 미리보기·크롭 UI 는 crop.js 가 맡는다
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
     const mod = await import("./crop.js");
     if (mod && typeof mod.mountCropper === "function") {
       mod.mountCropper(dropzone, { onCrop: handleImage });
+      usingCropper = true;
       return;
     }
   } catch (e) { /* web/crop.js 아직 없다 - 조용히 건너뛴다 */ }
@@ -352,7 +368,7 @@ function showImagePreview(blob) {
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
 async function handleImage(blob) {
-  showImagePreview(blob);
+  if (!usingCropper) showImagePreview(blob);
   imageNote("OCR 로 이름을 읽는 중…");
 
   let hints = null;
@@ -377,17 +393,13 @@ async function handleImage(blob) {
 
 // ============================================================ 이미지 자체 대조 - 서버(S). 정본 카드 안의 같은 자리에 채운다.
 
+// 스피너로 덮지 않는다 - 정본은 그대로 두고, 판정 슬롯에 한 줄만 적는다.
 function showVerdictLoading() {
-  $("verdict").hidden = false;
-  const card = $("verdict"); card.innerHTML = "";
-  const p = document.createElement("p"); p.className = "verdict-placeholder";
-  p.textContent = "서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다 - 따뜻하면 2~3초.";
-  card.appendChild(p);
+  showVerdictNote("서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다. 따뜻하면 2~3초.");
 }
 function showVerdictNote(msg) {
-  $("verdict").hidden = false;
-  const card = $("verdict"); card.innerHTML = "";
-  const p = document.createElement("p"); p.className = "verdict-placeholder"; p.textContent = msg;
+  const card = openVerdict("");
+  const p = document.createElement("p"); p.className = "verdict-note"; p.textContent = msg;
   card.appendChild(p);
 }
 
@@ -435,6 +447,7 @@ function formulaDiffNote(refF, readF) {
   const elems = [...new Set([...Object.keys(a), ...Object.keys(b)])];
   const parts = [];
   for (const el of elems) {
+    if (el === "H") continue; // heavy_formula 는 중원자만 센다 - 수소 차이는 비교 대상이 아니다
     const d = (b[el] || 0) - (a[el] || 0);
     if (!d) continue;
     const ko = KO_ELEM[el] || el;
@@ -448,7 +461,7 @@ function buildEvidenceBox(rows) {
   for (const [k, html] of rows) {
     const row = document.createElement("div"); row.className = "row";
     const kd = document.createElement("div"); kd.className = "k"; kd.textContent = k;
-    const vd = document.createElement("div"); vd.innerHTML = html;
+    const vd = document.createElement("div"); vd.className = "v"; vd.innerHTML = html;
     row.append(kd, vd); box.appendChild(row);
   }
   return box;
@@ -460,54 +473,54 @@ function appendReasons(card, reasons) {
   card.appendChild(ul);
 }
 
-function renderVerdict(json) {
-  const card = $("verdict"); card.innerHTML = "";
+function verdictLabel(state, text) {
+  const h = document.createElement("p"); h.className = "verdict-label";
+  const dot = document.createElement("span"); dot.className = "dot " + state;
+  h.append(dot, text);
+  return h;
+}
 
-  if (json.verdict === "unreadable") {
-    const pill = document.createElement("p"); pill.className = "verdict-pill unreadable"; pill.textContent = "⚪ 읽지 못함";
-    card.appendChild(pill);
-    const note = document.createElement("p"); note.className = "verdict-placeholder";
-    note.textContent = "서버가 그림을 확실히 읽지 못했다. 요청하신 구조는 위 정본이다 - 나란히 놓고 보라.";
+function renderVerdict(json) {
+  const state = json.verdict === "match" ? "match" : json.verdict === "mismatch" ? "mismatch" : "unreadable";
+  const card = openVerdict(state);
+
+  if (state === "unreadable") {
+    card.appendChild(verdictLabel(state, "판정 불가"));
+    const note = document.createElement("p"); note.className = "verdict-note";
+    note.textContent = "서버가 그림을 확실히 읽지 못했다. 요청하신 구조는 위 정본이다. 나란히 놓고 보라.";
     card.appendChild(note);
     appendReasons(card, json.reasons);
     return;
   }
 
-  const pill = document.createElement("p");
-  pill.className = "verdict-pill " + (json.verdict === "match" ? "match" : "mismatch");
-  pill.textContent = json.verdict === "match" ? "🟢 일치" : "🔴 다름";
+  card.appendChild(verdictLabel(state, state === "match" ? "일치" : "다름"));
   if (json.grade) {
-    const g = document.createElement("span"); g.className = "grade-badge";
-    g.textContent = json.grade === "strong" ? "확신: 강함 (인식기 둘 합의)" : "확신: 약함 (인식기 하나)";
-    pill.append(" ", g);
+    // 확신 등급은 색이 아니라 작은 글씨 한 줄로.
+    const g = document.createElement("p"); g.className = "verdict-grade";
+    g.textContent = json.grade === "strong" ? "확신 강함 · 인식기 둘이 같은 골격을 읽었다" : "확신 약함 · 인식기 하나의 답이다";
+    card.appendChild(g);
   }
-  card.appendChild(pill);
 
   const ref = json.reference, read = json.read;
   const rows = [];
-  if (ref) rows.push([`이름 "${ref.name || ""}" 의 정본`, escapeHtml(ref.inchikey || "-")]);
+  if (ref) rows.push([`"${ref.name || ""}" 의 정본`, escapeHtml(ref.inchikey || "-")]);
   if (read) rows.push(["그림에서 읽은 것", markDiff(ref && ref.inchikey, read.inchikey)]);
   if (ref && ref.formula) rows.push(["정본 화학식", escapeHtml(ref.formula)]);
   if (read && read.heavy_formula) {
     const note = formulaDiffNote(ref && ref.formula, read.heavy_formula);
-    rows.push(["그림에서 센 원자", escapeHtml(read.heavy_formula) + (note ? `  ← ${escapeHtml(note)}` : "")]);
+    rows.push(["그림에서 센 원자", escapeHtml(read.heavy_formula) + (note ? ` <span class="note">${escapeHtml(note)}</span>` : "")]);
   }
   if (rows.length) card.appendChild(buildEvidenceBox(rows));
 
   appendReasons(card, json.reasons);
 
   if (read && read.engines && read.engines.length) {
-    const box = document.createElement("div"); box.className = "evidence";
-    const title = document.createElement("div"); title.className = "k"; title.textContent = "인식기별 결과";
-    box.appendChild(title);
-    for (const e of read.engines) {
-      const row = document.createElement("div"); row.className = "row";
-      const k = document.createElement("div"); k.className = "k"; k.textContent = e.engine || "-";
-      const v = document.createElement("div");
-      v.textContent = `${e.inchikey || "(파싱 실패)"}${typeof e.confidence === "number" ? "  신뢰도 " + e.confidence.toFixed(3) : ""}`;
-      row.append(k, v); box.appendChild(row);
-    }
-    card.appendChild(box);
+    const title = document.createElement("p"); title.className = "evidence-title"; title.textContent = "인식기별 결과";
+    card.appendChild(title);
+    card.appendChild(buildEvidenceBox(read.engines.map((e) => [
+      e.engine || "-",
+      escapeHtml(e.inchikey || "(파싱 실패)") + (typeof e.confidence === "number" ? ` <span class="note">신뢰도 ${e.confidence.toFixed(3)}</span>` : ""),
+    ])));
   }
 }
 
@@ -544,10 +557,6 @@ async function loadSample(key) {
 }
 
 // ============================================================ 시작
-
-$("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (web/build_table.py 가 chemcheck/data 에서 구움). ` +
-  `이름·SMILES 판별과 InChIKey·화학식 계산은 이 브라우저 안에서 표·PubChem·RDKit(WASM) 만으로 끝난다. ` +
-  `이미지는 web/crop.js·web/ocr.js 가 있으면 이름칸을 자동으로 채우고, 그림 자체는 서버(${CHECK_URL})가 읽어 대조한다.`;
 
 setupImageInput();
 warmupServer();
