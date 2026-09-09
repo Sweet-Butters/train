@@ -47,3 +47,40 @@ python bench/score_ai_images.py bench/aiimages
 ```
 
 크롭본과 원본을 따로 집계합니다. 크롭본의 `mismatch` 비율이 우리가 주장할 숫자입니다.
+
+---
+
+## 실측 결과 (2026-09-10 새벽)
+
+같은 프롬프트(`<화합물명>의 화학 구조를 그려줘`)로 Gemini·GPT 에게 10 개씩, 총 **20 장**.
+구조 영역만 오려내(`*__crop.png`) 인식기에 넣고 `check --name` 규칙으로 판정했다.
+원자료와 채점 결과가 이 폴더에 그대로 있다 - `scored.json` 이 판정 하나하나를 담는다.
+
+    판정 불가   10 / 20      그림에서 구조를 확실히 읽지 못했다
+    다름         6 / 20      이름의 정본과 골격이 다르다
+    일치         4 / 20
+
+**판정률 50%.** 절반을 못 읽었다는 사실을 먼저 말해야 한다 - 침묵하는 검사기는 오탐률
+0% 짜리 완벽한 도구가 되고 동시에 쓸모없다(`bench/README.md` 의 원칙).
+
+**판정한 10 장 중 6 장이 요청한 분자와 달랐다.**
+
+| 모델 | 화합물 | 읽은 골격 | 정본 골격 | 등급 |
+|---|---|---|---|---|
+| gemini | acetone | IFVHXUDNYZLJED | CSCPPACGZOOCGX | weak |
+| gemini | aspirin | YMHMQRQFHHILOO | BSYNRYMUTXBXSQ | weak |
+| gemini | glucose | CDXKFLTVUHFKMC | WQZGKKKJIJFFOK | weak |
+| gpt | aspirin | ZDUPYLSHMKCSJG | BSYNRYMUTXBXSQ | weak |
+| gpt | caffeine | UUGMJQVJWVCSIT | RYYVLZVUVIJVGH | weak |
+| gpt | nicotine | DIKDZTJPTFJYAI | SNICXCGAKADSCV | **strong** |
+
+`strong` 은 인식기 둘(DECIMER·MolScribe)이 **독립적으로 같은 골격을 읽었다**는 뜻이다.
+그 한 건은 인식기 오독으로 설명되지 않는다.
+
+### 이 숫자로 말할 수 있는 것과 없는 것
+
+- **말할 수 있다**: 이 20 장에서, 판정된 것의 다수가 요청한 분자가 아니었다.
+- **말할 수 없다**: "AI 가 화학 구조를 N% 틀린다". 표본이 20 장이고 모델이 둘이며
+  프롬프트가 하나다. 그리고 크롭 품질이 판정 불가 10 건에 섞여 있다.
+- **재현 방법**: 이 폴더의 `*__crop.png` 를 `python -m chemcheck check --name <이름> <파일>`
+  로 돌리면 같은 판정이 나온다. 인식기가 둘 다 설치돼 있어야 `strong` 이 재현된다.
