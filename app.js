@@ -11,7 +11,9 @@ const BY_KEY = {};
 for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
 const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
 const CHECK_URL = "https://pxh7yp--chemcheck.modal.run/api/check";
-const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
+const CHECK_TIMEOUT_MS = 300000; // 콜드스타트(TensorFlow 적재 55초)+추론. 넉넉히 5분
+const HEALTH_URL = CHECK_URL.replace("/api/check", "/api/health");
+let serverWarm = false; // /api/health 나 첫 판정이 돌아오면 true - 예상 시간을 그때 줄인다
 
 const $ = (id) => document.getElementById(id);
 let RDKit = null;
@@ -525,14 +527,39 @@ async function handleImage(blob) {
 
 // ============================================================ 이미지 자체 대조 - 서버(S). 정본은 이미 떠 있으니 이건 나중에 채운다.
 
+let verdictTimer = null;
+function stopVerdictTimer() { if (verdictTimer) { clearInterval(verdictTimer); verdictTimer = null; } }
+
 function showImageVerdictLoading() {
   $("imageVerdictSection").hidden = false;
+  stopVerdictTimer();
   const card = $("imageVerdictCard"); card.innerHTML = "";
+
   const p = document.createElement("p"); p.className = "result-placeholder";
-  p.textContent = "서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다 - 따뜻하면 2~3초.";
   card.appendChild(p);
+
+  const track = document.createElement("div");
+  track.style.cssText = "height:6px;border-radius:3px;background:#e5e5e5;overflow:hidden;margin:.5rem 0";
+  const fill = document.createElement("div");
+  fill.style.cssText = "height:100%;width:0;background:#4a7dbc;transition:width .25s linear";
+  track.appendChild(fill); card.appendChild(track);
+
+  const t0 = performance.now();
+  const tick = () => {
+    const s = (performance.now() - t0) / 1000;
+    const expect = serverWarm ? 8 : 90; // 따뜻하면 2~8초, 콜드는 TF 적재 55초 + 인식 20초
+    fill.style.width = Math.min(97, (s / expect) * 100).toFixed(1) + "%";
+    const el = s.toFixed(0);
+    if (serverWarm)      p.textContent = `구조를 읽는 중… ${el}초 경과 (예상 2~8초)`;
+    else if (s < 20)     p.textContent = `구조를 읽는 중… ${el}초 경과 (서버가 깨어 있으면 2~8초, 자고 있으면 60~90초)`;
+    else if (s < 110)    p.textContent = `서버가 깨어나는 중… ${el}초 / 예상 90초 (TensorFlow 적재 55초 + 인식 20초)`;
+    else                 p.textContent = `아직 기다리는 중… ${el}초 경과. 최대 5분까지 기다린다.`;
+  };
+  tick();
+  verdictTimer = setInterval(tick, 250);
 }
 function showImageVerdictNote(msg) {
+  stopVerdictTimer();
   $("imageVerdictSection").hidden = false;
   const card = $("imageVerdictCard"); card.innerHTML = "";
   const p = document.createElement("p"); p.className = "result-placeholder"; p.textContent = msg;
@@ -549,11 +576,13 @@ async function checkServerImage(blob, name) {
     fd.append("name", name || "");
     const res = await fetch(CHECK_URL, { method: "POST", body: fd, signal: controller.signal });
     if (!res.ok) throw new Error(`서버 응답 ${res.status}`);
+    serverWarm = true;
     renderImageVerdict(await res.json());
   } catch (e) {
     const timedOut = e && e.name === "AbortError";
     showImageVerdictNote(
-      (timedOut ? "서버가 시간 안에 응답하지 않았다(최대 1분 대기했다). " : "서버에 연결하지 못했다. ") +
+      (timedOut ? "서버가 5분 안에 응답하지 않았다 - 우리 서버 문제이지 그림 문제가 아니다. 다시 눌러 보라(두 번째부터는 2~8초다). "
+                : "서버에 연결하지 못했다 - 우리 서버 문제이지 그림 문제가 아니다. ") +
       "그림 자체는 확인하지 못했다 - 위 정본과 나란히 놓고 비교해 보라."
     );
   } finally {
@@ -562,6 +591,7 @@ async function checkServerImage(blob, name) {
 }
 
 function renderImageVerdict(json) {
+  stopVerdictTimer();
   const card = $("imageVerdictCard"); card.innerHTML = "";
 
   if (json.verdict === "unreadable") {
@@ -620,6 +650,10 @@ $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (w
   `그림 자체를 읽는 검사(OCSR)는 3GB 인식기가 필요해 로컬 CLI 의 몫이다 - 아래 "야생에서 잡은 오류" 참고.`;
 
 setupImageInput();
+
+// 서버 예열. 사용자가 이미지를 고르고 이름을 치는 동안 컨테이너가 뜬다.
+// 실패해도 아무 일 없다 - 임계 경로가 아니다.
+fetch(HEALTH_URL).then((r) => { if (r.ok) serverWarm = true; }).catch(() => {});
 
 const q = new URLSearchParams(location.search);
 if (q.get("name")) $("nameInput").value = q.get("name");
