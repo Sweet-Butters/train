@@ -95,11 +95,13 @@ async function resolveName(name) {
 
 async function identifyByKey(inchikey) {
   if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "내장 표" };
-  const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title/JSON`);
+  // Title(관용명)과 IUPACName 을 함께 받는다 - 새로 만난 분자는 관용명이 없고
+  // IUPAC 명만 있는 경우가 많다. 둘 다 없으면 진짜 미등재다.
+  const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title,IUPACName/JSON`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
   const p = (await res.json()).PropertyTable.Properties[0];
-  return { title: p.Title, cid: p.CID, source: "PubChem" };
+  return { title: p.Title, iupac: p.IUPACName, cid: p.CID, source: "PubChem" };
 }
 
 // ============================================================ RDKit 계산 (그림·InChIKey·화학식)
@@ -402,16 +404,15 @@ function setupExamples() {
   if (!box) return;
   for (const g of EXAMPLE_GROUPS) {
     const row = document.createElement("div");
-    row.style.cssText = "margin:.4rem 0";
-    const lab = document.createElement("div");
-    lab.style.cssText = "font-size:.8rem;opacity:.7;margin-bottom:.25rem";
+    row.className = "example-row";
+    const lab = document.createElement("span");
+    lab.className = "example-group";
     lab.textContent = g.label;
     row.appendChild(lab);
     for (const ex of g.items) {
       const b = document.createElement("button");
-      b.type = "button"; b.className = "btn btn-sm";
+      b.type = "button"; b.className = "chip";
       b.textContent = ex.label;
-      b.style.cssText = "margin:.15rem .3rem .15rem 0";
       b.addEventListener("click", () => runExample(ex));
       row.appendChild(b);
     }
@@ -419,12 +420,72 @@ function setupExamples() {
   }
 }
 
+// ============================================================ 요금제 - 눌린다.
+// 월/연 토글, 선택 카드(테두리·배지), 요약 한 줄. role=radiogroup + 화살표 키.
+// web-ui 브랜치(Sweet-Butters/web-ui)의 app.js 에서 그대로 포팅했다 - HTML·CSS
+// (#plans·.plan·.plan-cta·.toggle-btn·.is-selected·.is-on)는 이미 있었다.
+(function pricing() {
+  const plans = [...document.querySelectorAll("#plans .plan")];
+  if (!plans.length) return;
+  let cycle = "monthly";
+  const priceOf = (p) => {
+    const amount = p.querySelector(".amount");
+    const per = p.querySelector(".per");
+    return (amount.dataset[cycle] || amount.textContent) +
+      (per ? (per.dataset[cycle] || per.textContent).replace(" ", "") : "");
+  };
+  function select(p, focus) {
+    for (const q of plans) {
+      const on = q === p;
+      q.setAttribute("aria-checked", on);
+      q.tabIndex = on ? 0 : -1;
+      q.classList.toggle("is-selected", on);
+    }
+    $("planSummary").textContent = p.dataset.summary.replace("{price}", priceOf(p));
+    if (focus) p.focus();
+  }
+  function applyCycle() {
+    for (const s of document.querySelectorAll("#plans [data-monthly]")) s.textContent = s.dataset[cycle];
+    for (const b of document.querySelectorAll(".toggle-btn")) {
+      const on = b.dataset.cycle === cycle;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-pressed", on);
+    }
+    select(plans.find((p) => p.getAttribute("aria-checked") === "true") || plans[1]);
+  }
+  for (const p of plans) {
+    p.addEventListener("click", (e) => { if (!e.target.closest(".plan-cta")) select(p); });
+    p.addEventListener("keydown", (e) => {
+      const i = plans.indexOf(p);
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault(); select(plans[(i + 1) % plans.length], true);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault(); select(plans[(i - 1 + plans.length) % plans.length], true);
+      } else if ((e.key === " " || e.key === "Enter") && e.target === p) {
+        e.preventDefault(); select(p);
+      }
+    });
+  }
+  for (const b of document.querySelectorAll(".toggle-btn")) {
+    b.addEventListener("click", () => { cycle = b.dataset.cycle; applyCycle(); });
+  }
+  const startBtn = document.querySelector('[data-action="start"]');
+  if (startBtn) {
+    startBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      $("queryInput").scrollIntoView({ behavior: "smooth", block: "center" });
+      $("queryInput").focus();
+    });
+  }
+  applyCycle();
+})();
+
 let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에 걸리면 다시 연다
 
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100435");
+    const mod = await import("./crop.js?v=202609100444");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
       usingCropper = true;
@@ -474,7 +535,7 @@ async function handleImage(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100435");
+    const mod = await import("./ocr.js?v=202609100444");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
@@ -710,6 +771,10 @@ function appendIdentification(card, json) {
   nameEl.textContent = local || "이름을 찾는 중…";
   info.appendChild(nameEl);
 
+  const iupacEl = document.createElement("p");
+  iupacEl.style.cssText = "font-size:.85rem;opacity:.8;margin:.1rem 0 .4rem;word-break:break-word";
+  info.appendChild(iupacEl);
+
   const rows = [];
   if (read.smiles) rows.push(["SMILES", escapeHtml(read.smiles)]);
   if (read.inchikey) rows.push(["InChIKey", escapeHtml(read.inchikey)]);
@@ -742,9 +807,18 @@ function appendIdentification(card, json) {
   if (!local && read.inchikey) {
     identifyByKey(read.inchikey)
       .then((hit) => {
-        nameEl.textContent = hit ? (hit.title || hit.name) : "이름 없음 (PubChem 미등재 - 새 분자일 수 있습니다)";
+        if (!hit) {
+          nameEl.textContent = "이름 없음 - PubChem 에 등재되지 않은 분자입니다";
+          iupacEl.textContent = "새 분자이거나, 아직 이름이 붙지 않은 구조입니다. SMILES 로 쓰십시오.";
+          return;
+        }
+        const common = hit.title || hit.name;
+        const iupac = hit.iupac;
+        nameEl.textContent = common || iupac || "이름 없음";
+        if (iupac && iupac !== common) iupacEl.textContent = "IUPAC · " + iupac;
+        else if (hit.source) iupacEl.textContent = "출처 · " + hit.source;
       })
-      .catch(() => { nameEl.textContent = "이름 조회 실패"; });
+      .catch(() => { nameEl.textContent = "이름 조회 실패 (네트워크)"; });
   }
   return true;
 }
