@@ -66,23 +66,19 @@
   <p class="err" id="err"></p>
 
   <section class="wildcatch">
-    <h2>야생에서 잡은 오류 - 기록 (상호작용 없음)</h2>
-    <p class="sub2">이 섹션은 버튼이 없습니다 - 상호작용 없는 기록입니다. 오늘(2026-09-09) 서버가 뜨기 전, 로컬 CLI(OCSR, 인식기 둘)로
-      처음 실제 데이터에서 잡은 사례를 그대로 옮겨 적었습니다. 지금은 위 이미지 칸에 이 그림을 붙여넣으면 서버가 살아서 같은 방식으로 검사합니다.</p>
-    <div class="wildcatch-body">
+    <h2>야생에서 잡은 오류 - 샘플 입력</h2>
+    <p class="sub2">오늘(2026-09-09) 실제 데이터에서 처음 잡은 사례다 - Gemini Pro 가 그린 "카페인"인데, N9 에 메틸이 하나 더 붙어 있다.
+      아래를 누르면 이름칸에 "Caffeine" 을 채우고 이 이미지로 <strong>살아 있는 서버를 그대로 부른다</strong> - 미리 적어둔 값은 없다.
+      결과는 위 "대조 결과" 영역에 뜬다. 새로고침하면 사라지고, 다시 누르면 서버가 다시 계산한다.</p>
+    <button type="button" id="wildcatchSampleBtn" class="wildcatch-sample-btn">
       <img class="wildcatch-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
-      <div class="wildcatch-facts">
-        <p class="verdict-pill mismatch">🔴 오류 (기록 - 로컬 CLI 실측)</p>
-        <div class="evidence">
-          <div class="row"><div class="k">이름 "Caffeine" 의 정본</div><div>RYYVLZVUVIJVGH-UHFFFAOYSA-N (C8N4O2)</div></div>
-          <div class="row"><div class="k">이미지가 적은 화학식</div><div>C8H10N4O2</div></div>
-          <div class="row"><div class="k">DECIMER 가 읽은 것</div><div>CSXLFNRQOLIQAN-UHFFFAOYSA-N (C9N4O2) ← 골격부터 다르다, 탄소 하나 많음</div></div>
-          <div class="row"><div class="k">MolScribe</div><div>파싱 실패(5가 질소) - 원자만 세면 역시 C9N4O2, 같은 이상을 다른 방식으로 봤다</div></div>
-        </div>
-        <p class="why">Gemini 가 그린 카페인은 N9 에 메틸이 하나 더 붙어 있다 - 그릴 수 없는 구조라 두 인식기 중 하나는 파싱조차 못 했다.
-          그런데도 이미지 자신이 적어 둔 화학식(C8H10N4O2)과도 맞지 않는다. 이름·인식기 둘·인쇄된 화학식, 넷 중 셋이 "탄소 8 대 9" 를 가리켰다.</p>
-      </div>
-    </div>
+      <span>이 이미지로 직접 검사해보기 →</span>
+    </button>
+    <blockquote class="wildcatch-footnote">
+      참고: 처음 잡았을 때는 로컬 CLI 에 인식기 둘(DECIMER·MolScribe)이 같이 떠 있었다 - MolScribe 는 이 그림을 5가 질소로
+      파싱조차 못 했다. 서로 다른 두 인식기가 독립적으로 같은 이상(N9 여분 메틸)을 봤다는 뜻이었다. 지금 배포된 서버에는
+      DECIMER 하나만 올라가 있어 위 버튼으로는 이 두-인식기 비교까지는 재현되지 않는다.
+    </blockquote>
   </section>
 
   <footer id="foot"></footer>

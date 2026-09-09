@@ -517,11 +517,32 @@ async function handleImage(blob) {
     imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
     $("nameInput").value = name;
     await evaluate();
+  } else if ($("nameInput").value.trim()) {
+    imageNote("이미지에서 이름을 읽지 못했지만 이름칸에 이미 값이 있다 - 그대로 서버 대조에 쓴다.");
   } else {
     imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 이름칸에 직접 입력하면 서버 대조에도 쓰인다.");
   }
 
   await checkServerImage(blob, $("nameInput").value.trim());
+}
+
+// "야생에서 잡은 오류" 샘플 버튼 - 미리 적어둔 값 없음. 실제로 이 이미지를 불러와
+// 이름칸을 채우고 살아 있는 서버를 그대로 부른다(handleImage 와 완전히 같은 경로).
+// 새로고침하면 사라지고 다시 누르면 다시 서버가 계산한다 - 하드코딩이 아니다.
+async function loadWildcatchSample() {
+  $("nameInput").value = "Caffeine";
+  await evaluate();
+  $("canonCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  let blob;
+  try {
+    const res = await fetch("evidence/caffeine_gemini.jpeg");
+    if (!res.ok) throw new Error(`샘플 이미지 응답 ${res.status}`);
+    blob = await res.blob();
+  } catch (e) {
+    imageNote("샘플 이미지를 이 방식으로는 못 불러왔다(" + (e && e.message ? e.message : e) + ") - file:// 로 열었다면 GitHub Pages 배포판에서 해보거나, 이미지를 직접 붙여넣어라.");
+    return;
+  }
+  await handleImage(blob);
 }
 
 // ============================================================ 이미지 자체 대조 - 서버(S). 정본은 이미 떠 있으니 이건 나중에 채운다.
@@ -633,6 +654,8 @@ $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (w
 
 setupImageInput();
 warmupServer();
+const wildcatchBtn = $("wildcatchSampleBtn");
+if (wildcatchBtn) wildcatchBtn.addEventListener("click", loadWildcatchSample);
 
 const q = new URLSearchParams(location.search);
 if (q.get("name")) $("nameInput").value = q.get("name");
