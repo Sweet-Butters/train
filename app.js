@@ -555,7 +555,7 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100547");
+    const mod = await import("./crop.js?v=202609100558");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: onImageLoaded }) || null;
       // crop.js 가 자기 영역 안에 [사진 찍기]/[파일 선택] 을 이미 갖고 있다.
@@ -617,6 +617,28 @@ function showImagePreview(blob) {
 }
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
+// OCR 이 읽은 이름을 "제안" 으로만 보여준다. 누르면 그때 대조한다.
+function suggestOcrName(name, blob) {
+  const box = $("imageNote");
+  if (!box) return;
+  box.textContent = "";
+  const span = document.createElement("span");
+  span.textContent = `이미지에서 "${name}" 을 읽었습니다. `;
+  box.appendChild(span);
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "btn btn-sm";
+  b.textContent = "이 이름과 대조하기";
+  b.style.cssText = "margin-left:.3rem";
+  b.addEventListener("click", () => {
+    const q = $("queryInput");
+    if (q) q.value = name;
+    imageNote(`이름 "${name}" 과 대조합니다.`);
+    attemptResolve(name);
+    checkServerImage(blob, name);
+  });
+  box.appendChild(b);
+}
+
 async function handleImage(blob) {
   if (!blob) { imageNote("이미지를 읽지 못했습니다 - 다시 시도해 주세요."); return; }
   try { return await handleImageInner(blob); }
@@ -629,22 +651,26 @@ async function handleImageInner(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100547");
+    const mod = await import("./ocr.js?v=202609100558");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
-  const name = hints && hints.names && hints.names[0];
-  if (name) {
-    imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
-    $("queryInput").value = name;
-    await attemptResolve(name);
-  } else if ($("queryInput").value.trim()) {
-    imageNote("이미지에서 이름을 읽지 못했지만 입력칸에 이미 값이 있다 - 그대로 서버 대조에 쓴다.");
+  // OCR 이 읽은 글자를 **자동으로 정답 삼지 않는다.** 구조만 찍은 그림에서도
+  // OH·CH3 같은 원자 라벨이나 잡음이 이름으로 읽히고, 그것을 정본으로 대조하면
+  // 입력이 그림뿐인데 "다름" 이 뜬다. 제안까지만 하고 결정은 사람이 한다.
+  const typed = $("queryInput").value.trim();
+  const guess = hints && hints.names && hints.names[0];
+
+  if (typed) {
+    imageNote(`이름 "${typed}" 과 대조합니다.`);
+  } else if (guess) {
+    imageNote("");
+    suggestOcrName(guess, blob);
   } else {
-    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 칸에 직접 입력하면 서버 대조에도 쓰인다.");
+    imageNote("이름을 넣으면 정본과 대조합니다. 비워 두면 그림에서 읽은 구조만 알려드립니다.");
   }
 
-  await checkServerImage(blob, $("queryInput").value.trim());
+  await checkServerImage(blob, typed);
 }
 
 // ============================================================ 이미지 자체 대조 - 서버(S). 정본 카드 안의 같은 자리에 채운다.
@@ -917,6 +943,49 @@ function appendIdentification(card, json) {
   return true;
 }
 
+// 그림만 넣었을 때는 대조할 정본이 없다. 그래도 화면의 큰 카드는 비워 두지 않는다 -
+// **그림에서 읽은 구조**를 거기에 채우고, 이름은 내장 표 -> PubChem 순으로 역조회한다.
+// 사용자가 기대하는 것은 판정이 아니라 "이게 무슨 화합물인가" 다.
+function renderReadAsMain(read) {
+  if (!read || !read.smiles || !RDKit) return;
+  let mol = null, svg = "", smiles = read.smiles, formula = null;
+  try {
+    mol = RDKit.get_mol(read.smiles);
+    if (mol && mol.is_valid()) {
+      svg = mol.get_svg(420, 360);
+      smiles = mol.get_smiles();
+      try { formula = molecularFormula(read.smiles); } catch (e) { formula = null; }
+    }
+  } catch (e) { /* 못 그려도 아래는 채운다 */ }
+  finally { if (mol) mol.delete(); }
+
+  const local = read.inchikey ? (BY_KEY[read.inchikey] || BY_KEY[read.inchikey.slice(0, 14)]) : null;
+  renderMol({
+    svg,
+    title: local ? (local.title || local.name) : "이름을 찾는 중…",
+    source: "그림에서 읽음",
+    smiles,
+    inchikey: read.inchikey || null,
+    formula: formula || read.heavy_formula || null,
+    cid: local ? local.cid : null,
+  });
+
+  if (!local && read.inchikey) {
+    identifyByKey(read.inchikey)
+      .then((hit) => {
+        const t = $("molTitle");
+        if (!t) return;
+        if (!hit) { t.textContent = "이름 없음 - PubChem 미등재"; return; }
+        t.textContent = hit.title || hit.iupac || hit.name || "이름 없음";
+        if (hit.cid) {
+          const src = $("molSource");
+          if (src) src.textContent = "그림에서 읽음 · PubChem CID " + hit.cid;
+        }
+      })
+      .catch(() => { const t = $("molTitle"); if (t) t.textContent = "이름 조회 실패"; });
+  }
+}
+
 function renderVerdict(json) {
   const state = json.verdict === "match" ? "match" : json.verdict === "mismatch" ? "mismatch" : "unreadable";
   const card = openVerdict(state);
@@ -928,6 +997,7 @@ function renderVerdict(json) {
     if (noName && (json.read || {}).smiles) {
       card.appendChild(verdictLabel("unreadable", "이 그림은 이렇게 읽혔습니다"));
       appendIdentification(card, json);
+      renderReadAsMain(json.read);   // 큰 카드에도 읽은 구조를 채운다
       return;
     }
 
