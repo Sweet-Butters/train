@@ -180,7 +180,29 @@ def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
     if len(valid) >= 2 and len(skels) > 1:
         for r, key, sk in valid:
             reasons.append(f"{r.engine} 는 {sk} 로 읽었습니다")
-        reasons.append("인식기들이 서로 다른 골격을 읽어 판정하지 않습니다 (합의 실패)")
+
+        # 갈렸어도 **이름이 심판을 본다.** 한 인식기가 이름의 정본과 같은 골격을
+        # 읽었다면, 그건 서로 다른 계보의 정보원 둘(픽셀 하나 + 텍스트 하나)이
+        # 일치한 것이다 - 다른 인식기가 오독했을 가능성이 높다.
+        # 어느 엔진을 주(主)로 삼는 것과 다르다: 실측에서 molscribe 가 맞은 적도
+        # (phenol·ethanol) decimer 가 맞은 적도 있어 고정 서열은 근거가 없다.
+        # 둘 다 정본과 다르면 그때는 진짜로 모르는 것이므로 판정하지 않는다.
+        ref_skel_now = skeleton(ref.inchikey) if ref else None
+        agreeing = [x for x in valid if ref_skel_now and x[2] == ref_skel_now]
+        if agreeing:
+            winner = agreeing[0]
+            others = " · ".join(x[0].engine for x in valid if x is not winner)
+            reasons.append(
+                f"{winner[0].engine} 가 이름의 정본과 같은 골격({ref_skel_now})을 읽었습니다 - "
+                f"{others} 는 다르게 읽었으므로 확신 등급은 weak 입니다")
+            return {"verdict": "match", "grade": GRADE_SINGLE_ENGINE,
+                    "reference": _reference_block(ref),
+                    "read": {"smiles": winner[0].smiles, "inchikey": winner[1],
+                             "heavy_formula": heavy_atom_formula(winner[0].smiles),
+                             "engines": engines},
+                    "reasons": reasons}
+
+        reasons.append("인식기들이 서로 다른 골격을 읽었고 어느 쪽도 이름의 정본과 맞지 않아 판정하지 않습니다")
         return {"verdict": "unreadable", "grade": None,
                 "reference": _reference_block(ref),
                 "read": {"smiles": valid[0][0].smiles, "inchikey": valid[0][1],

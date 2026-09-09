@@ -33,6 +33,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 # 의존성은 위에서 PyPI 로 미리 깔고, 여기서는 --no-deps 로 torch 만 가져온다.
 RUN pip install --no-cache-dir --no-deps "torch==1.13.1+cpu" \
         --index-url https://download.pytorch.org/whl/cpu
+# (다른 갈래는 --extra-index-url 로 같은 문제를 풀었다. 더 짧지만, 지금 도는
+#  Cloud Run 두 엔진 서비스를 실제로 구운 것은 위 조합이라 그대로 둔다.)
 
 RUN pip install --no-cache-dir \
         "decimer==2.7.1" \
