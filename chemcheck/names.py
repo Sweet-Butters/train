@@ -210,6 +210,75 @@ KO_ALIASES = {
     "인산": "phosphoric acid", "탄산": "carbonic acid",
     "수산화나트륨": "sodium hydroxide", "염화나트륨": "sodium chloride",
     "니트로글리세린": "nitroglycerin",
+    # ── 아래는 교과서 화합물 목록(data/lecture_compounds.json)으로 `draw` 를 재서
+    # 실제로 못 찾은 한글 표기다 (scripts/measure_names.py). 추측으로 넣은 것은 없다.
+    # 대한화학회 새 표기(메테인·뷰테인·알데하이드·에터)와 옛 표기가 함께 나온다.
+    "염화소듐": "sodium chloride", "소금": "sodium chloride",
+    "수산화소듐": "sodium hydroxide", "가성소다": "sodium hydroxide",
+    "탄산수소나트륨": "sodium bicarbonate", "탄산수소소듐": "sodium bicarbonate",
+    "중탄산나트륨": "sodium bicarbonate", "탄산칼슘": "calcium carbonate",
+    "과망간산칼륨": "potassium permanganate", "과망가니즈산칼륨": "potassium permanganate",
+    "과망가니즈산포타슘": "potassium permanganate",
+    "오존": "ozone", "아산화질소": "nitrous oxide", "일산화이질소": "nitrous oxide",
+    "메테인": "methane", "에테인": "ethane", "프로페인": "propane",
+    "뷰테인": "butane", "노말부탄": "butane",
+    "이소부탄": "isobutane", "아이소뷰테인": "isobutane",
+    "에텐": "ethylene", "에타인": "acetylene",
+    "사이클로헥산": "cyclohexane", "사이클로헥세인": "cyclohexane", "시클로헥산": "cyclohexane",
+    "스타이렌": "styrene",
+    "에틸알코올": "ethanol", "주정": "ethanol", "메틸알코올": "methanol",
+    "아이소프로판올": "isopropyl alcohol", "이소프로필알코올": "isopropyl alcohol",
+    "tert-부탄올": "tert-butanol", "삼차부탄올": "tert-butanol",
+    "에틸렌글라이콜": "ethylene glycol", "글리세린": "glycerol",
+    "폼알데하이드": "formaldehyde", "포름알데하이드": "formaldehyde",
+    "아세트알데하이드": "acetaldehyde",
+    "벤즈알데히드": "benzaldehyde", "벤즈알데하이드": "benzaldehyde",
+    "아세토페논": "acetophenone",
+    "다이에틸에터": "diethyl ether", "테트라하이드로퓨란": "tetrahydrofuran",
+    "디메틸설폭사이드": "dimethyl sulfoxide",
+    "디메틸포름아미드": "dimethylformamide", "다이메틸폼아마이드": "dimethylformamide",
+    "아세토나이트릴": "acetonitrile", "클로로폼": "chloroform",
+    "디클로로메탄": "dichloromethane", "다이클로로메테인": "dichloromethane",
+    "염화메틸렌": "dichloromethane", "사염화탄소": "carbon tetrachloride",
+    "에틸아세테이트": "ethyl acetate", "아세트산에틸": "ethyl acetate", "초산에틸": "ethyl acetate",
+    "헥산": "hexane", "헥세인": "hexane", "노말헥산": "hexane",
+    "니트로벤젠": "nitrobenzene", "나이트로벤젠": "nitrobenzene",
+    "아세트산무수물": "acetic anhydride", "무수아세트산": "acetic anhydride",
+    "무수초산": "acetic anhydride",
+    "폼산": "formic acid", "옥살산": "oxalic acid",
+    "피루브산": "pyruvic acid", "피루빈산": "pyruvic acid",
+    "숙신산": "succinic acid", "석신산": "succinic acid", "호박산": "succinic acid",
+    "푸마르산": "fumaric acid", "퓨마르산": "fumaric acid",
+    "말레산": "maleic acid", "말레익산": "maleic acid",
+    "타르타르산": "tartaric acid", "주석산": "tartaric acid",
+    "우레아": "urea", "메틸아민": "methylamine",
+    "트리니트로톨루엔": "trinitrotoluene", "트라이나이트로톨루엔": "trinitrotoluene",
+    "비스페놀A": "bisphenol A",
+    "에틸렌다이아민테트라아세트산": "ethylenediaminetetraacetic acid",
+    "에틸렌디아민사아세트산": "ethylenediaminetetraacetic acid",
+    "글루코오스": "glucose", "프룩토스": "fructose",
+    "자당": "sucrose", "수크로오스": "sucrose", "유당": "lactose", "락토오스": "lactose",
+    "리보오스": "ribose",
+    "타이로신": "tyrosine", "페닐알라닌": "phenylalanine", "타이민": "thymine",
+    "아데노신삼인산": "adenosine triphosphate",
+    "팔미틱산": "palmitic acid", "스테아린산": "stearic acid",
+    "올레인산": "oleic acid", "리놀레인산": "linoleic acid",
+    "타이레놀": "acetaminophen", "몰핀": "morphine",
+    "페니실린G": "penicillin G", "벤질페니실린": "benzylpenicillin",
+    "아스코르빈산": "ascorbic acid", "레티놀": "retinol",
+    "멘톨": "menthol", "캠퍼": "camphor", "장뇌": "camphor", "캄포르": "camphor",
+    "리모넨": "limonene", "바닐린": "vanillin", "캡사이신": "capsaicin",
+    "나이트로글리세린": "nitroglycerin", "테스토스테론": "testosterone",
+    "에스트라디올": "estradiol", "에스트라다이올": "estradiol",
+    "베타카로틴": "beta-carotene", "퀴닌": "quinine", "키니네": "quinine",
+    "디디티": "DDT",
+}
+
+# 사용자가 `draw "물"` 처럼 통째로 물었을 때만 믿는 이름. 슬라이드 본문에서는 쓰지
+# 않는다 - '물' 은 아무 데나 나오고, '요소' 는 '구성 요소', '수산' 은 '수산화-',
+# '에테르' 는 작용기 분류어다. 본문에서 잘못 잡으면 멀쩡한 그림이 '오류' 가 된다.
+KO_WHOLE_ONLY = {
+    "물": "water", "요소": "urea", "수산": "oxalic acid", "에테르": "diethyl ether",
 }
 
 # 조사가 붙은 채로 나온다("아스피린은"). 긴 것부터 떼어봐야 '으로'가 '로'보다 먼저 걸린다.
@@ -220,16 +289,44 @@ _PARTICLES = sorted(
     key=len, reverse=True,
 )
 
+# 한글 표기 안의 그리스 문자. 'β-카로틴' 은 '베타카로틴' 과 같은 표기다.
+_KO_GREEK = {"α": "알파", "β": "베타", "γ": "감마", "δ": "델타", "ω": "오메가"}
+# 한글 표기 안의 비타민: '비타민 C', '비타민C'. PubChem 은 'vitamin C' 를 해석한다.
+_KO_VITAMIN = re.compile(r"^비타민\s*([A-Ka-k]\d{0,2})$")
 
-def korean_name(run: str) -> str | None:
-    """한글 덩어리에서 화합물 이름을 찾아 영문 이름으로 돌려준다. 없으면 None."""
-    if run in KO_ALIASES:
-        return KO_ALIASES[run]
+
+def _ko_key(text: str) -> str:
+    """표 조회용 정규화. 띄어쓰기·하이픈 차이('비스페놀 A'/'비스페놀A')는 같은 이름이다."""
+    for greek, ko in _KO_GREEK.items():
+        text = text.replace(greek, ko)
+    return re.sub(r"[\s\-]+", "", text).lower()
+
+
+_KO_TABLE = {_ko_key(k): v for k, v in KO_ALIASES.items()}
+_KO_WHOLE_TABLE = {_ko_key(k): v for k, v in KO_WHOLE_ONLY.items()}
+
+
+def korean_name(run: str, *, in_text: bool = False) -> str | None:
+    """한글 덩어리에서 화합물 이름을 찾아 영문 이름으로 돌려준다. 없으면 None.
+
+    in_text=True 는 슬라이드 본문에서 뽑은 조각일 때다. 그때는 일상어와 겹치는
+    KO_WHOLE_ONLY 를 쓰지 않는다. 사용자가 이름을 통째로 넣는 `draw` 는 기본값.
+    """
+    run = run.strip()
+    hit = _KO_VITAMIN.match(run)
+    if hit:
+        return f"vitamin {hit.group(1).upper()}"
+    tables = [_KO_TABLE] if in_text else [_KO_TABLE, _KO_WHOLE_TABLE]
+    key = _ko_key(run)
+    for table in tables:
+        if key in table:
+            return table[key]
     for particle in _PARTICLES:
         if run.endswith(particle):
-            stem = run[: -len(particle)]
-            if stem in KO_ALIASES:
-                return KO_ALIASES[stem]
+            stem = _ko_key(run[: -len(particle)])
+            for table in tables:
+                if stem in table:
+                    return table[stem]
     return None
 
 
@@ -249,7 +346,7 @@ def candidates(text: str, max_words: int = 4) -> list[str]:
             offer(f"vitamin {hit.group(1).upper()}", 4.0)
 
         for run in _HANGUL.findall(line):
-            name = korean_name(run)
+            name = korean_name(run, in_text=True)
             if name:
                 offer(name, 100.0)  # 사전 적중은 추측이 아니므로 최우선
 
@@ -274,6 +371,53 @@ class Reference:
     formula: str
     source: str = "pubchem"  # pubchem | cache | offline
     smiles: str = ""        # PubChem 이 준 구조. 염 정규화의 근거
+
+
+# 화학에서 뜻이 하나뿐인데 PubChem 이 이름으로 해석하지 못하는 영문 약어.
+# 교과서 목록으로 재서 실제로 못 찾은 것만 둔다. 'IPA'(이소프탈산·맥주)·'DA'(달톤)
+# 처럼 다른 뜻이 있는 약어는 넣지 않는다 - 못 찾는 쪽이 엉뚱한 그림보다 낫다.
+ABBREVIATIONS = {"acn": "acetonitrile", "dcm": "dichloromethane"}
+
+# 유니코드 대시·하이픈 변종. 슬라이드 편집기가 '-' 를 '–' 로 바꿔 놓는다.
+_DASHES = str.maketrans({d: "-" for d in "‐‑‒–—−"})
+# 이름 앞의 입체·기하 접두사: (R)-, (2S)-, (9Z,12Z)-, (+)-, (-)-, (±)-, (RS)-, L-, D-, cis-, trans-.
+# 괄호 안은 위치번호·R/S/E/Z·부호만 허용해서 '(methylsulfinyl)methane' 은 건드리지 않는다.
+_STEREO_PREFIX = re.compile(r"^(?:\([0-9RSEZrsez,+\-±/ ]+\)|cis|trans|rac|meso|[DLRSEZ])-")
+
+
+def variants(name: str) -> list[str]:
+    """같은 화합물을 뜻하는 표기들. 원래 이름이 먼저고, 뒤로 갈수록 정보를 덜어낸 것이다.
+
+    1. 원래 이름
+    2. 그리스 문자·유니코드 대시·공백 정리 ('β-carotene' -> 'beta-carotene')
+    3. 약어 풀기 ('DCM' -> 'dichloromethane')
+    4. 입체 접두사 떼기 ('(R)-2-amino-3-sulfanylpropanoic acid' -> '2-amino-...')
+       골격은 같고 입체 정보만 잃는다. 그래서 맨 뒤다 - 원래 표기로 찾으면 그것을 쓴다.
+    """
+    out: list[str] = []
+
+    def push(candidate: str) -> None:
+        candidate = " ".join(candidate.split())
+        if candidate and candidate.lower() not in {v.lower() for v in out}:
+            out.append(candidate)
+
+    push(name)
+    plain = name.translate(_DASHES)
+    for greek, ascii_name in _GREEK.items():
+        plain = plain.replace(greek, ascii_name)
+    push(plain)
+    expanded = ABBREVIATIONS.get(plain.strip().lower())
+    if expanded:
+        push(expanded)
+    stripped = plain.strip()
+    while True:
+        shorter = _STEREO_PREFIX.sub("", stripped, count=1)
+        if shorter == stripped:
+            break
+        stripped = shorter
+    if stripped and stripped != plain.strip():
+        push(stripped)
+    return out
 
 
 def _load_offline(path: Path = OFFLINE_PATH) -> dict[str, dict]:
@@ -369,6 +513,19 @@ class PubChemResolver:
         return None
 
     def resolve(self, name: str) -> Reference | None:
+        """이름 -> 참조. 그대로 못 찾으면 같은 화합물을 뜻하는 다른 표기로 다시 묻는다.
+
+        다시 묻는 표기는 전부 원래 이름에서 기계적으로 나온다(variants 참고).
+        비슷한 이름을 찾아 주는 것이 아니다. 돌려주는 Reference.name 은 실제로
+        해석된 표기다 - 입체 접두사를 떼고 찾았으면 그 사실이 이름에 드러난다.
+        """
+        for variant in variants(name):
+            ref = self._resolve_exact(variant)
+            if ref is not None:
+                return ref
+        return None
+
+    def _resolve_exact(self, name: str) -> Reference | None:
         key = name.strip().lower()
         if not key:
             return None
