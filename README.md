@@ -120,6 +120,59 @@ python tests/test_pipeline.py   # 심어둔 오류를 잡는지 검증
 
 4장 모두 두 인식기(MolScribe·DECIMER)가 골격에 합의했고, 심어둔 오류 2건은 이름의 골격과 다른 키로 나왔습니다. 골격이 같은지는 InChIKey 앞 14자 비교뿐이고, 마지막 판정은 `--out` 에 남는 왕복 그림을 사람이 봅니다. 두 엔진 적재 약 160초, 장당 30~100초 (16GB 기계, CPU).
 
+### 실측 - Gemini 가 그린 카페인
+
+`D:/orca/projects/train/caffeine_generated_gemini_pro.jpeg` - 사용자가 실제로 Gemini
+에게 "카페인 분자구조 그려줘"로 받은 이미지입니다. 심어둔 오류가 아닙니다.
+
+**연출하지 않습니다 - 오늘 밤 이 기계에서 실제로 무슨 일이 있었는지 그대로 적습니다.**
+이 워크트리를 포함해 이 기계(16GB) 위에서 여러 세션(웹 제품 트랙 셋, 다른 트랙들)이
+동시에 무거운 작업을 돌리고 있었고, `heavy_gate.sh` 는 여유 메모리가 3.5GB 를 넘어야
+시작합니다. `check --name` 으로 이 이미지를 실제로 돌리는 시도를 오늘 밤 **세 번**
+했습니다(40분 대기 두 번 + 15분 대기 한 번, 총 약 95분) - 여유 메모리가 1.6~3.2GB
+사이를 오갈 뿐 한 번도 3.5GB 를 넘지 못해 **셋 다 시간 초과로 실패했습니다.** 코드가
+아니라 이 기계가 오늘 밤 너무 붐빈 것입니다.
+
+그런데 이 정확히 같은 이미지의 **실제 엔진 원문**은 오늘 밤 이미 확보돼 있었습니다
+(`docs/DIRECTION.md` 실측 6 - `recognize` 를 직접 돌려서 얻은 것). 그래서 엔진을 다시
+켜는 대신, 그 실제 원문을 `verdict.judge()` + `heavy_atom_formula()` 에 그대로
+흘려보냈습니다(`bench/rescore_name_first.py` 와 같은 원칙 - 인식은 이미 끝나 있으면
+다시 돌리지 않는다). 아래는 그 실행의 **가공하지 않은 출력**입니다:
+
+```
+이름 정본: caffeine RYYVLZVUVIJVGH-UHFFFAOYSA-N cache
+
+판정: Verdict.ERROR - [약] 'caffeine'와 골격이 다름 (유효한 답을 낸 인식기 1종뿐: 이름 RYYVLZVUVIJVGH vs 그림 CSXLFNRQOLIQAN)
+이름 "카페인" 정본   RYYVLZVUVIJVGH  C8N4O2
+molscribe@.venv310 이 읽은 것   (구조로 읽지 못함)  C10N4O2
+decimer 이 읽은 것   CSXLFNRQOLIQAN  C9N4O2
+정본 그림: /tmp/demo_replay/reference.png
+diff 그림: /tmp/demo_replay/diff.png
+```
+
+**결정 6 전이었다면 이 판정은 "판정 불가"였을 것입니다.** MolScribe 의 답(5가 질소)이
+파싱되지 않아 예전 규칙(`_consensus`)은 그 자리에서 전체를 접었습니다. 지금은 DECIMER
+의 유효한 답 하나만으로 이름과 대조해 `[약] 오류`를 냅니다. 조성 비교(중원자 개수,
+`heavy_atom_formula`)는 정본 C8N4O2 대 그림 C9N4O2 - 탄소 하나가 많다는 것도 판정과
+별개로 보여줍니다. (MolScribe 의 조성은 C10N4O2 로 나왔습니다 - 실측 6 이 손으로 세어
+적은 C9 는 오원자였습니다; 여기서는 `sanitize=False` 파싱으로 기계가 다시 셌습니다.)
+
+**아직 확인하지 못한 것**: 이 출력은 `check --name` 명령 코드 경로가 아니라 그 안의
+판정·표시 함수들을 직접 부른 것입니다(CLI 의 인수 파싱·`inputs.prepare_image`·엔진
+기동 자체는 [단위 테스트](tests/test_verdict.py)와 [빠른 경로](#사용)로만 확인했습니다).
+`check --name` 명령 자체를 이 이미지로 처음부터 끝까지 돌리는 것은 이 기계에 여유
+메모리가 생기는 대로 마저 할 일로 남습니다:
+
+```bash
+bash D:/orca/workspaces/train/heavy_gate.sh "카페인 데모" -- \
+  ./.venv/Scripts/python.exe -m chemcheck check --name "카페인" \
+  D:/orca/projects/train/caffeine_generated_gemini_pro.jpeg --out out/
+```
+
+구조 영역만 오려낸 `D:/orca/workspaces/_gemini_test/caffeine_2d.png` 로도 같은 이유로
+아직 못 돌렸습니다 - 슬라이드 통째와 오려낸 것 중 어느 쪽이 더 나은 데모인지는 실제로
+돌려봐야 압니다.
+
 ## 구조
 
 | 파일 | 역할 |
