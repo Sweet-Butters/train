@@ -157,6 +157,26 @@ def _nonsense_reason(ref_smiles: str | None, read_formula: str | None) -> str | 
     return None
 
 
+def _unreadable_marks(smiles: str | None) -> str | None:
+    """인식기가 그림을 제대로 읽지 못한 흔적을 규칙으로 잡는다. 추론이 아니다.
+
+    실측(사용자 카메라 사진)에서 나온 것:
+        *.*.*.… (더미 원자 31 개) . CN1Cc2c(ncn2C)N(C)C1=O . [CH3] × 9
+    중원자는 C8N4O 로 작아 크기 게이트에 안 걸렸다. 그런데 `*` 는 **원자를
+    특정하지 못했다** 는 표시이고, 떨어져 나온 [CH3] 조각 여럿은 결합을 못
+    이었다는 뜻이다. 둘 다 '읽었다' 고 부를 수 없다.
+    """
+    if not smiles:
+        return None
+    stars = smiles.count("*")
+    if stars:
+        return f"인식기가 원자를 특정하지 못한 자리가 {stars} 곳입니다 (SMILES 의 '*')"
+    parts = [p for p in smiles.split(".") if p.strip()]
+    if len(parts) > 3:
+        return f"구조가 {len(parts)} 조각으로 끊겨 있습니다 - 결합을 잇지 못한 것으로 봅니다"
+    return None
+
+
 def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
     """동결 계약대로의 응답 하나. 여기서 예외를 올리지 않는다.
 
@@ -168,10 +188,17 @@ def build_result(name: str, ref, reads: list[EngineRead]) -> dict:
 
     # 엔진마다 (읽은 것, InChIKey, 골격). RDKit 이 분자로 못 받는 답은 유효하지 않다.
     parsed = []
+    nonsense = []
     for r in reads:
+        bad = _unreadable_marks(r.smiles)
+        if bad:
+            nonsense.append(f"{r.engine}: {bad}")
+            parsed.append((r, None, None))     # 읽은 것으로 치지 않는다
+            continue
         key = smiles_to_inchikey(r.smiles) if r.smiles else None
         parsed.append((r, key, skeleton(key) if key else None))
     valid = [x for x in parsed if x[1]]
+    reasons.extend(nonsense)
 
     # ── 합의 게이트: 유효한 읽기가 둘 이상인데 골격이 갈리면 판정하지 않는다 ──
     # README 가 약속한 그것이다. 어느 쪽이 맞는지 우리가 모르므로, 이름과 대조해
