@@ -6,13 +6,10 @@
 """
 from __future__ import annotations
 
-import contextlib
-import json
-import queue
-import subprocess
-import threading
 from dataclasses import dataclass
 from pathlib import Path
+
+from .bridge import Worker
 
 
 @dataclass(frozen=True)
@@ -108,9 +105,8 @@ class SubprocessEngine(Engine):
     """다른 파이썬 환경에 있는 인식기를 프로세스 너머로 쓴다.
 
     MolScribe 는 torch<2.0 에 고정돼 있어 py3.10 환경이 필요하고, DECIMER 는
-    py3.13/TF 에서 돈다. 한 프로세스에 같이 올릴 수 없다. 그렇다고 이미지마다
-    프로세스를 새로 띄우면 1.13GB 체크포인트를 매번 읽는다. 그래서 워커를
-    한 번 띄워 두고 줄 단위로 주고받는다 (scripts/ocsr_worker.py).
+    py3.13/TF 에서 돈다. 한 프로세스에 같이 올릴 수 없다. 전송은 bridge.Worker
+    가 맡고, 여기서는 인식기다운 겉모습만 씌운다.
 
     워커가 죽거나 대답이 없으면 인식 결과를 내지 않는다. 그러면 판정은
     보류된다 - 틀린 답을 내는 것보다 낫다.
@@ -129,106 +125,36 @@ class SubprocessEngine(Engine):
         self.python = Path(python)
         self.engine = engine
         self.checkpoint = checkpoint
-        self.load_timeout = load_timeout
-        self.call_timeout = call_timeout
         self.name = f"{engine}@{self.python.parents[1].name}"
-        self.unavailable_reason: str | None = None
-        self._proc = None
-        self._replies: "queue.Queue[str | None]" = queue.Queue()
+        args = ["--checkpoint", str(checkpoint)] if checkpoint is not None else []
+        self._worker = Worker(
+            self.python,
+            self.WORKER,
+            [engine, *args],
+            load_timeout=load_timeout,
+            call_timeout=call_timeout,
+        )
+
+    @property
+    def unavailable_reason(self) -> str | None:
+        return self._worker.unavailable_reason
 
     def available(self) -> bool:
         # 무거운 적재를 여기서 하지 않는다. 있을 법한지만 본다.
         # 실제로 못 띄우면 recognize 가 아무 것도 내지 않고, 판정은 보류된다.
-        if self.unavailable_reason is not None:
-            return False
-        if not self.python.exists():
-            self.unavailable_reason = f"파이썬 환경 없음: {self.python}"
-            return False
-        if not self.WORKER.exists():
-            self.unavailable_reason = f"워커 없음: {self.WORKER}"
-            return False
         if self.checkpoint is not None and not self.checkpoint.exists():
-            self.unavailable_reason = f"체크포인트 없음: {self.checkpoint}"
+            self._worker.unavailable_reason = f"체크포인트 없음: {self.checkpoint}"
             return False
-        return True
-
-    def _pump(self, stdout) -> None:
-        for line in stdout:
-            self._replies.put(line)
-        self._replies.put(None)  # 워커가 죽었다
-
-    def _start(self) -> bool:
-        if self._proc is not None:
-            return True
-        if not self.available():
-            return False
-        cmd = [str(self.python), "-u", str(self.WORKER), self.engine]
-        if self.checkpoint is not None:
-            cmd += ["--checkpoint", str(self.checkpoint)]
-        try:
-            self._proc = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL,
-                cwd=str(self.WORKER.parents[1]),
-                text=True,
-                encoding="utf-8",
-            )
-        except OSError as exc:
-            self.unavailable_reason = f"워커를 띄우지 못함: {exc}"
-            return False
-
-        threading.Thread(target=self._pump, args=(self._proc.stdout,), daemon=True).start()
-
-        hello = self._reply(self.load_timeout)  # 모델 적재를 기다린다
-        if hello is None or not hello.get("ready"):
-            reason = (hello or {}).get("error", "응답 없음")
-            self.unavailable_reason = f"워커 적재 실패: {reason}"
-            self._stop()
-            return False
-        return True
-
-    def _reply(self, timeout: float) -> dict | None:
-        try:
-            line = self._replies.get(timeout=timeout)
-        except queue.Empty:
-            return None
-        if line is None:
-            return None
-        try:
-            return json.loads(line)
-        except json.JSONDecodeError:
-            return None
-
-    def _stop(self) -> None:
-        if self._proc is None:
-            return
-        with contextlib.suppress(Exception):
-            self._proc.stdin.close()
-        with contextlib.suppress(Exception):
-            self._proc.terminate()
-        self._proc = None
+        # 워커 경로를 뒤늦게 바꿔 끼우는 경우(테스트)를 위해 여기서 맞춘다.
+        self._worker.script = self.WORKER
+        return self._worker.available()
 
     def recognize(self, image_path: Path) -> Prediction | None:
-        if not self._start():
+        if not self.available():
             return None
-        try:
-            self._proc.stdin.write(f"{image_path}\n")
-            self._proc.stdin.flush()
-        except OSError as exc:
-            self.unavailable_reason = f"워커가 죽었다: {exc}"
-            self._stop()
-            return None
-
-        reply = self._reply(self.call_timeout)
-        if reply is None:
-            # 대답이 없다 = 죽었거나 멎었다. 되살릴 수 없으니 접는다.
-            self.unavailable_reason = "워커가 응답하지 않음"
-            self._stop()
-            return None
-        if "smiles" not in reply:
-            return None  # 이 장만 실패. 워커는 살아 있다.
+        reply = self._worker.call(str(image_path))
+        if reply is None or "smiles" not in reply:
+            return None  # 죽었거나, 이 장만 실패했거나. 어느 쪽이든 판정하지 않는다.
 
         confidence = reply.get("confidence")
         # 신뢰도를 주지 않는 인식기는 NaN 으로 남긴다. 없는 값을 지어내지 않는다.
