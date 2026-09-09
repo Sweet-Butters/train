@@ -13,7 +13,7 @@ from enum import Enum
 
 from chemcheck.verdict import Finding, Verdict
 
-from .cases import JUDGEABLE, NOT_JUDGEABLE, Case, Truth
+from .cases import JUDGEABLE, NO_TARGET, NOT_JUDGEABLE, OUT_OF_SCOPE, Case, Truth
 
 # 각 라벨에서 나와야 할 판정.
 IDEAL = {
@@ -22,6 +22,8 @@ IDEAL = {
     Truth.STEREO_DIFF: Verdict.WARN,
     Truth.NOT_A_STRUCTURE: Verdict.ABSTAIN,  # 구조식이 아니면 물러나는 것이 정답
     Truth.NO_CLAIM: Verdict.ABSTAIN,         # 주장이 없으면 검사할 것이 없다
+    Truth.GENERIC_FORMULA: Verdict.ABSTAIN,  # R 기가 정해지지 않았다 - 대볼 키가 없다
+    Truth.REACTION_SCHEME: Verdict.ABSTAIN,  # 단일 화합물이 아니다
 }
 
 WRONG_TRUTHS = (Truth.SKELETON_DIFF, Truth.STEREO_DIFF)
@@ -108,6 +110,20 @@ class Scorecard:
     @property
     def n_not_judgeable(self) -> int:
         return self.n_truth(*NOT_JUDGEABLE)
+
+    @property
+    def n_no_target(self) -> int:
+        """대조할 짝이 없는 케이스 - 클립아트이거나 슬라이드가 화합물을 안 댔다."""
+        return self.n_truth(*NO_TARGET)
+
+    @property
+    def n_out_of_scope(self) -> int:
+        """범위 밖 케이스 - 일반식·반응 도식. 도구의 성적이 아니라 자료의 사실이다.
+
+        이 비율이 높으면 고쳐야 할 것은 도구가 아니라 우리가 고른 자료다.
+        그러니 물러남률 안에 섞어두지 않고 따로 센다.
+        """
+        return self.n_truth(*OUT_OF_SCOPE)
 
     @property
     def n_skeleton_same(self) -> int:
