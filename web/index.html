@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chemcheck</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>chemcheck</h1>
+  <p class="sub">LLM 이 화합물이라며 준 SMILES 를 이름의 정본과 대조합니다 - InChIKey 가 같으면 🟢, 다르면 🔴.
+    이름만 넣어도 정본은 곧바로 뜹니다. 이미지를 붙이면 서버가 그림 자체도 읽어 대조합니다(처음엔 최대 1분).</p>
+
+  <section class="image-drop">
+    <div class="dropzone" id="dropzone" tabindex="0">
+      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 이름칸을 채우고, 서버가 그림도 읽어 대조합니다</p>
+      <button type="button" id="fileBtn">파일 선택</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+    <div class="image-preview" id="imagePreview" hidden></div>
+    <p class="field-note" id="imageNote"></p>
+  </section>
+
+  <section class="fields">
+    <div class="field">
+      <label for="nameInput">이름</label>
+      <input id="nameInput" placeholder="아스피린 / aspirin / caffeine" autocomplete="off">
+    </div>
+    <div class="field field-smiles">
+      <label for="smilesInput">SMILES - LLM 이 준 것을 여기에 붙여넣으세요 (핵심 검출 경로)</label>
+      <input id="smilesInput" placeholder="CC(=O)Oc1ccccc1C(=O)O" autocomplete="off">
+    </div>
+  </section>
+  <div class="suggestions" id="suggestions" hidden></div>
+  <p id="status">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</p>
+
+  <section class="canon-card" id="canonCard" hidden>
+    <div class="canon-draw" id="canonDraw"></div>
+    <div>
+      <p class="canon-title" id="canonTitle"></p>
+      <dl class="facts" id="canonFacts"></dl>
+      <div class="copy-row">
+        <button type="button" id="copyPng">PNG 복사</button>
+        <button type="button" id="copySvg">SVG 다운로드</button>
+        <button type="button" id="copySmiles">SMILES 복사</button>
+        <button type="button" id="copyKey">InChIKey 복사</button>
+      </div>
+      <p class="copy-note" id="copyNote"></p>
+    </div>
+  </section>
+
+  <section class="verdict-section" id="verdictSection" hidden>
+    <h2>대조 결과 (이름 + SMILES)</h2>
+    <div class="verdict-card" id="verdictCard"></div>
+  </section>
+
+  <section class="verdict-section" id="imageVerdictSection" hidden>
+    <h2>대조 결과 (이미지 - 서버)</h2>
+    <div class="verdict-card" id="imageVerdictCard"></div>
+  </section>
+
+  <section class="canon-card" id="soloCard" hidden></section>
+
+  <p class="err" id="err"></p>
+
+  <section class="wildcatch">
+    <h2>야생에서 잡은 오류 - 기록 (상호작용 없음)</h2>
+    <p class="sub2">이 섹션은 버튼이 없습니다 - 상호작용 없는 기록입니다. 오늘(2026-09-09) 서버가 뜨기 전, 로컬 CLI(OCSR, 인식기 둘)로
+      처음 실제 데이터에서 잡은 사례를 그대로 옮겨 적었습니다. 지금은 위 이미지 칸에 이 그림을 붙여넣으면 서버가 살아서 같은 방식으로 검사합니다.</p>
+    <div class="wildcatch-body">
+      <img class="wildcatch-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
+      <div class="wildcatch-facts">
+        <p class="verdict-pill mismatch">🔴 오류 (기록 - 로컬 CLI 실측)</p>
+        <div class="evidence">
+          <div class="row"><div class="k">이름 "Caffeine" 의 정본</div><div>RYYVLZVUVIJVGH-UHFFFAOYSA-N (C8N4O2)</div></div>
+          <div class="row"><div class="k">이미지가 적은 화학식</div><div>C8H10N4O2</div></div>
+          <div class="row"><div class="k">DECIMER 가 읽은 것</div><div>CSXLFNRQOLIQAN-UHFFFAOYSA-N (C9N4O2) ← 골격부터 다르다, 탄소 하나 많음</div></div>
+          <div class="row"><div class="k">MolScribe</div><div>파싱 실패(5가 질소) - 원자만 세면 역시 C9N4O2, 같은 이상을 다른 방식으로 봤다</div></div>
+        </div>
+        <p class="why">Gemini 가 그린 카페인은 N9 에 메틸이 하나 더 붙어 있다 - 그릴 수 없는 구조라 두 인식기 중 하나는 파싱조차 못 했다.
+          그런데도 이미지 자신이 적어 둔 화학식(C8H10N4O2)과도 맞지 않는다. 이름·인식기 둘·인쇄된 화학식, 넷 중 셋이 "탄소 8 대 9" 를 가리켰다.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</main>
+
+<script src="compounds.js"></script>
+<script src="https://unpkg.com/@rdkit/rdkit@2025.3.4-1.0.0/dist/RDKit_minimal.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

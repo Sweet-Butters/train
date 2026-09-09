@@ -1,0 +1,97 @@
+:root {
+  --ink: #1b1b1f;
+  --mute: #6b6f76;
+  --line: #d9dce1;
+  --ok: #1e7f43;
+  --bad: #b3261e;
+  --gray-bg: #f0f1f3;
+  --bg: #fafafa;
+  --card: #fff;
+  --accent: #2f6feb;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, "Malgun Gothic", sans-serif; }
+main { max-width: 820px; margin: 0 auto; padding: 28px 20px 60px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+.sub { color: var(--mute); margin: 0 0 20px; }
+
+/* ---------- 이미지 붙여넣기 (단일 칸 위의 별도 영역) ---------- */
+.image-drop { margin-bottom: 14px; }
+.dropzone { min-height: 90px; border: 2px dashed var(--line); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 14px; cursor: pointer; background: var(--card); transition: border-color .15s, background .15s; }
+.dropzone.drag { border-color: var(--accent); background: #eef4ff; }
+.dropzone .hint { color: var(--mute); font-size: 13px; margin: 0; }
+.dropzone button { padding: 6px 13px; border: 1px solid var(--ink); background: #fff; color: var(--ink); border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+.image-preview { margin-top: 8px; text-align: center; }
+.image-preview img { max-width: 100%; max-height: 160px; border-radius: 6px; display: inline-block; }
+.field-note { color: var(--mute); font-size: 12px; margin: 6px 2px 0; min-height: 1.2em; }
+
+/* ---------- 이름 + SMILES 두 칸 - 화면의 중심 ---------- */
+.fields { display: grid; grid-template-columns: 1fr 1.3fr; gap: 14px; }
+.field { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.field label { display: block; font-size: 13px; color: var(--mute); margin-bottom: 6px; }
+.field input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 16px; font-family: ui-monospace, Consolas, monospace; }
+.field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.field-smiles { border: 2px solid var(--accent); background: #f5f8ff; }
+.field-smiles label { color: var(--accent); font-weight: 600; }
+
+.suggestions { margin-top: 10px; }
+.suggestions p { margin: 0 0 6px; color: var(--mute); font-size: 13px; }
+.suggestions .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.suggestions button { padding: 5px 10px; border: 1px solid var(--accent); background: #fff; color: var(--accent); border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer; }
+.suggestions button:hover { background: #eef4ff; }
+
+#status { color: var(--mute); font-size: 13px; margin: 10px 0 0; min-height: 1.2em; }
+
+/* ---------- 정본 카드 (복사는 여기에만) ---------- */
+.canon-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-top: 18px; display: grid; grid-template-columns: minmax(220px, 320px) 1fr; gap: 18px; }
+.canon-card[hidden] { display: none; }
+.canon-draw { border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+.canon-draw svg { max-width: 100%; height: auto; }
+.canon-title { font-size: 17px; font-weight: 600; margin: 0 0 10px; }
+dl.facts { display: grid; grid-template-columns: 100px 1fr; gap: 5px 12px; margin: 0 0 14px; font-size: 14px; }
+dl.facts dt { color: var(--mute); }
+dl.facts dd { margin: 0; font-family: ui-monospace, Consolas, monospace; word-break: break-all; }
+.copy-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.copy-row button { padding: 7px 13px; border: 1px solid var(--ink); background: var(--ink); color: #fff; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+.copy-row button:hover { opacity: .85; }
+.copy-row button:disabled { opacity: .4; cursor: default; }
+.copy-note { color: var(--mute); font-size: 12px; margin: 8px 0 0; min-height: 1.2em; }
+
+/* ---------- 대조 결과 - 화면의 주인공 ---------- */
+.verdict-section { margin-top: 18px; }
+.verdict-card { background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 20px; }
+
+.verdict-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; padding: 6px 4px; margin: 0 0 12px; border-radius: 6px; }
+.verdict-pill.match { color: var(--ok); }
+.verdict-pill.mismatch { color: var(--bad); }
+.verdict-pill.unreadable { color: var(--mute); }
+
+.drawbox-inline { max-width: 300px; margin: 4px 0 14px; }
+.drawlabel { color: var(--mute); font-size: 12px; margin: 0 0 4px; text-align: center; }
+.draw { border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 180px; display: flex; align-items: center; justify-content: center; }
+.draw svg { max-width: 100%; height: auto; }
+
+.evidence { background: var(--gray-bg); border-radius: 8px; padding: 12px 14px; margin: 10px 0; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
+.evidence .row { display: grid; grid-template-columns: 170px 1fr; gap: 4px 10px; padding: 3px 0; }
+.evidence .row .k { color: var(--mute); font-family: system-ui, sans-serif; }
+.evidence mark { background: #ffd3d0; color: var(--bad); border-radius: 2px; padding: 0 1px; }
+
+.reasons { margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
+.reasons li { margin: 3px 0; }
+
+.err { color: var(--bad); margin-top: 14px; }
+
+/* ---------- 야생에서 잡은 오류 ---------- */
+.wildcatch { margin-top: 34px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.wildcatch h2 { margin: 0 0 4px; }
+.wildcatch .sub2 { color: var(--mute); font-size: 13px; margin: 0 0 14px; }
+.wildcatch-body { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 18px; }
+.wildcatch-img { max-width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
+.wildcatch-facts .why { color: var(--mute); font-size: 13px; margin: 10px 0 0; }
+
+footer { color: var(--mute); font-size: 12px; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 12px; }
+
+@media (max-width: 640px) {
+  .fields, .canon-card, .wildcatch-body { grid-template-columns: 1fr; }
+}

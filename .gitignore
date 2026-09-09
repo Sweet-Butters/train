@@ -33,3 +33,19 @@ venv/
 *- Claude.html
 *- Claude_files/
 *_files/
+# 로컬 환경 (커밋하지 않음)
+.venv/
+.venv310/
+.venv-seg/
+.wheels/
+models/
+
+# 데모 생성물 - scripts/make_demo.py 가 다시 만든다 (기본은 임시 폴더)
+samples/
+
+# bench 생성물 - build_deck 이 다시 만든다
+bench/decks/synthetic.pptx
+bench/decks/synthetic_images/
+
+# recognize 평가 세트 - bench.run --task recognize 가 다시 그린다
+bench/decks/recognize_set/

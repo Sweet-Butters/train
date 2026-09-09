@@ -1,0 +1,235 @@
+재생: bench/results/recognize_50_20260909.json (원 실행 16:59~17:24, gate_recognize.sh, molscribe@.venv310 + decimer)
+
+recognize 평가 · 그림 50장 · 변주 8종 · 인식기 molscribe@.venv310, decimer
+
+성공 기준 (숫자를 보기 전에 적음): 합성 렌더 50장에서 자신 있게 틀림 0건 = 상한 오탐률 약 6% 이하 (95% 신뢰). 실제 그림에 대해선 아무 말도 아님
+
+[합의 게이트 (recognize 의 규칙)]
+  자신 있게 틀림   0.0%  (0/50 건 - 답을 냈는데 골격이 다름)
+  정확도          88.0%  (44/50 건 - 답을 냈고 골격이 맞음, 입체까지 44 건)
+  물러남          12.0%  (6/50 건 - 확신 없음으로 뺌, 그중 정답을 낸 인식기가 있던 것 6 건)
+    물러난 사유
+        6  인식기끼리 골격이 다름
+
+[신뢰도 게이트만 (기준선 - 인식기 하나를 믿음)]
+  자신 있게 틀림   4.0%  (2/50 건 - 답을 냈는데 골격이 다름)
+  정확도          86.0%  (43/50 건 - 답을 냈고 골격이 맞음, 입체까지 43 건)
+  물러남          10.0%  (5/50 건 - 확신 없음으로 뺌, 그중 정답을 낸 인식기가 있던 것 5 건)
+    물러난 사유
+        1  신뢰도 부족 (0.68 < 0.8)
+        1  신뢰도 부족 (0.72 < 0.8)
+        1  신뢰도 부족 (0.70 < 0.8)
+        1  신뢰도 부족 (0.74 < 0.8)
+        1  신뢰도 부족 (0.75 < 0.8)
+
+대조 - 합의 게이트의 값어치
+  막은 '자신 있게 틀림'  +2 건
+  포기한 정답            -1 건
+  이 교환비가 recognize 가 인식기 위에 얹은 전부다.
+
+담합률 - 두 엔진이 같은 장에서 같이 틀림 (분모: 둘 다 답을 낸 장)
+  둘 다 답함 50 장 · 같이 틀림 0 장 (0.0%)
+    같은 오답 (골격 일치 -> 합의 게이트 통과)   0 장   <- 게이트의 생사
+    다른 오답 (골격 갈림 -> 물러남)            0 장
+
+합의했는데 신뢰도 <0.8 - 문턱을 합의 팔에 얹었다면 물러났을 건수
+  3 장 (정답 3 · 오답 0)   <- 문턱이 정답을 버린다
+       3. Acetone (small) 최고 신뢰도 0.72 - 정답
+      23. Cinnamaldehyde (noisy) 최고 신뢰도 0.74 - 정답
+      48. Morphine (jpeg) 최고 신뢰도 0.75 - 정답
+
+물러남 중 한 엔진만 틀림 - 세 번째 엔진이 회수할 수 있는 양의 상한
+  6/6 장 (100.0%)
+
+엔진별 (그림 50장) - 인식기 하나만 믿었을 때의 성적
+  엔진             답함   골격맞음   입체까지   틀림   못읽음    고신뢰(≥0.8) 틀림
+  decimer        50      48      44     2      0        신뢰도 없음
+  molscribe      50      46      46     4      0               2
+
+엔진별 신뢰도 분포 vs 결과 - 0.8 문턱을 엔진별로 다시 정할 근거
+  엔진           구간           맞음   틀림
+  molscribe    <0.8          3    2
+  molscribe    0.8~0.85      8    2
+  molscribe    0.85~0.9     20    0
+  molscribe    0.9+         15    0
+  decimer      (신뢰도 없음 - 전부 nan)
+
+신뢰도의 판별력 - 정답일 때 vs 오답일 때 (겹치면 문턱은 아무것도 안 거른다)
+  molscribe
+    정답  최소 0.72 중앙 0.88 최대 0.92 (n=46)
+    오답  최소 0.68 중앙 0.80 최대 0.80 (n=4)
+    겹친다 - 이 신뢰도로는 오답을 걸러낼 수 없다
+
+변주별 [합의 게이트]
+  변주          n   맞음   자신있게틀림   물러남
+  plain       7     6          0       1
+  large       7     6          0       1
+  small       6     6          0       0
+  thick       6     6          0       0
+  rotated     6     5          0       1
+  serif       6     3          0       3
+  noisy       6     6          0       0
+  jpeg        6     6          0       0
+
+변주별 × 엔진별 틀림 (골격이 다르거나 못 읽음 / 장 수)
+  변주               decimer      molscribe
+  plain           1/7            0/7     
+  large           0/7            1/7     
+  small           0/6            0/6     
+  thick           0/6            0/6     
+  rotated         0/6            1/6     
+  serif           1/6            2/6     
+  noisy           0/6            0/6     
+  jpeg            0/6            0/6     
+
+[합의 게이트 (recognize 의 규칙)] 장별
+   1. Ethanol          plain    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.87  LFQSCWFLJHTTHZ  CCO
+        = decimer                   nan  LFQSCWFLJHTTHZ  CCO
+   2. Acetic acid      large    -> 물러남              인식기끼리 골격이 다름
+        x molscribe@.venv310       0.68  XTUSEBKMEQERQV  CC(C)O.O
+        = decimer                   nan  QTBSBXVTEAMEQO  CC(=O)O
+   3. Acetone          small    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.72  CSCPPACGZOOCGX  CC(C)=O
+        = decimer                   nan  CSCPPACGZOOCGX  CC(=O)C
+   4. Urea             thick    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.88  XSQUKJJJFZCRTK  NC(N)=O
+        = decimer                   nan  XSQUKJJJFZCRTK  C(=O)(N)N
+   5. Glycine          rotated  -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.92  DHMQDGOQFOQNFH  NCC(=O)O
+        = decimer                   nan  DHMQDGOQFOQNFH  C(C(=O)O)N
+   6. L-Lactic acid    serif    -> 물러남              인식기끼리 골격이 다름
+        x molscribe@.venv310       0.80  UORVCLMRJXCDCP  C#CC(=O)O
+        = decimer                   nan  JVTAAEKCZFNVCJ  C[C@@H](C(=O)O)O
+   7. L-Alanine        noisy    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.88  QNAYBMKLOCPYGJ  C[C@H](N)C(=O)O
+        = decimer                   nan  QNAYBMKLOCPYGJ  C[C@@H](C(=O)O)N
+   8. Benzene          jpeg     -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.84  UHOVQNZJYSORNB  c1ccccc1
+        = decimer                   nan  UHOVQNZJYSORNB  C1=CC=CC=C1
+   9. Toluene          plain    -> 물러남              인식기끼리 골격이 다름
+        = molscribe@.venv310       0.89  YXFVVABEGXRONW  Cc1ccccc1
+        x decimer                   nan  GETTZEONDQJALK  C1=CC=C(C=C1)C(F)(F)F
+  10. Phenol           large    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  ISWSIDIOOBJBQZ  Oc1ccccc1
+        = decimer                   nan  ISWSIDIOOBJBQZ  C1=CC=C(C=C1)O
+  11. Aniline          small    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  PAYRUJLWNCNPSJ  Nc1ccccc1
+        = decimer                   nan  PAYRUJLWNCNPSJ  C1=CC=C(C=C1)N
+  12. Pyridine         thick    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.89  JUJWROOIHBZHMG  c1ccncc1
+        = decimer                   nan  JUJWROOIHBZHMG  C1=CN=CC=C1
+  13. Furan            rotated  -> 물러남              인식기끼리 골격이 다름
+        x molscribe@.venv310       0.80  JKTCBAGSMQIFNL  C1=COCC1
+        = decimer                   nan  YLQBMQCUIZJEEH  C1=COC=C1
+  14. Thiophene        serif    -> 물러남              인식기끼리 골격이 다름
+        x molscribe@.venv310       0.70  YPWFISCTZQNZAU  C1CCSCC1
+        = decimer                   nan  YTPLMLYBLZKORZ  C1=CSC=C1
+  15. Imidazole        noisy    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.87  RAXXELZNTBOGNW  c1c[nH]cn1
+        = decimer                   nan  RAXXELZNTBOGNW  C1=CN=CN1
+  16. Cyclohexane      jpeg     -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.81  XDTMQSROBMDMFD  C1CCCCC1
+        = decimer                   nan  XDTMQSROBMDMFD  C1CCCCC1
+  17. Cyclohexanol     plain    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  HPXRVTGHNJAIIH  OC1CCCCC1
+        = decimer                   nan  HPXRVTGHNJAIIH  C1CCC(CC1)O
+  18. Nitrobenzene     large    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.91  LQNUZADURLCDLV  O=[N+]([O-])c1ccccc1
+        = decimer                   nan  LQNUZADURLCDLV  C1=CC=C(C=C1)[N+](=O)[O-]
+  19. Benzoic acid     small    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.85  WPYMKLBDIGXBTP  O=C(O)c1ccccc1
+        = decimer                   nan  WPYMKLBDIGXBTP  C1=CC=C(C=C1)C(=O)O
+  20. Salicylic acid   thick    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  YGSDEFSMJLZEOE  O=C(O)c1ccccc1O
+        = decimer                   nan  YGSDEFSMJLZEOE  C1=CC=C(C(=C1)C(=O)O)O
+  21. Vanillin         rotated  -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.84  MWOOGOJBHIARFG  COc1cc(C=O)ccc1O
+        = decimer                   nan  MWOOGOJBHIARFG  COC1=C(C=CC(=C1)C=O)O
+  22. Eugenol          serif    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.83  RRAFCDWBNXTKKO  C=CCc1ccc(O)c(OC)c1
+        = decimer                   nan  RRAFCDWBNXTKKO  C=CCC1=CC(=C(C=C1)O)OC
+  23. Cinnamaldehyde   noisy    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.74  KJPRLNWUNMBNBZ  O=C/C=C/c1ccccc1
+        = decimer                   nan  KJPRLNWUNMBNBZ  C1=CC=C(C=C1)C=CC=O
+  24. Dopamine         jpeg     -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.81  VYFYYTLLBUKUHU  NCCc1ccc(O)c(O)c1
+        = decimer                   nan  VYFYYTLLBUKUHU  C1=CC(=C(C=C1CCN)O)O
+  25. Aspirin          plain    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.89  BSYNRYMUTXBXSQ  CC(=O)Oc1ccccc1C(=O)O
+        = decimer                   nan  BSYNRYMUTXBXSQ  CC(=O)OC1=CC=CC=C1C(=O)O
+  26. Paracetamol      large    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  RZVAJINKPMORJF  CC(=O)Nc1ccc(O)cc1
+        = decimer                   nan  RZVAJINKPMORJF  CC(=O)NC1=CC=C(C=C1)O
+  27. Ibuprofen        small    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.84  HEFNNWSXXWATRW  CC(C)Cc1ccc(C(C)C(=O)O)cc1
+        = decimer                   nan  HEFNNWSXXWATRW  CC(C)CC1=CC=C(C=C1)C(C)C(=O)O
+  28. Caffeine         thick    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.88  RYYVLZVUVIJVGH  Cn1c(=O)c2c(ncn2C)n(C)c1=O
+        = decimer                   nan  RYYVLZVUVIJVGH  CN1C=NC2=C1C(=O)N(C)C(=O)N2C
+  29. Metformin        rotated  -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.91  XZWYZXLIPXDOLR  CN(C)C(=N)NC(=N)N
+        = decimer                   nan  XZWYZXLIPXDOLR  CN(C)C(=N)NC(=N)N
+  30. Adrenaline       serif    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.87  UCTWMZQNUQWSLP  CNC[C@H](O)c1ccc(O)c(O)c1
+        = decimer                   nan  UCTWMZQNUQWSLP  CNC[C@@H](C1=CC(=C(C=C1)O)O)O
+  31. Citric acid      noisy    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.89  KRKNYBCHXYNGOX  O=C(O)CC(O)(CC(=O)O)C(=O)O
+        = decimer                   nan  KRKNYBCHXYNGOX  C(C(=O)O)C(CC(=O)O)(C(=O)O)O
+  32. Naphthalene      jpeg     -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  UFWIBTONFRDIAS  c1ccc2ccccc2c1
+        = decimer                   nan  UFWIBTONFRDIAS  C1=CC=C2C=CC=CC2=C1
+  33. Anthracene       plain    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.92  MWPLVEDNUUSJAV  c1ccc2cc3ccccc3cc2c1
+        = decimer                   nan  MWPLVEDNUUSJAV  C1=CC=C2C=C3C=CC=CC3=CC2=C1
+  34. Indole           large    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  SIKJAQJRHWYJAI  c1ccc2[nH]ccc2c1
+        = decimer                   nan  SIKJAQJRHWYJAI  C1=CC=C2C(=C1)C=CN2
+  35. Adenine          small    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.89  GFFGJBXGBJISGV  Nc1ncnc2[nH]cnc12
+        = decimer                   nan  GFFGJBXGBJISGV  C1=NC2=C(N)N=CN=C2N1
+  36. Thymine          thick    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.85  RWQNBRDOKXIBIV  Cc1c[nH]c(=O)[nH]c1=O
+        = decimer                   nan  RWQNBRDOKXIBIV  CC1=CNC(=O)NC1=O
+  37. Nicotine         rotated  -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.91  SNICXCGAKADSCV  CN1CCC[C@H]1c1cccnc1
+        = decimer                   nan  SNICXCGAKADSCV  CN1CCC[C@H]1C2=CC=CN=C2
+  38. Menthol          serif    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.83  NOOLISFMXDJSKH  CC(C)[C@@H]1CC[C@@H](C)C[C@H]1O
+        = decimer                   nan  NOOLISFMXDJSKH  CC(C)[C@@H]1CC[C@@H](C)C[C@H]1O
+  39. Limonene         noisy    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  XMGQYMWWDOXHJM  C=C(C)[C@@H]1CC=C(C)CC1
+        = decimer                   nan  XMGQYMWWDOXHJM  C=C(C)[C@@H]1CC=C(C)CC1
+  40. Serotonin        jpeg     -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.80  QZAYGJVTTNCVMB  NCCc1c[nH]c2ccc(O)cc12
+        = decimer                   nan  QZAYGJVTTNCVMB  C1=CC2=C(C=C1O)C(=CN2)CCN
+  41. Melatonin        plain    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.85  DRLFMBDRBRZALE  COc1ccc2[nH]cc(CCNC(C)=O)c2c1
+        = decimer                   nan  DRLFMBDRBRZALE  CC(=O)NCCC1=CNC2=C1C=C(C=C2)OC
+  42. L-Tryptophan     large    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.89  QIVBCDIJIAJPQS  N[C@@H](Cc1c[nH]c2ccccc12)C(=O)O
+        = decimer                   nan  QIVBCDIJIAJPQS  C1=CC=C2C(=C1)C(=CN2)CC(C(=O)O)N
+  43. Camphor          small    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.86  DSSYKIVIOFKYAU  [H][C@@]12CC[C@@](C)(C(=O)C1)C2(C)C
+        = decimer                   nan  DSSYKIVIOFKYAU  CC1(C)[C@H]2CC[C@@]1(C)C(=O)C2
+  44. Warfarin         thick    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.89  PJVWKTKQMONHTI  CC(=O)CC(c1ccccc1)c1c(O)c2ccccc2oc1=O
+        = decimer                   nan  PJVWKTKQMONHTI  CC(=O)CC(C1=CC=CC=C1)C2=C(C3=CC=CC=C3OC2=O)O
+  45. Diazepam         rotated  -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.90  AAOVKJBEBIDNHE  CN1C(=O)CN=C(c2ccccc2)c2cc(Cl)ccc21
+        = decimer                   nan  AAOVKJBEBIDNHE  CN1C2=C(C=C(C=C2)Cl)C(=NCC1=O)C3=CC=CC=C3
+  46. Penicillin G     serif    -> 물러남              인식기끼리 골격이 다름
+        = molscribe@.venv310       0.90  JGSARLDLIJGVTE  [H][C@]12SC(C)(C)[C@H](C(=O)O)N1C(=O)[C@H]2NC(=O)Cc1ccccc1
+        x decimer                   nan  IYLXRCZJAGZMOX  CC1(C)[C@H](C(=O)O)N2C(=O)[C@H]([C@@]2(C)S1)NC(=O)CC3=CC=CC=C3
+  47. Cocaine          noisy    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.85  ZPUCINDJVBIVPJ  [H][C@]12CC[C@@]([H])([C@H](C(=O)OC)[C@@H](OC(=O)c3ccccc3)C1)N2C
+        = decimer                   nan  ZPUCINDJVBIVPJ  CN1[C@H]2CC[C@H]1[C@@H]([C@H](C2)OC(=O)C3=CC=CC=C3)C(=O)OC
+  48. Morphine         jpeg     -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.75  BQJCRHHNABKAKU  [H][C@@]12C=C[C@H](O)[C@]3([H])Oc4c(O)ccc5c4[C@]13CCN(C)[C@]2([H])C5
+        = decimer                   nan  BQJCRHHNABKAKU  CN1CC[C@@]23[C@H]4C=C[C@@H]([C@@H]2OC5=C3C(=CC=C5O)C[C@H]41)O
+  49. Testosterone     plain    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.88  MUMGGOZAMZWBJJ  [H][C@@]12CCC3=CC(=O)CC[C@@]3(C)[C@@]1([H])CC[C@]1(C)[C@@H](O)CC[C@@]21[H]
+        = decimer                   nan  MUMGGOZAMZWBJJ  C[C@@]12CCC(=O)C=C2CC[C@H]3[C@@H]4CC[C@@H]([C@@]4(C)CC[C@@H]31)O
+  50. Ascorbic acid    large    -> 맞음               인식기 2종 합의
+        = molscribe@.venv310       0.88  CIWBSHSKHKDKBQ  O=C1O[C@H]([C@@H](O)CO)C(O)=C1O
+        = decimer                   nan  CIWBSHSKHKDKBQ  C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O
