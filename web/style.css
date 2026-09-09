@@ -26,11 +26,14 @@ h2 { font-size: 16px; margin: 0 0 12px; }
 .image-preview img { max-width: 100%; max-height: 160px; border-radius: 6px; display: inline-block; }
 .field-note { color: var(--mute); font-size: 12px; margin: 6px 2px 0; min-height: 1.2em; }
 
-/* ---------- 단일 입력 칸 ---------- */
-.query-field { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-.query-field label { display: block; font-size: 13px; color: var(--mute); margin-bottom: 6px; }
-.query-field input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 16px; font-family: ui-monospace, Consolas, monospace; }
-.query-field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+/* ---------- 이름 + SMILES 두 칸 - 화면의 중심 ---------- */
+.fields { display: grid; grid-template-columns: 1fr 1.3fr; gap: 14px; }
+.field { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.field label { display: block; font-size: 13px; color: var(--mute); margin-bottom: 6px; }
+.field input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; font: inherit; font-size: 16px; font-family: ui-monospace, Consolas, monospace; }
+.field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.field-smiles { border: 2px solid var(--accent); background: #f5f8ff; }
+.field-smiles label { color: var(--accent); font-weight: 600; }
 
 .suggestions { margin-top: 10px; }
 .suggestions p { margin: 0 0 6px; color: var(--mute); font-size: 13px; }
@@ -55,14 +58,27 @@ dl.facts dd { margin: 0; font-family: ui-monospace, Consolas, monospace; word-br
 .copy-row button:disabled { opacity: .4; cursor: default; }
 .copy-note { color: var(--mute); font-size: 12px; margin: 8px 0 0; min-height: 1.2em; }
 
-.verdict-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; padding: 6px 4px; margin: 0 0 12px; border-radius: 6px; }
+/* ---------- 대조 결과 - 화면의 주인공 ---------- */
+.verdict-section { margin-top: 18px; }
+.verdict-card { background: var(--card); border: 2px solid var(--line); border-radius: 10px; padding: 20px; }
+
+.verdict-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; padding: 6px 4px; margin: 0 0 12px; border-radius: 6px; }
 .verdict-pill.match { color: var(--ok); }
 .verdict-pill.mismatch { color: var(--bad); }
 .verdict-pill.unreadable { color: var(--mute); }
 
+.drawbox-inline { max-width: 300px; margin: 4px 0 14px; }
+.drawlabel { color: var(--mute); font-size: 12px; margin: 0 0 4px; text-align: center; }
+.draw { border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 180px; display: flex; align-items: center; justify-content: center; }
+.draw svg { max-width: 100%; height: auto; }
+
 .evidence { background: var(--gray-bg); border-radius: 8px; padding: 12px 14px; margin: 10px 0; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
 .evidence .row { display: grid; grid-template-columns: 170px 1fr; gap: 4px 10px; padding: 3px 0; }
 .evidence .row .k { color: var(--mute); font-family: system-ui, sans-serif; }
+.evidence mark { background: #ffd3d0; color: var(--bad); border-radius: 2px; padding: 0 1px; }
+
+.reasons { margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
+.reasons li { margin: 3px 0; }
 
 .err { color: var(--bad); margin-top: 14px; }
 
@@ -73,11 +89,9 @@ dl.facts dd { margin: 0; font-family: ui-monospace, Consolas, monospace; word-br
 .wildcatch-body { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 18px; }
 .wildcatch-img { max-width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
 .wildcatch-facts .why { color: var(--mute); font-size: 13px; margin: 10px 0 0; }
-.wildcatch-facts button { margin-top: 10px; padding: 7px 13px; border: 1px solid var(--accent); background: #fff; color: var(--accent); border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
-.wildcatch-facts button:hover { background: #eef4ff; }
 
 footer { color: var(--mute); font-size: 12px; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 12px; }
 
 @media (max-width: 640px) {
-  .canon-card, .wildcatch-body { grid-template-columns: 1fr; }
+  .fields, .canon-card, .wildcatch-body { grid-template-columns: 1fr; }
 }

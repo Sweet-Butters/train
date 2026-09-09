@@ -1,6 +1,9 @@
 // web/app.js (U 소유) - 화면 로직. 서버 없음 - 전부 이 브라우저 안에서 끝난다.
 // web/crop.js(C)·web/ocr.js(O)는 아직 없을 수 있다 - 있으면 쓰고 없으면 조용히 건너뛴다.
-// 단일 입력 칸(이름/SMILES)은 이 파일 혼자서도 완결된다 - OCR 은 임계 경로가 아니다.
+//
+// 화면의 중심은 이름+SMILES 대조다: LLM 이 준 SMILES 를 이름의 정본과 대조해 InChIKey 로
+// 빨강/초록을 낸다 - 임의의 입력에 대해 실제로 도는 판정이고 하드코딩이 아니다.
+// 이미지는 OCR 로 이름칸만 채우는 보조 경로다 - 그림 자체를 읽는 것은 로컬 CLI 의 몫이다.
 
 const TABLE = window.CHEMCHECK_TABLE || {};
 const ALIASES = window.CHEMCHECK_ALIASES || {};
@@ -105,25 +108,44 @@ function describeFull(smiles) {
   return base;
 }
 
-// 단일 칸의 판별 규칙: RDKit 이 파싱하면 SMILES, 못 하면 이름 - 추론이 아니라 규칙이다.
-async function resolveSingle(raw) {
-  const probe = RDKit.get_mol(raw);
-  const validSmiles = !!(probe && probe.is_valid());
-  if (probe) probe.delete();
-  if (validSmiles) {
-    const desc = describeFull(raw);
-    const who = await identifyByKey(desc.inchikey);
-    return {
-      svg: desc.svg, smiles: desc.smiles, inchikey: desc.inchikey, formula: desc.formula,
-      cid: who ? who.cid : null, title: who ? who.title : null,
-      source: who ? who.source : "SMILES 입력 (PubChem 미등록)",
-    };
-  }
-  const byName = await resolveName(raw);
-  if (!byName) return null;
-  const desc = describeFull(byName.smiles);
-  if (!desc) return null;
-  return { svg: desc.svg, smiles: desc.smiles, inchikey: desc.inchikey, formula: desc.formula, cid: byName.cid, title: byName.title || raw, source: byName.source };
+// ---- 부분 구조 칠하기 (관능기 하나 붙거나 빠진 차이만 - RDKit.js(MinimalLib)는 rdFMCS 가 없다) ----
+
+function molAtomBondCounts(mol) {
+  const m = JSON.parse(mol.get_json()).molecules[0];
+  return { atoms: m.atoms.length, bonds: m.bonds.length };
+}
+function complementIndices(total, matched) {
+  const set = new Set(matched || []);
+  const out = [];
+  for (let i = 0; i < total; i++) if (!set.has(i)) out.push(i);
+  return out;
+}
+function highlightDiff(refSmiles, userSmiles) {
+  const refMol = RDKit.get_mol(refSmiles);
+  const userMol = RDKit.get_mol(userSmiles);
+  try {
+    if (!refMol || !refMol.is_valid() || !userMol || !userMol.is_valid()) return null;
+    const refInUser = JSON.parse(userMol.get_substruct_match(refMol));
+    if (refInUser.atoms && refInUser.atoms.length) {
+      const c = molAtomBondCounts(userMol);
+      return { side: "user", atoms: complementIndices(c.atoms, refInUser.atoms), bonds: complementIndices(c.bonds, refInUser.bonds) };
+    }
+    const userInRef = JSON.parse(refMol.get_substruct_match(userMol));
+    if (userInRef.atoms && userInRef.atoms.length) {
+      const c = molAtomBondCounts(refMol);
+      return { side: "ref", atoms: complementIndices(c.atoms, userInRef.atoms), bonds: complementIndices(c.bonds, userInRef.bonds) };
+    }
+    return null;
+  } finally { refMol.delete(); userMol.delete(); }
+}
+function svgWithHighlight(smiles, highlight, w, h) {
+  const mol = RDKit.get_mol(smiles);
+  try {
+    if (!mol || !mol.is_valid()) return "";
+    if (!highlight || !highlight.atoms.length) return mol.get_svg(w, h);
+    const details = JSON.stringify({ atoms: highlight.atoms, bonds: highlight.bonds, highlightColour: [0.94, 0.42, 0.42], width: w, height: h });
+    return mol.get_svg_with_highlights(details);
+  } finally { mol.delete(); }
 }
 
 // ============================================================ 이름 근접 제안 (편집거리)
@@ -161,14 +183,14 @@ function showSuggestions(raw) {
   const pills = document.createElement("div"); pills.className = "pills";
   for (const { t } of top) {
     const b = document.createElement("button"); b.type = "button"; b.textContent = t;
-    b.addEventListener("click", () => { $("queryInput").value = t; attemptResolve(t); });
+    b.addEventListener("click", () => { $("nameInput").value = t; evaluate(); });
     pills.appendChild(b);
   }
   box.append(p, pills);
 }
 function hideSuggestions() { const box = $("suggestions"); box.hidden = true; box.innerHTML = ""; }
 
-// ============================================================ 정본 카드 (복사 넷은 여기에만)
+// ============================================================ 정본 카드 (복사 넷은 여기에만 - 이름으로 찾은 것에만)
 
 function renderCanonical(data) {
   currentCanonical = data;
@@ -190,39 +212,173 @@ function renderCanonical(data) {
 }
 function hideCanonical() { currentCanonical = null; $("canonCard").hidden = true; }
 
-async function attemptResolve(raw) {
-  raw = raw.trim();
+// ============================================================ 판정 근거를 문자 그대로 보여준다 (추론 0, 문자열·원자수 비교)
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function markDiff(ref, read) {
+  if (!read) return "";
+  if (!ref) return escapeHtml(read);
+  let out = "";
+  for (let i = 0; i < read.length; i++) {
+    const c = read[i];
+    out += (i < ref.length && ref[i] === c) ? escapeHtml(c) : `<mark>${escapeHtml(c)}</mark>`;
+  }
+  return out;
+}
+const KO_ELEM = { C: "탄소", H: "수소", N: "질소", O: "산소", S: "황", P: "인", F: "불소", Cl: "염소", Br: "브롬", I: "아이오딘" };
+function formulaDiffNote(refF, readF) {
+  if (!refF || !readF) return null;
+  const re = /([A-Z][a-z]?)(\d*)/g;
+  const parseF = (f) => { const out = {}; let m; while ((m = re.exec(f))) out[m[1]] = (out[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1); re.lastIndex = 0; return out; };
+  const a = parseF(refF), b = parseF(readF);
+  const elems = [...new Set([...Object.keys(a), ...Object.keys(b)])];
+  const parts = [];
+  for (const el of elems) {
+    const d = (b[el] || 0) - (a[el] || 0);
+    if (!d) continue;
+    const ko = KO_ELEM[el] || el;
+    const word = d > 0 ? (d === 1 ? "하나 많음" : `${d}개 많음`) : (d === -1 ? "하나 적음" : `${Math.abs(d)}개 적음`);
+    parts.push(`${ko} ${word}`);
+  }
+  return parts.length ? parts.join(", ") : null;
+}
+function buildEvidenceBox(rows) {
+  const box = document.createElement("div"); box.className = "evidence";
+  for (const [k, html] of rows) {
+    const row = document.createElement("div"); row.className = "row";
+    const kd = document.createElement("div"); kd.className = "k"; kd.textContent = k;
+    const vd = document.createElement("div"); vd.innerHTML = html;
+    row.append(kd, vd); box.appendChild(row);
+  }
+  return box;
+}
+function appendReasons(card, reasons) {
+  if (!reasons || !reasons.length) return;
+  const ul = document.createElement("ul"); ul.className = "reasons";
+  for (const r of reasons) { const li = document.createElement("li"); li.textContent = r; ul.appendChild(li); }
+  card.appendChild(ul);
+}
+function compareKeys(a, b) { return a === b ? { cls: "match", text: "🟢 일치" } : { cls: "mismatch", text: "🔴 불일치" }; }
+function skeletonNote(a, b) { return (a !== b && a.slice(0, 14) === b.slice(0, 14)) ? "앞 14자(골격)는 같고 입체·전하만 다르다." : null; }
+
+function hideVerdict() { $("verdictSection").hidden = true; $("verdictCard").innerHTML = ""; }
+function hideSolo() { $("soloCard").hidden = true; $("soloCard").innerHTML = ""; }
+
+// 화면의 중심: 이름의 정본과 SMILES 입력을 InChIKey 로 대조해 빨강/초록을 낸다.
+function renderComparison(ref, refDesc, user, nameRaw) {
+  const diff = highlightDiff(refDesc.smiles, user.smiles);
+  const refSvg = svgWithHighlight(refDesc.smiles, diff && diff.side === "ref" ? diff : null, 420, 360);
+  renderCanonical({ svg: refSvg, title: ref.title || nameRaw, cid: ref.cid, source: ref.source, smiles: refDesc.smiles, inchikey: refDesc.inchikey, formula: refDesc.formula });
+
+  hideSolo();
+  $("verdictSection").hidden = false;
+  const card = $("verdictCard"); card.innerHTML = "";
+
+  const verdict = compareKeys(refDesc.inchikey, user.inchikey);
+  const pill = document.createElement("p"); pill.className = "verdict-pill " + verdict.cls; pill.textContent = verdict.text;
+  card.appendChild(pill);
+
+  const userSvg = svgWithHighlight(user.smiles, diff && diff.side === "user" ? diff : null, 260, 220);
+  const box = document.createElement("div"); box.className = "drawbox-inline";
+  const label = document.createElement("p"); label.className = "drawlabel"; label.textContent = "입력한 SMILES (복사 없음)";
+  const draw = document.createElement("div"); draw.className = "draw"; draw.innerHTML = userSvg || "";
+  box.append(label, draw); card.appendChild(box);
+
+  const rows = [
+    [`이름 "${ref.title || nameRaw}" 의 정본`, escapeHtml(refDesc.inchikey)],
+    ["입력한 SMILES", markDiff(refDesc.inchikey, user.inchikey)],
+    ["정본 화학식", escapeHtml(refDesc.formula || "-")],
+  ];
+  if (user.formula) {
+    const note = formulaDiffNote(refDesc.formula, user.formula);
+    rows.push(["입력 SMILES 의 화학식", escapeHtml(user.formula) + (note ? `  ← ${escapeHtml(note)}` : "")]);
+  }
+  card.appendChild(buildEvidenceBox(rows));
+
+  const reasons = [];
+  const skel = skeletonNote(refDesc.inchikey, user.inchikey);
+  if (skel) reasons.push(skel);
+  if (verdict.cls === "mismatch" && !diff) reasons.push("두 구조가 부분 포함 관계가 아니라(고리 크기·위치·치환기 차이 등) 어디가 다른지는 못 칠했다.");
+  appendReasons(card, reasons);
+}
+
+// SMILES 만 있고 이름이 없을 때 - 대조 상대가 없으니 판정 없이 정체만 보여준다(복사 없음).
+async function renderSoloSmiles(user, smilesRaw) {
+  hideVerdict();
+  const box = $("soloCard"); box.hidden = false; box.innerHTML = "";
+  const who = await identifyByKey(user.inchikey);
+  const draw = document.createElement("div"); draw.className = "canon-draw"; draw.innerHTML = user.svg || "";
+  const info = document.createElement("div");
+  const title = document.createElement("p"); title.className = "canon-title";
+  title.textContent = who ? `PubChem: ${who.title}` : "PubChem 에 없는 구조";
+  const dl = document.createElement("dl"); dl.className = "facts";
+  const rows = [["화학식", user.formula], ["SMILES", user.smiles], ["InChIKey", user.inchikey]];
+  for (const [k, v] of rows) {
+    if (!v) continue;
+    const dt = document.createElement("dt"); dt.textContent = k;
+    const dd = document.createElement("dd"); dd.textContent = v;
+    dl.append(dt, dd);
+  }
+  const note = document.createElement("p"); note.className = "field-note";
+  note.textContent = "이름을 채우면 이 SMILES 를 정본과 대조해 판정을 낸다.";
+  info.append(title, dl, note);
+  box.append(draw, info);
+}
+
+// ============================================================ 대조 엔진 - 이름 칸 + SMILES 칸을 함께 본다
+
+let debounceTimer = null;
+function scheduleEvaluate() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(evaluate, 400);
+}
+async function evaluate() {
+  const nameRaw = $("nameInput").value.trim();
+  const smilesRaw = $("smilesInput").value.trim();
   hideSuggestions();
-  if (!raw) { hideCanonical(); clearErr(); return; }
-  if (!RDKit) { status("RDKit 로딩 중… 준비되면 자동으로 확인한다."); return; }
-  status("정본 확인 중…");
   clearErr();
+  if (!nameRaw && !smilesRaw) { hideCanonical(); hideVerdict(); hideSolo(); return; }
+  if (!RDKit) { status("RDKit 로딩 중… 준비되면 자동으로 확인한다."); return; }
+  status("확인 중…");
   try {
-    const res = await resolveSingle(raw);
-    if (!res) {
-      hideCanonical();
-      showSuggestions(raw);
-      fail(`"${raw}" - 내장 표 423개에도, PubChem 에도, 유효한 SMILES 로도 못 찾았다.`);
+    const ref = nameRaw ? await resolveName(nameRaw) : null;
+    if (nameRaw && !ref) {
+      hideCanonical(); hideVerdict(); hideSolo();
+      showSuggestions(nameRaw);
+      fail(`"${nameRaw}" - 내장 표 423개에도 PubChem 에도 없다.`);
       status(`RDKit ${RDKit.version()} 준비됨`);
       return;
     }
-    renderCanonical(res);
+    const refDesc = ref ? describeFull(ref.smiles) : null;
+    const user = smilesRaw ? describeFull(smilesRaw) : null;
+    if (smilesRaw && !user) fail("SMILES 를 읽을 수 없다 - RDKit 이 파싱하지 못했다: " + smilesRaw);
+    else clearErr();
+
+    if (ref && user) {
+      renderComparison(ref, refDesc, user, nameRaw);
+    } else if (ref) {
+      renderCanonical({ svg: refDesc.svg, title: ref.title || nameRaw, cid: ref.cid, source: ref.source, smiles: refDesc.smiles, inchikey: refDesc.inchikey, formula: refDesc.formula });
+      hideVerdict(); hideSolo();
+    } else if (user) {
+      hideCanonical();
+      await renderSoloSmiles(user, smilesRaw);
+    } else {
+      hideCanonical(); hideVerdict(); hideSolo();
+    }
     status(`RDKit ${RDKit.version()} 준비됨`);
   } catch (e) {
-    hideCanonical();
+    hideCanonical(); hideVerdict(); hideSolo();
     fail("실패: " + (e && e.message ? e.message : e) + " (PubChem 조회는 네트워크가 필요하다)");
     status(RDKit ? `RDKit ${RDKit.version()} 준비됨` : "");
   }
 }
 
-let debounceTimer = null;
-$("queryInput").addEventListener("input", () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => { attemptResolve($("queryInput").value); }, 400);
-});
-$("queryInput").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") { clearTimeout(debounceTimer); attemptResolve($("queryInput").value); }
-});
+$("nameInput").addEventListener("input", scheduleEvaluate);
+$("nameInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(debounceTimer); evaluate(); } });
+$("smilesInput").addEventListener("input", scheduleEvaluate);
+$("smilesInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(debounceTimer); evaluate(); } });
 
 // ============================================================ 정본 복사 (넷) - 정본에만 둔다. 사용자가 올린 그림 쪽엔 두지 않는다.
 
@@ -295,6 +451,7 @@ $("copySmiles").addEventListener("click", () => copyText(currentCanonical && cur
 $("copyKey").addEventListener("click", () => copyText(currentCanonical && currentCanonical.inchikey, "InChIKey"));
 
 // ============================================================ 이미지 입력 - crop.js(C)·ocr.js(O) 있으면 쓰고 없으면 대체. 임계 경로 아님.
+// 이미지는 이름칸만 채운다 - 그림 자체 검사(OCSR)는 3GB 인식기가 필요해 로컬 CLI 의 몫이다.
 
 async function setupImageInput() {
   const dropzone = $("dropzone");
@@ -342,8 +499,6 @@ function showImagePreview(blob) {
 }
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
-// OCR(O)이 뽑는 건 이름뿐이다(계약 개정 2 - 화학식·SMILES 는 사전이 없어 오독을 보정할
-// 수 없어 접었다). 이름칸을 채우는 것뿐이라 실패해도 사용자가 3초면 직접 친다 - 임계 경로 아님.
 async function handleImage(blob) {
   showImagePreview(blob);
   imageNote("OCR 로 이름을 읽는 중…");
@@ -356,38 +511,30 @@ async function handleImage(blob) {
 
   const name = hints && hints.names && hints.names[0];
   if (!name) {
-    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 칸에 이름이나 SMILES 를 직접 입력하라.");
+    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 이름칸에 직접 입력하라.");
     return;
   }
-  imageNote(`OCR 이 이름 "${name}" 을 읽어 아래 칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
-  $("queryInput").value = name;
-  await attemptResolve(name);
+  imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라. SMILES 는 채우지 않는다(그림 자체는 검사하지 않는다) - 있으면 대화에서 복사해 SMILES 칸에 붙여넣어라.`);
+  $("nameInput").value = name;
+  await evaluate();
 }
-
-// ============================================================ 야생에서 잡은 오류 - 정본과 바로 비교하는 버튼
-
-$("wildcatchCompareBtn").addEventListener("click", () => {
-  $("queryInput").value = "Caffeine";
-  attemptResolve("Caffeine");
-  $("canonCard").scrollIntoView({ behavior: "smooth", block: "start" });
-});
 
 // ============================================================ 시작
 
 $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (web/build_table.py 가 chemcheck/data 에서 구움). ` +
-  `이름/SMILES 판별과 InChIKey·화학식 계산은 이 브라우저 안에서 표·PubChem·RDKit(WASM) 만으로 끝난다 - 서버가 없다. ` +
-  `이미지는 web/crop.js·web/ocr.js 가 있으면 이름을 자동으로 채운다(오늘은 없을 수 있다) - 없어도 이 칸은 그대로 동작한다. ` +
-  `그림 자체를 읽는 검사(OCSR)는 로컬 CLI 의 몫이다 - 위 "야생에서 잡은 오류" 참고.`;
+  `이름·SMILES 대조와 InChIKey·화학식 계산은 이 브라우저 안에서 표·PubChem·RDKit(WASM) 만으로 끝난다 - 서버가 없다. ` +
+  `이미지는 web/crop.js·web/ocr.js 가 있으면 이름칸을 자동으로 채운다(오늘은 없을 수 있다) - 없어도 두 칸은 그대로 동작한다. ` +
+  `그림 자체를 읽는 검사(OCSR)는 3GB 인식기가 필요해 로컬 CLI 의 몫이다 - 아래 "야생에서 잡은 오류" 참고.`;
 
 setupImageInput();
 
 const q = new URLSearchParams(location.search);
-if (q.get("name")) $("queryInput").value = q.get("name");
+if (q.get("name")) $("nameInput").value = q.get("name");
+if (q.get("smiles")) $("smilesInput").value = q.get("smiles");
 
 const t0 = performance.now();
 window.initRDKitModule().then((m) => {
   RDKit = m;
   status(`RDKit ${m.version()} 준비됨 (${Math.round(performance.now() - t0)}ms)`);
-  const initial = $("queryInput").value.trim();
-  if (initial) attemptResolve(initial);
+  if ($("nameInput").value.trim() || $("smilesInput").value.trim()) evaluate();
 }).catch((e) => { status(""); fail("RDKit 을 불러오지 못했다: " + e); });

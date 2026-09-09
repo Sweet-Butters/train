@@ -9,12 +9,12 @@
 <body>
 <main>
   <h1>chemcheck</h1>
-  <p class="sub">이미지를 붙여넣거나, 아래 한 칸에 화합물 이름이나 SMILES 를 아무거나 넣으세요.
-    정본은 곧바로 뜹니다 - 서버 없이 이 브라우저 안에서 끝납니다.</p>
+  <p class="sub">LLM 이 화합물이라며 준 SMILES 를 이름의 정본과 대조합니다 - InChIKey 가 같으면 🟢, 다르면 🔴.
+    이름만 넣어도 정본은 곧바로 뜹니다. 서버 없이 이 브라우저 안에서 끝납니다.</p>
 
   <section class="image-drop">
     <div class="dropzone" id="dropzone" tabindex="0">
-      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 있으면 이름을 자동으로 채웁니다</p>
+      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 있으면 이름칸을 자동으로 채웁니다 (그림 자체는 검사하지 않습니다)</p>
       <button type="button" id="fileBtn">파일 선택</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
     </div>
@@ -22,11 +22,17 @@
     <p class="field-note" id="imageNote"></p>
   </section>
 
-  <section class="query-field">
-    <label for="queryInput">화합물 이름 또는 SMILES</label>
-    <input id="queryInput" placeholder="아스피린 / aspirin / CC(=O)Oc1ccccc1C(=O)O" autocomplete="off">
-    <div class="suggestions" id="suggestions" hidden></div>
+  <section class="fields">
+    <div class="field">
+      <label for="nameInput">이름</label>
+      <input id="nameInput" placeholder="아스피린 / aspirin / caffeine" autocomplete="off">
+    </div>
+    <div class="field field-smiles">
+      <label for="smilesInput">SMILES - LLM 이 준 것을 여기에 붙여넣으세요 (핵심 검출 경로)</label>
+      <input id="smilesInput" placeholder="CC(=O)Oc1ccccc1C(=O)O" autocomplete="off">
+    </div>
   </section>
+  <div class="suggestions" id="suggestions" hidden></div>
   <p id="status">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</p>
 
   <section class="canon-card" id="canonCard" hidden>
@@ -43,15 +49,24 @@
       <p class="copy-note" id="copyNote"></p>
     </div>
   </section>
+
+  <section class="verdict-section" id="verdictSection" hidden>
+    <h2>대조 결과</h2>
+    <div class="verdict-card" id="verdictCard"></div>
+  </section>
+
+  <section class="canon-card" id="soloCard" hidden></section>
+
   <p class="err" id="err"></p>
 
   <section class="wildcatch">
-    <h2>야생에서 잡은 오류</h2>
-    <p class="sub2">오늘 실측(2026-09-09). 로컬 CLI(OCSR, 인식기 둘)로 실제로 읽어서 잡았다 - 웹 버전은 이미지를 읽지 못하므로 이 판정을 재현하지 못한다. 기록만 남긴다.</p>
+    <h2>야생에서 잡은 오류 - 기록 (상호작용 없음)</h2>
+    <p class="sub2">이 섹션은 버튼이 없습니다. 로컬 CLI(OCSR, 인식기 둘)로 실제로 측정한 결과를 그대로 옮겨 적은 기록입니다(2026-09-09).
+      웹 버전은 이미지를 읽는 3GB 인식기가 없어 이 판정을 재현하지 못합니다 - 로컬 CLI 로는 재현할 수 있습니다.</p>
     <div class="wildcatch-body">
       <img class="wildcatch-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
       <div class="wildcatch-facts">
-        <p class="verdict-pill mismatch">🔴 오류 (로컬 CLI 실측)</p>
+        <p class="verdict-pill mismatch">🔴 오류 (기록 - 로컬 CLI 실측)</p>
         <div class="evidence">
           <div class="row"><div class="k">이름 "Caffeine" 의 정본</div><div>RYYVLZVUVIJVGH-UHFFFAOYSA-N (C8N4O2)</div></div>
           <div class="row"><div class="k">이미지가 적은 화학식</div><div>C8H10N4O2</div></div>
@@ -60,7 +75,6 @@
         </div>
         <p class="why">Gemini 가 그린 카페인은 N9 에 메틸이 하나 더 붙어 있다 - 그릴 수 없는 구조라 두 인식기 중 하나는 파싱조차 못 했다.
           그런데도 이미지 자신이 적어 둔 화학식(C8H10N4O2)과도 맞지 않는다. 이름·인식기 둘·인쇄된 화학식, 넷 중 셋이 "탄소 8 대 9" 를 가리켰다.</p>
-        <button type="button" id="wildcatchCompareBtn">위 칸에 "Caffeine" 넣고 정본과 비교</button>
       </div>
     </div>
   </section>
