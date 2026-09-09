@@ -10,6 +10,8 @@ const ALIASES = window.CHEMCHECK_ALIASES || {};
 const BY_KEY = {};
 for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
 const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
+const CHECK_URL = "https://pxh7yp--chemcheck.modal.run/api/check";
+const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
 
 const $ = (id) => document.getElementById(id);
 let RDKit = null;
@@ -510,13 +512,104 @@ async function handleImage(blob) {
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
   const name = hints && hints.names && hints.names[0];
-  if (!name) {
-    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 이름칸에 직접 입력하라.");
+  if (name) {
+    imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
+    $("nameInput").value = name;
+    await evaluate();
+  } else {
+    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 이름칸에 직접 입력하면 서버 대조에도 쓰인다.");
+  }
+
+  await checkServerImage(blob, $("nameInput").value.trim());
+}
+
+// ============================================================ 이미지 자체 대조 - 서버(S). 정본은 이미 떠 있으니 이건 나중에 채운다.
+
+function showImageVerdictLoading() {
+  $("imageVerdictSection").hidden = false;
+  const card = $("imageVerdictCard"); card.innerHTML = "";
+  const p = document.createElement("p"); p.className = "result-placeholder";
+  p.textContent = "서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다 - 따뜻하면 2~3초.";
+  card.appendChild(p);
+}
+function showImageVerdictNote(msg) {
+  $("imageVerdictSection").hidden = false;
+  const card = $("imageVerdictCard"); card.innerHTML = "";
+  const p = document.createElement("p"); p.className = "result-placeholder"; p.textContent = msg;
+  card.appendChild(p);
+}
+
+async function checkServerImage(blob, name) {
+  showImageVerdictLoading();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
+  try {
+    const fd = new FormData();
+    fd.append("image", blob, "image.png");
+    fd.append("name", name || "");
+    const res = await fetch(CHECK_URL, { method: "POST", body: fd, signal: controller.signal });
+    if (!res.ok) throw new Error(`서버 응답 ${res.status}`);
+    renderImageVerdict(await res.json());
+  } catch (e) {
+    const timedOut = e && e.name === "AbortError";
+    showImageVerdictNote(
+      (timedOut ? "서버가 시간 안에 응답하지 않았다(최대 1분 대기했다). " : "서버에 연결하지 못했다. ") +
+      "그림 자체는 확인하지 못했다 - 위 정본과 나란히 놓고 비교해 보라."
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function renderImageVerdict(json) {
+  const card = $("imageVerdictCard"); card.innerHTML = "";
+
+  if (json.verdict === "unreadable") {
+    const pill = document.createElement("p"); pill.className = "verdict-pill unreadable"; pill.textContent = "⚪ 읽지 못함";
+    card.appendChild(pill);
+    const note = document.createElement("p"); note.className = "result-placeholder";
+    note.textContent = "서버가 그림을 확실히 읽지 못했다. 요청하신 구조는 위 정본이다 - 나란히 놓고 보라.";
+    card.appendChild(note);
+    appendReasons(card, json.reasons);
     return;
   }
-  imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라. SMILES 는 채우지 않는다(그림 자체는 검사하지 않는다) - 있으면 대화에서 복사해 SMILES 칸에 붙여넣어라.`);
-  $("nameInput").value = name;
-  await evaluate();
+
+  const pill = document.createElement("p");
+  pill.className = "verdict-pill " + (json.verdict === "match" ? "match" : "mismatch");
+  pill.textContent = json.verdict === "match" ? "🟢 일치" : "🔴 불일치";
+  if (json.grade) {
+    const g = document.createElement("span"); g.className = "grade-badge";
+    g.textContent = json.grade === "strong" ? "확신: 강함 (인식기 둘 합의)" : "확신: 약함 (인식기 하나)";
+    pill.append(" ", g);
+  }
+  card.appendChild(pill);
+
+  const ref = json.reference, read = json.read;
+  const rows = [];
+  if (ref) rows.push([`이름 "${ref.name || ""}" 의 정본`, escapeHtml(ref.inchikey || "-")]);
+  if (read) rows.push(["그림에서 읽은 것", markDiff(ref && ref.inchikey, read.inchikey)]);
+  if (ref && ref.formula) rows.push(["정본 화학식", escapeHtml(ref.formula)]);
+  if (read && read.heavy_formula) {
+    const note = formulaDiffNote(ref && ref.formula, read.heavy_formula);
+    rows.push(["그림에서 센 원자", escapeHtml(read.heavy_formula) + (note ? `  ← ${escapeHtml(note)}` : "")]);
+  }
+  if (rows.length) card.appendChild(buildEvidenceBox(rows));
+
+  appendReasons(card, json.reasons);
+
+  if (read && read.engines && read.engines.length) {
+    const box = document.createElement("div"); box.className = "evidence";
+    const title = document.createElement("div"); title.className = "k"; title.textContent = "인식기별 결과";
+    box.appendChild(title);
+    for (const e of read.engines) {
+      const row = document.createElement("div"); row.className = "row";
+      const k = document.createElement("div"); k.className = "k"; k.textContent = e.engine || "-";
+      const v = document.createElement("div");
+      v.textContent = `${e.inchikey || "(파싱 실패)"}${typeof e.confidence === "number" ? "  신뢰도 " + e.confidence.toFixed(3) : ""}`;
+      row.append(k, v); box.appendChild(row);
+    }
+    card.appendChild(box);
+  }
 }
 
 // ============================================================ 시작

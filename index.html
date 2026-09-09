@@ -10,11 +10,11 @@
 <main>
   <h1>chemcheck</h1>
   <p class="sub">LLM 이 화합물이라며 준 SMILES 를 이름의 정본과 대조합니다 - InChIKey 가 같으면 🟢, 다르면 🔴.
-    이름만 넣어도 정본은 곧바로 뜹니다. 서버 없이 이 브라우저 안에서 끝납니다.</p>
+    이름만 넣어도 정본은 곧바로 뜹니다. 이미지를 붙이면 서버가 그림 자체도 읽어 대조합니다(처음엔 최대 1분).</p>
 
   <section class="image-drop">
     <div class="dropzone" id="dropzone" tabindex="0">
-      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 있으면 이름칸을 자동으로 채웁니다 (그림 자체는 검사하지 않습니다)</p>
+      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 이름칸을 채우고, 서버가 그림도 읽어 대조합니다</p>
       <button type="button" id="fileBtn">파일 선택</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
     </div>
@@ -51,8 +51,13 @@
   </section>
 
   <section class="verdict-section" id="verdictSection" hidden>
-    <h2>대조 결과</h2>
+    <h2>대조 결과 (이름 + SMILES)</h2>
     <div class="verdict-card" id="verdictCard"></div>
+  </section>
+
+  <section class="verdict-section" id="imageVerdictSection" hidden>
+    <h2>대조 결과 (이미지 - 서버)</h2>
+    <div class="verdict-card" id="imageVerdictCard"></div>
   </section>
 
   <section class="canon-card" id="soloCard" hidden></section>
@@ -61,8 +66,8 @@
 
   <section class="wildcatch">
     <h2>야생에서 잡은 오류 - 기록 (상호작용 없음)</h2>
-    <p class="sub2">이 섹션은 버튼이 없습니다. 로컬 CLI(OCSR, 인식기 둘)로 실제로 측정한 결과를 그대로 옮겨 적은 기록입니다(2026-09-09).
-      웹 버전은 이미지를 읽는 3GB 인식기가 없어 이 판정을 재현하지 못합니다 - 로컬 CLI 로는 재현할 수 있습니다.</p>
+    <p class="sub2">이 섹션은 버튼이 없습니다 - 상호작용 없는 기록입니다. 오늘(2026-09-09) 서버가 뜨기 전, 로컬 CLI(OCSR, 인식기 둘)로
+      처음 실제 데이터에서 잡은 사례를 그대로 옮겨 적었습니다. 지금은 위 이미지 칸에 이 그림을 붙여넣으면 서버가 살아서 같은 방식으로 검사합니다.</p>
     <div class="wildcatch-body">
       <img class="wildcatch-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
       <div class="wildcatch-facts">
