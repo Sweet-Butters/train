@@ -641,6 +641,13 @@ function renderImageVerdict(json) {
       // 읽기는 성공했다. 대조할 이름이 없거나 이름을 못 찾았을 뿐이다 - 그렇다고 "못 읽었다" 고 하면 거짓말이다.
       const pill = document.createElement("p"); pill.className = "verdict-pill unreadable";
       pill.textContent = "🔵 읽었습니다 - 대조는 하지 않았습니다";
+      if (json.grade) {
+        const g = document.createElement("span"); g.className = "grade-badge";
+        g.textContent = json.grade === "strong"
+          ? "읽기 확신: 강함 (인식기 둘이 독립적으로 같은 골격)"
+          : "읽기 확신: 약함 (인식기 하나)";
+        pill.append(" ", g);
+      }
       card.appendChild(pill);
       const note = document.createElement("p"); note.className = "result-placeholder";
       note.textContent = "대조할 이름이 없어(또는 이름을 표·PubChem 에서 찾지 못해) 맞고 틀림을 판정하지 않았다. " +
