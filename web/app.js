@@ -320,6 +320,63 @@ $("copyKey").addEventListener("click", () => copyText(currentMol && currentMol.i
 // ============================================================ 이미지 입력 - crop.js(C)·ocr.js(O) 있으면 쓰고 없으면 대체. 임계 경로 아님.
 
 let usingCropper = false; // crop.js 가 붙으면 미리보기·크롭 UI 는 crop.js 가 맡는다
+// ── 예제 - 심사위원이 아무것도 준비하지 않고 바로 확인할 수 있게 ────────────
+// evidence/crops 의 실제 그림을 사용자가 올린 것과 **같은 경로**로 통과시킨다.
+// 미리 채우는 것은 입력(그림·이름)뿐이고 판정은 서버가 그때 낸다.
+const EXAMPLE_GROUPS = [
+  { label: "AI 가 그린 그림 - 이름과 대조합니다", items: [
+      { file: "caffeine_gemini_crop.png", name: "Caffeine",  label: "Gemini 카페인" },
+      { file: "caffeine_gpt_crop.png",    name: "Caffeine",  label: "GPT 카페인" },
+      { file: "alanine_gemini_crop.png",  name: "L-alanine", label: "Gemini 알라닌" },
+      { file: "alanine_gpt_crop.png",     name: "L-alanine", label: "GPT 알라닌" },
+  ] },
+  { label: "처음 보는 분자 - PubChem 에도 내장 표에도 없습니다. 그림에서만 읽습니다", items: [
+      { file: "novel_a.png", name: "", label: "신규 A" },
+      { file: "novel_b.png", name: "", label: "신규 B" },
+      { file: "novel_c.png", name: "", label: "신규 C" },
+  ] },
+];
+
+async function runExample(ex) {
+  const btns = document.querySelectorAll("#examples button");
+  btns.forEach((b) => { b.disabled = true; });
+  try {
+    const res = await fetch("evidence/crops/" + ex.file);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    const q = $("queryInput");
+    if (q) { q.value = ex.name || ""; }
+    await handleImage(blob);
+  } catch (e) {
+    const n = $("imageNote");
+    if (n) n.textContent = "예제를 불러오지 못했다: " + (e && e.message ? e.message : e);
+  } finally {
+    btns.forEach((b) => { b.disabled = false; });
+  }
+}
+
+function setupExamples() {
+  const box = $("examples");
+  if (!box) return;
+  for (const g of EXAMPLE_GROUPS) {
+    const row = document.createElement("div");
+    row.style.cssText = "margin:.4rem 0";
+    const lab = document.createElement("div");
+    lab.style.cssText = "font-size:.8rem;opacity:.7;margin-bottom:.25rem";
+    lab.textContent = g.label;
+    row.appendChild(lab);
+    for (const ex of g.items) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn btn-sm";
+      b.textContent = ex.label;
+      b.style.cssText = "margin:.15rem .3rem .15rem 0";
+      b.addEventListener("click", () => runExample(ex));
+      row.appendChild(b);
+    }
+    box.appendChild(row);
+  }
+}
+
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
@@ -480,15 +537,113 @@ function verdictLabel(state, text) {
   return h;
 }
 
+// ── 인식기가 갈렸을 때: 문자열 대신 **구조를 그려서** 보여준다 ──────────────
+// InChIKey 는 사람이 못 읽는다. 무엇을 읽었는지 알려면 그림이어야 한다.
+function keyName(inchikey) {
+  if (!inchikey) return null;
+  const row = BY_KEY[inchikey] || BY_KEY[(inchikey || "").slice(0, 14)];
+  return row ? (row.title || row.name) : null;
+}
+
+function smallSvg(smiles, w, h) {
+  if (!RDKit || !smiles) return "";
+  let mol = null;
+  try {
+    mol = RDKit.get_mol(smiles);
+    if (!mol || !mol.is_valid()) return "";
+    return mol.get_svg(w, h);
+  } catch (e) { return ""; }
+  finally { if (mol) mol.delete(); }
+}
+
+function candidateTile(title, smiles, inchikey, verdictText, tone) {
+  const box = document.createElement("div");
+  box.style.cssText = "flex:1 1 190px;min-width:180px;border:1px solid " +
+    (tone === "ok" ? "#7bb37f" : tone === "no" ? "#dd9999" : "#dddddd") +
+    ";border-radius:8px;padding:.5rem;background:#fff";
+  const h = document.createElement("div");
+  h.style.cssText = "font-size:.78rem;opacity:.7;margin-bottom:.25rem";
+  h.textContent = title;
+  box.appendChild(h);
+
+  const svg = smallSvg(smiles, 190, 150);
+  const art = document.createElement("div");
+  art.style.cssText = "min-height:150px;display:flex;align-items:center;justify-content:center";
+  if (svg) { art.innerHTML = svg; }
+  else { art.textContent = "그리지 못함"; art.style.fontSize = ".8rem"; art.style.opacity = ".6"; }
+  box.appendChild(art);
+
+  const nm = keyName(inchikey);
+  const label = document.createElement("div");
+  label.style.cssText = "font-size:.82rem;margin-top:.3rem;font-weight:600";
+  label.textContent = nm || (inchikey ? "이름 없음 (표·PubChem 미등재)" : "읽지 못함");
+  box.appendChild(label);
+
+  if (inchikey) {
+    const k = document.createElement("div");
+    k.style.cssText = "font-size:.7rem;opacity:.55;word-break:break-all";
+    k.textContent = inchikey;
+    box.appendChild(k);
+  }
+  if (verdictText) {
+    const v = document.createElement("div");
+    v.style.cssText = "font-size:.78rem;margin-top:.25rem;color:" +
+      (tone === "ok" ? "#1f7a3d" : tone === "no" ? "#b3261e" : "#666666");
+    v.textContent = verdictText;
+    box.appendChild(v);
+  }
+  return box;
+}
+
+function appendCandidates(card, json) {
+  const read = json.read || {};
+  const engines = read.engines || [];
+  if (!engines.length) return false;
+
+  const ref = json.reference;
+  const refSkel = ref && ref.inchikey ? ref.inchikey.slice(0, 14) : null;
+
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;gap:.6rem;flex-wrap:wrap;margin:.6rem 0";
+
+  if (ref && ref.smiles) {
+    row.appendChild(candidateTile('정본 "' + (ref.name || "") + '"', ref.smiles, ref.inchikey, "요청하신 구조", ""));
+  }
+  let anyMatch = false;
+  for (const e of engines) {
+    const skel = e.inchikey ? e.inchikey.slice(0, 14) : null;
+    let tone = "", txt = "";
+    if (refSkel && skel) {
+      if (skel === refSkel) { tone = "ok"; txt = "정본과 같음"; anyMatch = true; }
+      else { tone = "no"; txt = "정본과 다름"; }
+    } else if (!e.inchikey) {
+      tone = "no"; txt = "RDKit 이 분자로 못 받음";
+    }
+    row.appendChild(candidateTile(e.engine + " 가 읽음", e.smiles, e.inchikey, txt, tone));
+  }
+  card.appendChild(row);
+
+  const tip = document.createElement("p");
+  tip.className = "verdict-note";
+  tip.textContent = anyMatch
+    ? "인식기 하나는 정본과 같게 읽었습니다. 다른 하나가 갈렸으므로 판정하지 않습니다 - 사진이 흐리거나 기울면 이런 일이 생깁니다. 구조 영역만 잘라 다시 넣어 보세요."
+    : "두 인식기가 서로 다르게 읽었습니다. 어느 쪽이 맞는지 우리가 모르므로 판정하지 않습니다 - 구조 영역만 잘라 다시 넣어 보세요.";
+  card.appendChild(tip);
+  return true;
+}
+
 function renderVerdict(json) {
   const state = json.verdict === "match" ? "match" : json.verdict === "mismatch" ? "mismatch" : "unreadable";
   const card = openVerdict(state);
 
   if (state === "unreadable") {
     card.appendChild(verdictLabel(state, "판정 불가"));
-    const note = document.createElement("p"); note.className = "verdict-note";
-    note.textContent = "서버가 그림을 확실히 읽지 못했다. 요청하신 구조는 위 정본이다. 나란히 놓고 보라.";
-    card.appendChild(note);
+    const shown = appendCandidates(card, json);
+    if (!shown) {
+      const note = document.createElement("p"); note.className = "verdict-note";
+      note.textContent = "그림에서 구조를 읽지 못했습니다. 요청하신 구조는 위 정본입니다 - 나란히 놓고 보세요.";
+      card.appendChild(note);
+    }
     appendReasons(card, json.reasons);
     return;
   }
@@ -561,6 +716,7 @@ async function loadSample(key) {
 // ============================================================ 시작
 
 setupImageInput();
+setupExamples();
 warmupServer();
 
 const q = new URLSearchParams(location.search);
