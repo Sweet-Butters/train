@@ -377,12 +377,14 @@ function setupExamples() {
   }
 }
 
+let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에 걸리면 다시 연다
+
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
     const mod = await import("./crop.js");
     if (mod && typeof mod.mountCropper === "function") {
-      mod.mountCropper(dropzone, { onCrop: handleImage });
+      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
       usingCropper = true;
       return;
     }
@@ -638,6 +640,27 @@ function renderVerdict(json) {
 
   if (state === "unreadable") {
     card.appendChild(verdictLabel(state, "판정 불가"));
+    // 슬라이드를 통째로 넣어 "너무 크다" 로 걸린 경우 - 막다른 길이 아니라 한 동작이 되게.
+    const tooBig = (json.reasons || []).some((x) => x.indexOf("지나치게 큽니다") >= 0);
+    if (tooBig) {
+      const note = document.createElement("p"); note.className = "verdict-note";
+      note.textContent = "슬라이드 전체를 넣으신 것 같습니다. 인식기는 구조 그림만 읽습니다 - 구조 부분만 잘라 주세요.";
+      card.appendChild(note);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn btn-primary";
+      b.textContent = "구조 부분만 잘라서 다시 시도 →";
+      b.style.cssText = "margin:.4rem 0";
+      b.addEventListener("click", () => {
+        if (!(CROPPER && CROPPER.recrop && CROPPER.recrop())) {
+          const dz = $("dropzone");
+          if (dz && dz.scrollIntoView) dz.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+      card.appendChild(b);
+      appendReasons(card, json.reasons);
+      return;
+    }
+
     const shown = appendCandidates(card, json);
     if (!shown) {
       const note = document.createElement("p"); note.className = "verdict-note";

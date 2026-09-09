@@ -197,6 +197,17 @@ export function mountCropper(container, { onCrop }) {
     preview.hidden = true;
   }
 
+  // 판정이 "너무 크다(슬라이드 통째)" 로 걸렸을 때 부르는 훅. 자르기 화면을 다시 연다.
+  // mountCropper 의 반환값으로 나간다 - 기존 호출부는 반환값을 안 써도 그대로 동작한다.
+  function recrop() {
+    if (!img) return false;
+    preview.hidden = true;
+    drop.hidden = true;
+    work.hidden = false;
+    root.scrollIntoView({ behavior: "smooth", block: "center" });
+    return true;
+  }
+
   function finish(blob) {
     onCrop(blob, { full: fullBlob });
     const url = URL.createObjectURL(blob);
@@ -337,4 +348,6 @@ export function mountCropper(container, { onCrop }) {
     out.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
     return new Promise((resolve) => out.toBlob((b) => resolve(b), "image/png"));
   }
+
+  return { recrop, reset };
 }
