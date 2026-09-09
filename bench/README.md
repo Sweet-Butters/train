@@ -1,6 +1,62 @@
 # bench — chemcheck 평가 장치
 
-숫자를 담아두는 곳이 아니라 숫자를 뽑는 장치다. A·B·C 가 착지하면 여기서 다시 돌린다.
+숫자를 담아두는 곳이 아니라 숫자를 뽑는 장치다.
+
+## recognize 평가 — "정확한 SMILES 를 준다" 를 숫자로 (결정 2, 오늘의 제품)
+
+```bash
+python -m bench.run --task recognize --engine oracle      # 완벽한 인식기 둘 - 장치 점검
+python -m bench.run --task recognize --engine shaky       # 흔들리는 인식기 하나
+python -m bench.run --task recognize --engine colluding   # 둘이 같은 방향으로 틀림 -> exit 1
+python -m bench.run --task recognize --engine none        # 바닥값 - 전부 물러남
+bash bench/gate_recognize.sh --detail                     # 실제 인식기. 하루 끝 한 번, 게이트로
+```
+
+**세트.** 알려진 분자 50개(`bench/molecules.py`)를 RDKit 으로 그린다. 렌더 변주 8종
+(`bench/variants.py`: 크기·선 굵기·글꼴·회전·잡음·JPG 압축)을 장 번호로 돌려 붙여
+변주마다 6~7장이 든다. 정답 InChIKey 는 이름이 아니라 SMILES 에서 계산한다 - 라벨을
+믿지 않는다는 원칙 그대로다. 슬라이드·덱·`NOT_A_STRUCTURE` 는 여기 없다.
+
+**채점.** 인식은 한 번만 하고 규칙을 둘 적용한다 (`bench/recog.py`).
+
+| 팔 | 규칙 | 뜻 |
+|---|---|---|
+| 합의 게이트 | 인식기 **종류** 둘 이상이 골격(InChIKey 앞 14자)에 합의해야 답 | `recognize` 가 쓰는 규칙 |
+| 신뢰도 게이트 | 인식기 하나라도 신뢰도 ≥0.8 이면 그 답. 신뢰도 없는 인식기는 그대로 믿음 | `verdict.py` 의 단독 경로 = LLM 이 답하는 방식 |
+
+장마다 결과는 셋 중 하나다: **자신 있게 틀림**(답을 냈는데 골격이 다름) · 정확(답을
+냈고 골격이 맞음, 입체까지 맞은 수는 따로) · 물러남(확신 없음으로 뺌, 그중 정답을 낸
+인식기가 있던 수는 따로). 엔진별 표는 인식기 하나만 믿었을 때의 성적이고 마지막 열
+'고신뢰(≥0.8) 틀림' 이 LLM 의 실패 그 자체다. 변주별 표는 어느 변주가 유독 깨지는지
+가리킨다.
+
+**리포트 첫 줄은 '자신 있게 틀림' 이다.** 정확도가 먼저 오면 리포트가 스스로를 속인다 -
+물러나기만 하는 도구는 자신 있게 틀림 0% 를 공짜로 얻으므로 물러남을 바로 밑에 둔다.
+합의 게이트 팔에서 자신 있게 틀림이 1건이라도 나오면 exit 1 로 끝난다.
+
+**스텁으로 장치를 검증한 결과** (성능이 아니다):
+
+| 스텁 | 합의 게이트 | 신뢰도 게이트 |
+|---|---|---|
+| oracle 둘 | 정확 50/50 · 자신 있게 틀림 0 | 같음 |
+| shaky 혼자 (3장마다 신뢰도 0.93 으로 엉뚱한 골격) | 물러남 50/50 (정답 있던 것 35) · 틀림 0 | **자신 있게 틀림 15/50** |
+| colluding 둘 (같은 장에서 같이 틀림) | **자신 있게 틀림 15/50 → exit 1** | 같음 |
+| 없음 | 물러남 50/50 | 같음 |
+
+shaky 한 줄이 이 장치의 존재 이유다. 인식기 하나의 자신감은 답이 아니다.
+
+**실행 경로.** `--engine real` 은 `chemcheck.ocsr.load_engines()` 를 그대로 쓴다. 인식기
+환경(`.venv310`·`models/`)은 `D:/orca/workspaces/train/chemcheck` 에만 있으므로
+`CHEMCHECK_ROOT` 로 그 워크트리를 가리키면 chemcheck 패키지와 모델은 거기서, bench 는
+이 워크트리에서 가져온다. `bench/gate_recognize.sh` 가 그 조합을 절대경로로 적어 두었고
+`heavy_gate.sh` 를 지나 돈다. 리포트는 `bench/decks/recognize_set/report_*.txt` 에 남는다.
+
+실제 숫자는 A 가 MolScribe 의 `Pool(16)` 을 없앤 뒤에 돌려야 의미가 있다 (그 전엔 장당
+수십 초 × 50장 × 2엔진이고 메모리도 튄다). **아직 돌리지 않았다.**
+
+## 덱 판정 평가 (결정 2 이후 보류)
+
+슬라이드에서 이름과 그림을 짝지어 판정하는 경로의 장치다. 아래는 그때의 기록이다.
 
 ```bash
 python -m bench.run --engine oracle          # 장치 점검 (오늘 돌아간다)

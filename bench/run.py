@@ -1,7 +1,14 @@
 """벤치마크 실행기.
 
-    python -m bench.run --engine oracle     # 인식기 없이 장치 자체를 점검
-    python -m bench.run --engine real       # A 가 착지한 뒤 진짜 숫자
+    python -m bench.run --task recognize --engine oracle   # 오늘의 제품: 그림 -> SMILES (스텁)
+    python -m bench.run --task recognize --engine real     # 하루 끝 한 번, 게이트로
+    python -m bench.run --engine oracle     # 덱 판정 장치를 인식기 없이 점검 (결정 2 이후 보류)
+    python -m bench.run --engine real       # 덱 판정의 진짜 숫자
+
+--engine real 은 chemcheck.ocsr.load_engines() 를 그대로 쓴다. 인식기 환경(.venv310,
+models/)은 chemcheck 워크트리에만 있으므로 CHEMCHECK_ROOT 로 그 워크트리를 가리키면
+chemcheck 패키지와 모델을 거기서 가져온다 - bench 는 이 워크트리 것을 쓴다.
+bench/gate_recognize.sh 가 그 조합을 절대경로로 적어 두었다.
 
 --engine oracle 로 나온 숫자는 제품 성능이 아니다. '그림을 100% 읽는 인식기'를
 가정했을 때 판정 규칙과 채점기가 제대로 도는지 보는 것이다. 이 상태에서 오탐이
@@ -12,13 +19,20 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+# 인식기 환경이 있는 워크트리. 없으면 이 워크트리다.
+CHEMCHECK_ROOT = Path(os.environ.get("CHEMCHECK_ROOT") or ROOT).resolve()
+for _p in ("", str(ROOT), str(CHEMCHECK_ROOT)):
+    while _p in sys.path:
+        sys.path.remove(_p)
+# chemcheck 는 환경 쪽에서, bench 는 이쪽에서. 순서가 곧 우선순위다.
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(CHEMCHECK_ROOT))
 
 from chemcheck.extract import load                      # noqa: E402
 from chemcheck.names import PubChemResolver             # noqa: E402
@@ -32,6 +46,10 @@ from .baseline import naive_judge                       # noqa: E402
 from .labeled import LabeledOracle, load_manifest        # noqa: E402
 from .score import Scorecard                            # noqa: E402
 from .validate import check_all                         # noqa: E402
+from . import recog                                     # noqa: E402
+from .variants import build_set                         # noqa: E402
+
+RECOG_SET = ROOT / "bench" / "decks" / "recognize_set"
 
 
 class OracleEngine(Engine):
@@ -138,11 +156,45 @@ def run_labeled(args, resolver) -> int:
     return 1 if mine.count(Outcome.FALSE_ALARM) else 0
 
 
+def run_recognize(args) -> int:
+    """오늘의 제품 - 그림 하나를 넣으면 SMILES 하나가 나오는 경로를 잰다.
+
+    슬라이드·덱·이름 해석은 여기 없다. 그림 50장을 렌더 변주로 그리고 인식기에
+    먹인 뒤, 답을 냈는지·맞았는지·틀리면서 자신 있었는지를 센다.
+    """
+    items = build_set(args.set_dir)
+    if args.engine in recog.STUBS:
+        engines = recog.stub_engines(args.engine, items)
+    else:
+        import chemcheck
+        # 어느 워크트리의 패키지와 모델로 잰 숫자인지 리포트에 남는다.
+        missing = "" if args.checkpoint.exists() else " (없음)"
+        print(f"chemcheck 패키지 {Path(chemcheck.__file__).parent} · "
+              f"체크포인트 {args.checkpoint}{missing}\n")
+        engines = load_engines(args.checkpoint if args.checkpoint.exists() else None)
+        if not engines:
+            print("인식기를 하나도 못 올렸다. 숫자를 낼 수 없다.", file=sys.stderr)
+            from chemcheck.ocsr import LAST_DIAGNOSTICS
+            for line in LAST_DIAGNOSTICS:
+                print(f"  {line}", file=sys.stderr)
+            return 2
+    cards = recog.evaluate(items, engines)
+    print(recog.report(cards, args.engine, [e.name for e in engines], show_detail=args.detail))
+    return recog.exit_code(cards)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="bench.run", description="chemcheck 평가 실행")
-    parser.add_argument("--engine", choices=("oracle", "hallucinating", "real", "none"),
-                        default="oracle")
-    parser.add_argument("--checkpoint", type=Path, default=ROOT / "models" / "molscribe.pth")
+    parser.add_argument("--task", choices=("deck", "recognize"), default="deck",
+                        help="deck: 슬라이드 판정 장치 (보류) · recognize: 그림 -> SMILES")
+    parser.add_argument("--engine",
+                        choices=("oracle", "hallucinating", "shaky", "colluding", "real", "none"),
+                        default="oracle",
+                        help="스텁(oracle/hallucinating/shaky/colluding/none) 또는 real")
+    parser.add_argument("--checkpoint", type=Path,
+                        default=CHEMCHECK_ROOT / "models" / "molscribe.pth")
+    parser.add_argument("--set-dir", type=Path, default=RECOG_SET,
+                        help="recognize 평가 세트 그림을 둘 폴더 (다시 그린다)")
     parser.add_argument("--deck", type=Path, default=None,
                         help="직접 만든 덱으로 돌린다 (라벨은 CORPUS 순서와 맞아야 함)")
     parser.add_argument("--skip-validate", action="store_true",
@@ -151,6 +203,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--manifest", type=Path, default=None,
                         help="실제 자료에 붙인 라벨 (bench/decks/*.json). --deck 과 함께 쓴다")
     args = parser.parse_args(argv)
+
+    if args.task == "recognize":
+        return run_recognize(args)
+    if args.engine in ("shaky", "colluding"):
+        parser.error(f"--engine {args.engine} 는 --task recognize 의 스텁이다")
 
     resolver = PubChemResolver()
 
