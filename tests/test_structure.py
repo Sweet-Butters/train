@@ -346,3 +346,61 @@ def test_cli_prints_diff_for_uncertain(monkeypatch, capsys) -> None:
         assert code == 1
         assert "다른 곳 (후보 1 vs 후보 2)" in out and "demo_02.diff.png" in out
         assert "아세틸기" in out and "주황 자리" in out
+
+
+# ── 이름 줄: C 의 names.name_for_inchikey 가 착지하면 붙는다 ──────────────────
+
+def _fake_names(monkeypatch, table):
+    from types import SimpleNamespace
+
+    from chemcheck import names as names_mod
+
+    def name_for_inchikey(key):
+        hit = table.get(key[:14])
+        return SimpleNamespace(**hit) if hit else None
+
+    monkeypatch.setattr(names_mod, "name_for_inchikey", name_for_inchikey, raising=False)
+
+
+def test_name_line_when_lookup_exists(monkeypatch, capsys) -> None:
+    _fake_names(monkeypatch, {ASPIRIN_SKELETON: {"iupac": "2-acetyloxybenzoic acid",
+                                                  "common": "aspirin", "korean": "아스피린"}})
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", ASPIRIN)]
+    monkeypatch.setattr(cli, "load_engines", lambda ckpt: engines)
+    with tempfile.TemporaryDirectory() as tmp:
+        cli.main(["recognize", str(_image(tmp)), "--out", tmp])
+        out = capsys.readouterr().out
+    assert "이름      아스피린 (aspirin; 2-acetyloxybenzoic acid)" in out
+
+
+def test_name_line_says_unregistered_when_lookup_finds_nothing(monkeypatch, capsys) -> None:
+    _fake_names(monkeypatch, {})
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", SALICYLIC)]
+    monkeypatch.setattr(cli, "load_engines", lambda ckpt: engines)
+    with tempfile.TemporaryDirectory() as tmp:
+        cli.main(["recognize", str(_image(tmp)), "--out", tmp])
+        out = capsys.readouterr().out
+    assert out.count("이름 없음(PubChem 미등재)") == 2     # 후보마다 한 줄
+
+
+def test_no_name_line_before_lookup_lands(monkeypatch, capsys) -> None:
+    from chemcheck import names as names_mod
+
+    monkeypatch.delattr(names_mod, "name_for_inchikey", raising=False)
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", ASPIRIN)]
+    monkeypatch.setattr(cli, "load_engines", lambda ckpt: engines)
+    with tempfile.TemporaryDirectory() as tmp:
+        cli.main(["recognize", str(_image(tmp)), "--out", tmp])
+        out = capsys.readouterr().out
+    assert "이름      " not in out
+
+
+def test_name_lookup_failure_is_swallowed(monkeypatch) -> None:
+    from chemcheck import names as names_mod
+    from chemcheck.structure import name_of
+
+    def boom(key):
+        raise ConnectionError("no network")
+
+    monkeypatch.setattr(names_mod, "name_for_inchikey", boom, raising=False)
+    assert name_of("BSYNRYMUTXBXSQ-UHFFFAOYSA-N") is None

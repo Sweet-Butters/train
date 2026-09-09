@@ -228,9 +228,17 @@ def recognition_lines(rec) -> list[str]:
         out.append(f"      신뢰도     {_fmt_conf(r.confidence)}")
     out.append(f"   {STATUS_MARK[rec.status]} {rec.reason}")
     answer = rec.answer
+
+    def name_line(c, indent: str) -> str | None:
+        if not rec.has_name_lookup:
+            return None
+        return f"{indent}이름      {c.name or '이름 없음(PubChem 미등재)'}"
+
     if answer is not None:
         out.append(f"      SMILES    {answer.smiles}")
         out.append(f"      InChIKey  {answer.inchikey}")
+        if (line := name_line(answer, "      ")) is not None:
+            out.append(line)
         out.append(f"      신뢰도    {_fmt_conf(answer.confidence)}")
         if answer.image:
             out.append(f"      다시 그림  {answer.image}")
@@ -239,6 +247,8 @@ def recognition_lines(rec) -> list[str]:
             out.append(f"      후보 {i} ({'+'.join(c.engines)})  신뢰도 {_fmt_conf(c.confidence)}")
             out.append(f"         SMILES    {c.smiles}")
             out.append(f"         InChIKey  {c.inchikey}")
+            if (line := name_line(c, "         ")) is not None:
+                out.append(line)
             if c.image:
                 out.append(f"         다시 그림  {c.image}")
         for d in rec.diffs:

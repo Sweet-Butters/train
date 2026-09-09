@@ -21,6 +21,7 @@ from rdkit import Chem
 
 from .inputs import UnreadableImage, prepare_image
 from .keys import skeleton, smiles_to_inchikey
+from . import names as _names
 from .names import PubChemResolver, Reference, korean_name
 from .ocsr import Engine, Prediction
 from .render import describe, draw_diff, draw_pair, draw_png
@@ -54,6 +55,7 @@ class Candidate:
     inchikey: str
     results: list[EngineResult] = field(default_factory=list)
     image: Path | None = None   # 다시 그린 그림
+    name: str | None = None     # PubChem 이 아는 이름. 없으면 None
 
     @property
     def engines(self) -> list[str]:
@@ -76,6 +78,30 @@ class DiffImage:
     lines: list[str]     # 사람의 말로 적은 차이
 
 
+def name_of(inchikey: str) -> str | None:
+    """InChIKey 의 이름. C 의 names.name_for_inchikey 가 있으면 부르고, 없거나 죽으면 None.
+
+    돌려주는 문장은 사람이 읽는 한 줄이다: '아스피린 (aspirin; 2-acetyloxybenzoic acid)'.
+    이름을 지어내지 않는다 - PubChem 이 모르면 None 이다.
+    """
+    lookup = getattr(_names, "name_for_inchikey", None)
+    if lookup is None:
+        return None
+    try:
+        found = lookup(inchikey)
+    except Exception:
+        return None
+    if not found:
+        return None
+    korean = getattr(found, "korean", None)
+    common = getattr(found, "common", None)
+    iupac = getattr(found, "iupac", None)
+    latin = "; ".join(x for x in (common, iupac) if x)
+    if korean and latin:
+        return f"{korean} ({latin})"
+    return korean or latin or None
+
+
 @dataclass
 class Recognition:
     image: Path
@@ -92,6 +118,10 @@ class Recognition:
     def answer(self) -> Candidate | None:
         """합의된 답. 합의가 아니면 None - 후보를 답으로 내보내지 않는다."""
         return self.candidates[0] if self.status == "agreed" else None
+
+    @property
+    def has_name_lookup(self) -> bool:
+        return getattr(_names, "name_for_inchikey", None) is not None
 
 
 def normalize(pred: Prediction) -> EngineResult:
@@ -201,6 +231,8 @@ def recognize(image: Path, engines: list[Engine], out_dir: Path | None = None,
                           results, candidates)
 
     rec.prepared, rec.notes, rec.warnings = prep.path, list(prep.notes), list(prep.warnings)
+    for c in rec.candidates:
+        c.name = name_of(c.inchikey)
     if out_dir is not None and candidates:
         _render_candidates(rec, Path(out_dir))
     return rec
