@@ -181,6 +181,55 @@ def test_real_engine_path_uses_load_engines(items: list[Item], tmp_path: Path) -
     print("통과: real 경로는 load_engines() 하나다.")
 
 
+def test_confidence_and_variant_engine_tables(items: list[Item]) -> None:
+    """신뢰도 구간 표와 변주×엔진 표. 0.8 문턱을 엔진별로 다시 정할 근거가 되는 표다."""
+    cards = recog.evaluate(items, recog.stub_engines("shaky", items))
+    rows = cards[0].rows
+    conf = recog.confidence_table(rows)
+    assert "shaky" in conf and "0.9+" in conf, conf
+    line = next(l for l in conf.splitlines() if l.strip().startswith("shaky"))
+    assert line.split()[-2:] == ["35", "15"], line  # 0.93 은 0.9+ 구간. 맞음 35 · 틀림 15
+
+    ve = recog.variant_engine_table(rows)
+    assert "shaky" in ve
+    total_wrong = sum(int(l.split()[1].split("/")[0]) for l in ve.splitlines()[2:])
+    assert total_wrong == 15, ve
+    print("통과: 신뢰도 구간·변주×엔진 표가 엔진별 틀림 수와 맞는다.")
+
+
+def test_diagnose_classifies_by_decision_3(items: list[Item]) -> None:
+    """자신 있게 틀림이 있으면 결정 3 의 표(같은 오독 / 골격만 일치 / 변주 몰림)로 가른다."""
+    cards = recog.evaluate(items, recog.stub_engines("colluding", items))
+    text = recog.diagnose(cards[0])
+    assert text.startswith("!! 자신 있게 틀림 15건"), text.splitlines()[0]
+    assert "같은 오독" in text and "설계 실패 후보" in text, text
+    assert recog.diagnose(recog.evaluate(items, recog.stub_engines("oracle", items))[0]) == ""
+
+    # 둘이 다르게 틀렸는데 골격이 우연히 같은 경우 - 입체만 다른 두 오독.
+    item = items[0]
+    reads = [_read("a", "C[C@H](N)C(=O)O", 0.9), _read("b", "C[C@@H](N)C(=O)O")]
+    card = recog.Card("t")
+    card.add(item, reads, recog.consensus_gate(reads))
+    text = recog.diagnose(card)
+    assert "다르게 틀렸는데 골격 일치" in text and "InChIKey 전체 비교" in text, text
+    print("통과: 원인 분류가 결정 3 의 표를 따른다.")
+
+
+def test_replay_reproduces_cards(items: list[Item]) -> None:
+    """저장한 인식 결과로 리포트만 다시 뽑아도 같은 숫자가 나와야 한다."""
+    import json
+
+    cards = recog.evaluate(items, recog.stub_engines("shaky", items))
+    data = json.loads(json.dumps(recog.rows_to_json(cards[0].rows, "shaky", ["shaky"])))
+    again, kind, names = recog.replay(data)
+    assert kind == "shaky" and names == ["shaky"]
+    for a, b in zip(cards, again):
+        assert [r.outcome for r in a.rows] == [r.outcome for r in b.rows], a.arm
+        assert [r.decision.answer for r in a.rows] == [r.decision.answer for r in b.rows]
+    assert recog.report(cards, "shaky", ["shaky"]) == recog.report(again, kind, names)
+    print("통과: 재생한 리포트가 원본과 글자까지 같다.")
+
+
 if __name__ == "__main__":
     import tempfile
 

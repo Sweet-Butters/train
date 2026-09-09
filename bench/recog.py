@@ -403,6 +403,152 @@ def variants_table(card: Card) -> str:
     return "\n".join(out)
 
 
+# MolScribe 신뢰도 구간. 0.8 문턱을 엔진별로 다시 정할 근거가 되는 표다.
+CONFIDENCE_BINS = ((0.0, 0.8), (0.8, 0.85), (0.85, 0.9), (0.9, 1.01))
+
+
+def _bin_label(lo: float, hi: float) -> str:
+    if lo == 0.0:
+        return f"<{hi:g}"
+    return f"{lo:g}+" if hi > 1.0 else f"{lo:g}~{hi:g}"
+
+
+def confidence_table(rows: list[Row]) -> str:
+    """엔진별 신뢰도 구간 vs 맞음/틀림. 신뢰도를 안 주는 인식기는 한 줄로 그 사실만."""
+    out = ["엔진별 신뢰도 분포 vs 결과 - 0.8 문턱을 엔진별로 다시 정할 근거",
+           f"  {'엔진':<12} {'구간':<10} {'맞음':>4} {'틀림':>4}"]
+    table: dict[str, dict[tuple, Counter]] = {}
+    no_conf: set[str] = set()
+    for row in rows:
+        for r in row.reads:
+            if r.skeleton is None:
+                continue
+            fam = family(r.engine)
+            if not r.has_confidence:
+                no_conf.add(fam)
+                continue
+            hit = "맞음" if r.skeleton == row.item.skeleton else "틀림"
+            for lo, hi in CONFIDENCE_BINS:
+                if lo <= r.confidence < hi:
+                    table.setdefault(fam, {}).setdefault((lo, hi), Counter())[hit] += 1
+                    break
+    for fam in sorted(table):
+        for lo, hi in CONFIDENCE_BINS:
+            c = table[fam].get((lo, hi))
+            if c is None:
+                continue
+            out.append(f"  {fam:<12} {_bin_label(lo, hi):<10} {c['맞음']:>4} {c['틀림']:>4}")
+    for fam in sorted(no_conf - set(table)):
+        out.append(f"  {fam:<12} (신뢰도 없음 - 전부 nan)")
+    if len(out) == 2:
+        out.append("  (신뢰도를 준 인식 결과가 없다)")
+    return "\n".join(out)
+
+
+def variant_engine_table(rows: list[Row]) -> str:
+    """변주별 × 엔진별 틀림 수. 어느 변주가 어느 인식기의 약점인지 가리킨다."""
+    fams = sorted({family(r.engine) for row in rows for r in row.reads})
+    out = ["변주별 × 엔진별 틀림 (골격이 다르거나 못 읽음 / 장 수)",
+           "  " + f"{'변주':<9}" + "".join(f" {f:>14}" for f in fams)]
+    per: dict[str, dict[str, list[int]]] = {}
+    for row in rows:
+        v = per.setdefault(row.item.variant.name, {f: [0, 0] for f in fams})
+        seen: dict[str, list[Read]] = {}
+        for r in row.reads:
+            seen.setdefault(family(r.engine), []).append(r)
+        for f in fams:
+            v[f][1] += 1
+            readable = [r for r in seen.get(f, []) if r.skeleton is not None]
+            best = (max(readable, key=lambda r: r.confidence if r.has_confidence else -1.0)
+                    if readable else None)
+            if best is None or best.skeleton != row.item.skeleton:
+                v[f][0] += 1
+    for name in VARIANT_NAMES:
+        v = per.get(name)
+        if v is None:
+            continue
+        out.append("  " + f"{name:<9}" + "".join(f" {v[f][0]:>7}/{v[f][1]:<6}" for f in fams))
+    return "\n".join(out)
+
+
+def diagnose(card: Card) -> str:
+    """'자신 있게 틀림' 이 있으면 docs/DIRECTION.md 결정 3 의 표대로 원인을 가른다.
+
+    기준을 완화하지 않는다. 어느 줄에 떨어지든 exit 1 은 그대로다 - 여기서는 '무엇을
+    고쳐야 하는가' 만 갈라 적는다.
+    """
+    bad = [r for r in card.rows if r.outcome is Outcome.CONFIDENT_WRONG]
+    if not bad:
+        return ""
+    out = [f"!! 자신 있게 틀림 {len(bad)}건 - 결정 3 원인 분류 [{card.arm.split(' (')[0]}]"]
+    same_misread = coincident = 0
+    variants = Counter(r.item.variant.name for r in bad)
+    for r in bad:
+        readable = [x for x in r.reads if x.skeleton is not None]
+        keys = {x.inchikey for x in readable}
+        fams = {family(x.engine) for x in readable}
+        if len(fams) >= 2 and len(keys) == 1:
+            kind = "같은 오독 (엔진들이 같은 InChIKey)"
+            same_misread += 1
+        elif len(fams) >= 2:
+            kind = "다르게 틀렸는데 골격 일치 (InChIKey 는 다름)"
+            coincident += 1
+        else:
+            kind = "인식기 하나의 답"
+        out.append(f"  {r.item.index:2d}. {r.item.molecule.name:16} {r.item.variant.name:8} {kind}")
+        out.append(f"      정답 {r.item.skeleton}")
+        for x in r.reads:
+            conf = f"{x.confidence:.2f}" if x.has_confidence else " nan"
+            out.append(f"      {x.engine:24} {conf}  {x.skeleton or '(못 읽음)'}  {x.raw}")
+    out.append("  갈래:")
+    if same_misread:
+        out.append(f"    설계 실패 후보 - 같은 그림을 같은 방식으로 오독 {same_misread}건. "
+                   "세 번째 독립 신호 없이는 못 간다")
+    if coincident:
+        out.append(f"    골격 14자 비교가 느슨함 - 다르게 틀렸는데 골격 일치 {coincident}건. "
+                   "InChIKey 전체 비교로 좁혀 재측정")
+    if len(variants) == 1 and len(bad) > 1:
+        out.append(f"    변주 하나에 몰림 - 전부 {next(iter(variants))}. "
+                   "입력 문제. inputs.py 정규화 뒤 재측정")
+    else:
+        out.append("    변주 분포: " + ", ".join(f"{v} {k}" for v, k in variants.most_common()))
+    return "\n".join(out)
+
+
+def rows_to_json(rows: list[Row], engine_kind: str, engine_names: list[str]) -> dict:
+    """인식 결과를 그대로 저장한다. 리포트는 바뀌어도 인식은 다시 돌리지 않기 위해서다."""
+    return {
+        "engine_kind": engine_kind,
+        "engines": engine_names,
+        "items": [
+            {"index": r.item.index, "name": r.item.molecule.name, "smiles": r.item.molecule.smiles,
+             "variant": r.item.variant.name, "path": str(r.item.path), "inchikey": r.item.inchikey,
+             "reads": [{"engine": x.engine, "raw": x.raw, "inchikey": x.inchikey,
+                        "confidence": None if not x.has_confidence else x.confidence}
+                       for x in r.reads]}
+            for r in rows
+        ],
+    }
+
+
+def replay(data: dict) -> tuple[list[Card], str, list[str]]:
+    """저장한 인식 결과로 카드를 다시 만든다. 규칙과 리포트만 다시 적용된다."""
+    from .molecules import MOLECULES
+    from .variants import VARIANTS
+
+    by_name = {v.name: v for v in VARIANTS}
+    cards = [Card(arm) for arm, _ in ARMS]
+    for d in data["items"]:
+        mol = MOLECULES[d["index"] - 1]
+        item = Item(d["index"], mol, by_name[d["variant"]], Path(d["path"]), d["inchikey"])
+        reads = [Read(x["engine"], x["raw"], x["inchikey"],
+                      float("nan") if x["confidence"] is None else float(x["confidence"]))
+                 for x in d["reads"]]
+        for card, (_, rule) in zip(cards, ARMS):
+            card.add(item, reads, rule(reads))
+    return cards, data["engine_kind"], data["engines"]
+
+
 def contrast(product: Card, baseline: Card) -> str:
     saved = baseline.count(Outcome.CONFIDENT_WRONG) - product.count(Outcome.CONFIDENT_WRONG)
     given_up = baseline.count(Outcome.CORRECT) - product.count(Outcome.CORRECT)
@@ -439,10 +585,15 @@ def report(cards: list[Card], engine_kind: str, engine_names: list[str],
     parts.append(f"recognize 평가 · 그림 {product.total}장 · 변주 {len(VARIANT_NAMES)}종 · "
                  f"인식기 {', '.join(engine_names) or '없음'}")
     parts.append(scorecard(product))
+    diag = diagnose(product)
+    if diag:
+        parts.append(diag)
     parts.append(scorecard(baseline))
     parts.append(contrast(product, baseline))
     parts.append(engines_table(engine_stats(product.rows), product.total))
+    parts.append(confidence_table(product.rows))
     parts.append(variants_table(product))
+    parts.append(variant_engine_table(product.rows))
     if show_detail:
         parts.append(detail(product))
     if banner:
