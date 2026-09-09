@@ -136,12 +136,26 @@ def _add_noise(img, sigma: float, seed: int):
     return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGB")
 
 
-def build_set(out_dir: Path, molecules: list[Molecule] | None = None) -> list[Item]:
-    """평가 세트 전체를 그린다. 파일 이름은 r{번호}_{변주} - 번호가 곧 정답의 열쇠다."""
-    molecules = MOLECULES if molecules is None else molecules
+def subset_indices(limit: int, total: int | None = None) -> list[int]:
+    """축소판. 앞에서 자르지 않고 고르게 뽑는다 - 작은 분자·큰 분자·변주 8종이 다 든다."""
+    total = len(MOLECULES) if total is None else total
+    if limit <= 0 or limit >= total:
+        return list(range(1, total + 1))
+    stride = total / limit
+    return [int(k * stride) + 1 for k in range(limit)]
+
+
+def build_set(out_dir: Path, indices: list[int] | None = None) -> list[Item]:
+    """평가 세트를 그린다. 파일 이름은 r{번호}_{변주} - 번호가 곧 정답의 열쇠다.
+
+    indices 를 주면 그 번호만 그린다. 번호는 전체 세트에서의 번호라 축소판의 변주와
+    정답이 전체 실행과 같다 - 축소판에서 본 장을 전체에서 다시 찾을 수 있다.
+    """
+    indices = list(range(1, len(MOLECULES) + 1)) if indices is None else indices
     out_dir.mkdir(parents=True, exist_ok=True)
     items: list[Item] = []
-    for i, mol in enumerate(molecules, start=1):
+    for i in indices:
+        mol = MOLECULES[i - 1]
         key = smiles_to_inchikey(mol.smiles)
         if key is None:
             raise ValueError(f"정답 SMILES 를 RDKit 이 읽지 못함: {mol.name} {mol.smiles}")

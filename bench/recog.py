@@ -317,11 +317,17 @@ STUBS = ("oracle", "shaky", "colluding", "none")
 # ── 실행 ───────────────────────────────────────────────────────────────────
 
 
-def evaluate(items: list[Item], engines: list[Engine]) -> list[Card]:
-    """인식은 한 번, 규칙은 팔마다. 두 팔이 같은 인식 결과를 본다."""
+def evaluate(items: list[Item], engines: list[Engine], progress=None) -> list[Card]:
+    """인식은 한 번, 규칙은 팔마다. 두 팔이 같은 인식 결과를 본다.
+
+    progress(k, n, item, reads) 를 주면 장마다 부른다 - 실제 인식기는 장당 수십 초라
+    끝날 때까지 아무 말이 없으면 죽은 것과 구별이 안 된다.
+    """
     cards = [Card(arm) for arm, _ in ARMS]
-    for item in items:
+    for k, item in enumerate(items, start=1):
         reads = read_all(item.path, engines)
+        if progress is not None:
+            progress(k, len(items), item, reads)
         for card, (_, rule) in zip(cards, ARMS):
             card.add(item, reads, rule(reads))
     return cards

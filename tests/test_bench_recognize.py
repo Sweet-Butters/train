@@ -118,6 +118,20 @@ def test_report_leads_with_confident_wrong(items: list[Item]) -> None:
     print("통과: 리포트 첫 줄이 '자신 있게 틀림' 이고 단서가 위아래에 붙는다.")
 
 
+def test_subset_is_spread_not_truncated(tmp_path: Path) -> None:
+    """축소판 10개는 앞에서 자른 것이 아니라 고르게 뽑은 것이다 - 변주 8종이 다 들어야 한다."""
+    from bench.variants import subset_indices
+
+    idx = subset_indices(10)
+    assert idx == [1, 6, 11, 16, 21, 26, 31, 36, 41, 46], idx
+    small = build_set(tmp_path / "s", idx)
+    assert {it.variant.name for it in small} == set(VARIANT_NAMES)
+    assert [it.index for it in small] == idx, "축소판 번호는 전체 세트의 번호 그대로다"
+    assert subset_indices(0) == list(range(1, 51)) and subset_indices(99) == list(range(1, 51))
+    print(f"  {idx} -> 변주 {len(set(it.variant.name for it in small))}종")
+    print("통과: 축소판이 전체를 대표한다.")
+
+
 def _read(engine: str, smiles: str, conf: float = float("nan")) -> Read:
     return Read(engine, smiles, smiles_to_inchikey(smiles), conf)
 

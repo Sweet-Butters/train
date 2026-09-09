@@ -47,7 +47,7 @@ from .labeled import LabeledOracle, load_manifest        # noqa: E402
 from .score import Scorecard                            # noqa: E402
 from .validate import check_all                         # noqa: E402
 from . import recog                                     # noqa: E402
-from .variants import build_set                         # noqa: E402
+from .variants import build_set, subset_indices         # noqa: E402
 
 RECOG_SET = ROOT / "bench" / "decks" / "recognize_set"
 
@@ -162,7 +162,7 @@ def run_recognize(args) -> int:
     슬라이드·덱·이름 해석은 여기 없다. 그림 50장을 렌더 변주로 그리고 인식기에
     먹인 뒤, 답을 냈는지·맞았는지·틀리면서 자신 있었는지를 센다.
     """
-    items = build_set(args.set_dir)
+    items = build_set(args.set_dir, subset_indices(args.limit) if args.limit else None)
     if args.engine in recog.STUBS:
         engines = recog.stub_engines(args.engine, items)
     else:
@@ -178,7 +178,12 @@ def run_recognize(args) -> int:
             for line in LAST_DIAGNOSTICS:
                 print(f"  {line}", file=sys.stderr)
             return 2
-    cards = recog.evaluate(items, engines)
+    def progress(k, n, item, reads):
+        got = " | ".join(f"{r.engine}={r.skeleton or '?'}" for r in reads) or "(없음)"
+        mark = "=" if any(r.skeleton == item.skeleton for r in reads) else "x"
+        print(f"  [{k:2d}/{n}] {mark} {item.stem:20} {got}", file=sys.stderr, flush=True)
+
+    cards = recog.evaluate(items, engines, progress if args.engine == "real" else None)
     print(recog.report(cards, args.engine, [e.name for e in engines], show_detail=args.detail))
     return recog.exit_code(cards)
 
@@ -195,6 +200,8 @@ def main(argv: list[str] | None = None) -> int:
                         default=CHEMCHECK_ROOT / "models" / "molscribe.pth")
     parser.add_argument("--set-dir", type=Path, default=RECOG_SET,
                         help="recognize 평가 세트 그림을 둘 폴더 (다시 그린다)")
+    parser.add_argument("--limit", type=int, default=0,
+                        help="recognize 축소판 - 50개 중 이만큼을 고르게 뽑아 돌린다 (0 이면 전부)")
     parser.add_argument("--deck", type=Path, default=None,
                         help="직접 만든 덱으로 돌린다 (라벨은 CORPUS 순서와 맞아야 함)")
     parser.add_argument("--skip-validate", action="store_true",
