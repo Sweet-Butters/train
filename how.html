@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chemcheck · 이 판정은 어떻게?</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header container">
+  <a class="wordmark" href="index.html">chemcheck</a>
+  <nav class="site-nav"><a href="index.html">도구</a><a href="api.html">API</a></nav>
+</header>
+
+<main class="container prose">
+  <div class="page-head">
+    <h1>이 판정은 어떻게?</h1>
+    <p>판정에 LLM 을 쓰지 않습니다. 이름과 그림을 각각 InChIKey 로 바꿔 문자열로 비교합니다.</p>
+  </div>
+
+  <h2>세 단계</h2>
+  <ol>
+    <li><strong>이름 → 정본.</strong> 내장 표 423 개와 PubChem 에서 SMILES 를 받아 브라우저의 RDKit 이 그림·InChIKey·화학식을 만듭니다. 서버 없이 0.5 초.</li>
+    <li><strong>그림 → 구조.</strong> 서버의 인식기 둘(MolScribe · DECIMER)이 각자 그림을 읽습니다. 둘은 서로 다른 방식으로 학습됐습니다.</li>
+    <li><strong>비교.</strong> InChIKey 앞 14 자(골격)가 같으면 일치, 다르면 다름. 확신은 인식기 둘이 합의했는지로만 매깁니다.</li>
+  </ol>
+
+  <h2>판정 규칙</h2>
+  <table class="rules">
+    <tr><th>상황</th><th>결과</th></tr>
+    <tr><td>읽을 수 있는 답 중 하나라도 이름의 골격과 같다</td><td>일치</td></tr>
+    <tr><td>유효한 구조를 낸 인식기가 하나뿐이고 그 골격이 다르다</td><td>다름 · 약함</td></tr>
+    <tr><td>인식기 둘이 같은 골격을 읽었고 이름과 다르다</td><td>다름 · 강함</td></tr>
+    <tr><td>인식기 둘이 서로 다른 골격을 읽었다</td><td>판정 불가 · 둘을 나란히</td></tr>
+    <tr><td>유효한 구조를 낸 인식기가 없다</td><td>판정 불가 · 크롭 제안</td></tr>
+  </table>
+  <p>틀렸다고 잘못 말하지 않는 것이 첫 번째 규칙입니다. 확신이 없으면 침묵합니다.</p>
+
+  <h2>실측</h2>
+  <p><strong>AI 가 그린 구조 중 판정한 10 장에서 6 장이 요청한 분자가 아니었습니다.</strong>
+    교과서 화합물 10 개를 Gemini 와 GPT 에게 요청해 20 장을 모았고, 그림에서 구조를 확실히 읽지 못한 10 장은 판정하지 않았습니다.
+    <a href="https://github.com/Sweet-Butters/train/tree/main/bench/aiimages">원자료 20 장 →</a></p>
+
+  <figure>
+    <img src="evidence/caffeine_gemini.jpeg" width="1024" height="572" alt="Gemini Pro 가 그린 '카페인' 슬라이드">
+    <figcaption>Gemini Pro 에게 "카페인 그려줘" 라고 해서 받은 그대로. 제목·화학식·IUPAC 명은 정확하고, 그림만 N9 에 메틸이 하나 더 있습니다.</figcaption>
+  </figure>
+  <ul class="keys">
+    <li><span class="k">이름의 정본</span><span class="v">RYYVLZVUVIJVGH</span></li>
+    <li><span class="k">그림에서 읽은 것</span><span class="v">CSXLFNRQOLIQAN</span></li>
+    <li><span class="k">탄소</span><span class="v">8 대 9</span></li>
+  </ul>
+  <p><a href="index.html?sample=caffeine_gemini">이 이미지로 직접 해보기 →</a> 살아 있는 서버가 매번 새로 계산합니다.</p>
+
+  <h2>왜 LLM 에게 묻지 않나</h2>
+  <p>"이 그림 맞아?" 라고 LLM 에게 물으면, 화학 구조를 못 읽는 바로 그 모델이 검사를 합니다.
+    chemcheck 의 판정 단계에는 추론이 없습니다. 문자열 비교뿐입니다.</p>
+
+  <h2>한계와 다음</h2>
+  <ul>
+    <li>입체화학은 판정하지 않습니다. InChIKey 앞 14 자(골격)만 비교합니다.</li>
+    <li>슬라이드 한 장에 구조가 여럿이면 하나씩 잘라 넣어야 합니다.</li>
+    <li>인식기는 RDKit 렌더 스타일에 가장 강합니다. 손그림·스캔은 확신 등급이 낮게 나옵니다.</li>
+  </ul>
+</main>
+
+<footer class="site-footer container">
+  chemcheck · <a href="index.html">도구</a> · <a href="api.html">API</a> · <a href="https://github.com/Sweet-Butters/train">소스</a>
+</footer>
+</body>
+</html>

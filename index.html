@@ -9,121 +9,104 @@
 <body>
 <header class="site-header container">
   <a class="wordmark" href="index.html">chemcheck</a>
-  <nav class="site-nav"><a href="#pricing">요금제</a><a href="#api">API</a></nav>
+  <nav class="site-nav"><a href="#pricing">요금제</a><a href="api.html">API</a><a href="how.html">이 판정은 어떻게? →</a></nav>
 </header>
 
 <main class="container">
-  <!-- 첫 화면 = 도구. 입력 하나, 결과 하나. -->
+  <!-- 첫 화면 = 도구. 텍스트칸 하나, 이미지칸 하나, 예제 버튼. 결과 카드는 입력이 있을 때만. -->
   <section class="tool">
-    <p class="tagline">AI 가 그린 화학구조를 이름의 정본과 대조합니다.</p>
-
-    <div class="dropzone" id="dropzone" tabindex="0">
-      <p class="hint">이미지를 끌어다 놓거나 붙여넣기 (Ctrl+V)</p>
-      <button type="button" class="btn btn-sm" id="fileBtn">파일 선택</button>
-      <input type="file" id="fileInput" accept="image/*" hidden>
-    </div>
-    <div class="image-preview" id="imagePreview" hidden></div>
-    <p class="field-note" id="imageNote"></p>
+    <p class="intro">화합물 이름을 넣으면 정본 구조가 나옵니다.<br>AI 가 그린 그림이 있으면 같이 넣어 대조하세요.</p>
 
     <div class="query">
-      <input id="queryInput" placeholder="이름 또는 SMILES - 아스피린, caffeine, CC(=O)Oc1ccccc1C(=O)O" autocomplete="off" spellcheck="false">
+      <input id="queryInput" placeholder="화합물 이름 또는 SMILES" autocomplete="off" spellcheck="false" autofocus>
       <div class="suggestions" id="suggestions" hidden></div>
     </div>
-    <p class="under-input">
-      <a id="exampleLink" href="?sample=caffeine_gemini">예시로 해보기 · 카페인</a>
-      <span class="status" id="rdkitStatus">구조 엔진을 불러오는 중…</span>
+
+    <div class="dropzone" id="dropzone" tabindex="0">
+      <p class="hint">이미지를 붙여넣거나 끌어오세요</p>
+      <button type="button" class="btn btn-sm" id="fileBtn">파일</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+    <div class="image-row">
+      <button type="button" class="btn btn-sm" id="cameraBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>촬영</button>
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
       <span class="status" id="serverStatus"></span>
-    </p>
+      <span class="status" id="rdkitStatus"></span>
+    </div>
+    <div class="image-preview" id="imagePreview" hidden>
+      <img id="imagePreviewImg" alt="넣은 이미지">
+      <button type="button" class="btn btn-sm" id="imageClear">지우기</button>
+    </div>
+    <p class="field-note" id="imageNote"></p>
     <p class="err" id="err"></p>
 
-    <article class="result" id="result" hidden>
-      <div class="canon" id="canon">
-        <div class="mol-draw" id="molDraw"></div>
-        <div>
-          <p class="eyebrow" id="molSource"></p>
-          <h2 class="mol-name" id="molTitle"></h2>
-          <dl class="facts" id="molFacts"></dl>
-          <div class="copy-row">
-            <button type="button" class="btn btn-sm" id="copyPng">PNG 복사</button>
-            <button type="button" class="btn btn-sm" id="copySvg">SVG 다운로드</button>
-            <button type="button" class="btn btn-sm" id="copySmiles">SMILES 복사</button>
-            <button type="button" class="btn btn-sm" id="copyKey">InChIKey 복사</button>
-          </div>
-          <p class="copy-note" id="copyNote"></p>
-        </div>
+    <div class="examples" id="examples">
+      <p class="examples-title">바로 해보기</p>
+    </div>
+
+    <article class="result" id="result" hidden></article>
+  </section>
+
+  <section class="section pricing" id="pricing">
+    <div class="pricing-head">
+      <h2>요금제</h2>
+      <div class="toggle" role="group" aria-label="결제 주기">
+        <button type="button" class="toggle-btn is-on" data-cycle="monthly" aria-pressed="true">월</button>
+        <button type="button" class="toggle-btn" data-cycle="yearly" aria-pressed="false">연 <span class="toggle-note">2 개월 무료</span></button>
       </div>
-      <div class="verdict" id="verdict" hidden></div>
-    </article>
-  </section>
-
-  <section class="section stat">
-    <p><strong>AI 가 그린 구조 중 판정한 10 장에서 6 장이 요청한 분자가 아니었습니다.</strong>
-      <a href="https://github.com/Sweet-Butters/train/tree/main/bench/aiimages">원자료 20 장 →</a></p>
-  </section>
-
-  <section class="section" id="pricing">
-    <h2>요금제</h2>
-    <div class="plans">
-      <div class="plan">
+    </div>
+    <div class="plans" role="radiogroup" aria-label="요금제 선택" id="plans">
+      <div class="plan" role="radio" aria-checked="false" tabindex="-1" data-plan="free" data-summary="Free · 하루 10 건 · 이름·SMILES·이미지 대조 · ₩0">
         <h3>Free</h3>
-        <p class="price">&#8361;0</p>
+        <p class="price"><span class="amount">&#8361;0</span></p>
         <p class="plan-lead">하루 10 건. 교육 · 개인.</p>
         <ul>
           <li>이름 · SMILES 대조</li>
           <li>이미지 대조 하루 10 건</li>
           <li>정본 구조 내려받기 (PNG · SVG · SMILES · InChIKey)</li>
         </ul>
-        <p class="plan-why">강의자료를 만드는 사람이 먼저 씁니다.</p>
+        <a class="btn plan-cta" href="#queryInput" data-action="start">지금 시작</a>
       </div>
-      <div class="plan plan-featured">
+      <div class="plan" role="radio" aria-checked="true" tabindex="0" data-plan="pro" data-summary="Pro · 월 2,000 건 · 배치 업로드 · {price}">
         <span class="plan-badge">가장 많이 쓰는</span>
         <h3>Pro</h3>
-        <p class="price">$29 <span class="per">/ 월</span></p>
+        <p class="price"><span class="amount" data-monthly="$29" data-yearly="$290">$29</span> <span class="per" data-monthly="/ 월" data-yearly="/ 년">/ 월</span></p>
         <p class="plan-lead">월 2,000 건. 배치 업로드.</p>
         <ul>
           <li>Free 의 전부</li>
           <li>여러 장 한 번에 · 결과 CSV 내려받기</li>
           <li>API 키</li>
         </ul>
-        <p class="plan-why">강의자료 · 논문 · 포스터를 정기적으로 만드는 개인과 연구실.</p>
+        <a class="btn btn-primary plan-cta" href="api.html#key">업그레이드</a>
       </div>
-      <div class="plan">
+      <div class="plan" role="radio" aria-checked="false" tabindex="-1" data-plan="enterprise" data-summary="Enterprise · 전용 엔드포인트 · SLA · 온프레미스 · 건당 과금">
         <h3>Enterprise</h3>
-        <p class="price">건당 과금</p>
+        <p class="price"><span class="amount">건당 과금</span></p>
         <p class="plan-lead">전용 엔드포인트 · SLA · 온프레미스.</p>
         <ul>
           <li>전용 엔드포인트와 처리량 보장</li>
           <li>온프레미스 배포</li>
           <li>감사 로그 · 판정 근거 보존</li>
         </ul>
-        <p class="plan-why">화학을 다루는 LLM 제품의 출력 가드레일.</p>
+        <a class="btn plan-cta" href="api.html#contact">문의하기</a>
       </div>
     </div>
+    <p class="plan-summary" id="planSummary"></p>
     <p class="unit-cost">판정 1 건당 원가 약 <strong>$0.002</strong>. 추론 모델을 부르지 않아 토큰 비용이 없습니다.</p>
   </section>
 
-  <section class="section api" id="api">
+  <section class="section api-teaser" id="api">
     <h2>API</h2>
-    <p>화면이 쓰는 것과 같은 엔드포인트입니다.</p>
+    <p>화면이 쓰는 것과 같은 엔드포인트입니다. 키 없이 지금 호출됩니다.</p>
     <pre><code>POST <span data-server-url></span>/api/check
-Content-Type: multipart/form-data
-
-  image: &lt;file&gt;
-  name:  "Caffeine"
-
--&gt; 200 application/json
-{
-  "verdict":   "match" | "mismatch" | "unreadable",
-  "grade":     "strong" | "weak" | null,
-  "reference": {"name","smiles","inchikey","formula"},
-  "read":      {"smiles","inchikey","heavy_formula","engines":[...]},
-  "reasons":   ["골격이 다릅니다 (...)", "중원자 조성 ..."]
-}</code></pre>
+Content-Type: multipart/form-data   image=&lt;file&gt;  name="Caffeine"</code></pre>
+    <a class="btn" href="api.html">개발자 콘솔 열기 →</a>
   </section>
 
   <section class="section">
     <h2>어디에 쓰이나</h2>
     <dl class="uses">
+      <dt>강의자료 · 발표</dt><dd>이름을 치면 PubChem 정본 구조가 나오고, PNG · SVG 로 바로 복사됩니다.</dd>
       <dt>학술 출판 · 피어 리뷰</dt><dd>캡션의 이름과 그림의 구조가 맞는지 투고 전에 확인합니다.</dd>
       <dt>특허 · 지식재산</dt><dd>청구항의 IUPAC 이름과 도면의 구조식이 일치하는지 근거를 남깁니다.</dd>
       <dt>제약 데이터 정제</dt><dd>ELN 과 레거시 DB 에서 이름과 구조 그림이 어긋난 항목만 골라냅니다.</dd>
@@ -132,7 +115,7 @@ Content-Type: multipart/form-data
 </main>
 
 <footer class="site-footer container">
-  chemcheck · <a href="https://github.com/Sweet-Butters/train">소스</a>
+  chemcheck · <a href="how.html">이 판정은 어떻게?</a> · <a href="api.html">API</a> · <a href="https://github.com/Sweet-Butters/train">소스</a>
 </footer>
 
 <script src="config.js"></script>
