@@ -1,5 +1,11 @@
 # chemcheck
 
+**지금 범위 (2026-09-09, `docs/DIRECTION.md` 결정 2) - 양방향 구조 도구.** LLM 은 구조 그림을 못 읽고, 못 그리고, 이상한 SMILES 를 줍니다. 그 대체재 둘입니다.
+`python -m chemcheck recognize 그림.png` - 그림 → SMILES. 인식기 둘(MolScribe·DECIMER)이 InChIKey 골격에서 합의해야 답이고, 갈리면 '확신 없음' 과 후보 전부를 RDKit 으로 다시 그려 보여줍니다.
+`python -m chemcheck draw "아스피린"` - 이름 → 구조. PubChem 정본 SMILES 를 RDKit 으로 그립니다. 추론이 없어 틀릴 수 없고, 못 찾으면 못 찾았다고 말합니다. (PDF/PPTX 추출·분할기·실측 벤치는 오늘 범위 밖 - 아래는 그 이전 내용입니다.)
+
+---
+
 AI가 그린 화학 구조 그림이 맞는지 검사합니다. **판정에 LLM을 쓰지 않습니다.**
 
 ## 문제
@@ -46,7 +52,7 @@ OCSR 정확도는 76~93%라 오탐이 납니다. 확신이 없으면 반드시 *
 
 ```bash
 bash scripts/setup_lite.sh      # 인식기 없이 파이프라인만
-python -m chemcheck 슬라이드.pdf      # .pptx 도 가능
+python -m chemcheck check 슬라이드.pdf   # .pptx 도 가능 (부명령 없이 파일만 줘도 됨)
 ```
 
 구조 인식기(OCSR)를 설치하면 그림 판정이 켜집니다. 없으면 이름 추출까지만 동작하고 그림은 전부 판정 불가로 보고합니다.
