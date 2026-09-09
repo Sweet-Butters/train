@@ -47,7 +47,7 @@ from .labeled import LabeledOracle, load_manifest        # noqa: E402
 from .score import Scorecard                            # noqa: E402
 from .validate import check_all                         # noqa: E402
 from . import recog                                     # noqa: E402
-from .variants import build_set                         # noqa: E402
+from .variants import build_set, subset_indices         # noqa: E402
 
 RECOG_SET = ROOT / "bench" / "decks" / "recognize_set"
 
@@ -162,7 +162,17 @@ def run_recognize(args) -> int:
     슬라이드·덱·이름 해석은 여기 없다. 그림 50장을 렌더 변주로 그리고 인식기에
     먹인 뒤, 답을 냈는지·맞았는지·틀리면서 자신 있었는지를 센다.
     """
-    items = build_set(args.set_dir)
+    import json
+    import time
+
+    if args.replay:
+        data = json.loads(Path(args.replay).read_text(encoding="utf-8"))
+        cards, kind, names = recog.replay(data)
+        print(f"재생: {args.replay}\n")
+        print(recog.report(cards, kind, names, show_detail=args.detail))
+        return recog.exit_code(cards)
+
+    items = build_set(args.set_dir, subset_indices(args.limit) if args.limit else None)
     if args.engine in recog.STUBS:
         engines = recog.stub_engines(args.engine, items)
     else:
@@ -178,7 +188,19 @@ def run_recognize(args) -> int:
             for line in LAST_DIAGNOSTICS:
                 print(f"  {line}", file=sys.stderr)
             return 2
-    cards = recog.evaluate(items, engines)
+    def progress(k, n, item, reads):
+        got = " | ".join(f"{r.engine}={r.skeleton or '?'}" for r in reads) or "(없음)"
+        mark = "=" if any(r.skeleton == item.skeleton for r in reads) else "x"
+        print(f"  [{k:2d}/{n}] {mark} {item.stem:20} {got}", file=sys.stderr, flush=True)
+
+    cards = recog.evaluate(items, engines, progress if args.engine == "real" else None)
+    if args.engine == "real":
+        # 인식 결과는 비싸다. 리포트가 바뀌어도 다시 돌리지 않게 원문을 남긴다.
+        saved = args.set_dir / f"reads_{time.strftime('%Y%m%d_%H%M%S')}.json"
+        saved.write_text(json.dumps(recog.rows_to_json(cards[0].rows, args.engine,
+                                                       [e.name for e in engines]),
+                                    ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"인식 결과 저장: {saved}  (--replay 로 리포트만 다시 뽑는다)\n")
     print(recog.report(cards, args.engine, [e.name for e in engines], show_detail=args.detail))
     return recog.exit_code(cards)
 
@@ -195,6 +217,10 @@ def main(argv: list[str] | None = None) -> int:
                         default=CHEMCHECK_ROOT / "models" / "molscribe.pth")
     parser.add_argument("--set-dir", type=Path, default=RECOG_SET,
                         help="recognize 평가 세트 그림을 둘 폴더 (다시 그린다)")
+    parser.add_argument("--replay", type=Path, default=None,
+                        help="저장된 인식 결과(reads_*.json)로 리포트만 다시 뽑는다")
+    parser.add_argument("--limit", type=int, default=0,
+                        help="recognize 축소판 - 50개 중 이만큼을 고르게 뽑아 돌린다 (0 이면 전부)")
     parser.add_argument("--deck", type=Path, default=None,
                         help="직접 만든 덱으로 돌린다 (라벨은 CORPUS 순서와 맞아야 함)")
     parser.add_argument("--skip-validate", action="store_true",
