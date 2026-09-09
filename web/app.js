@@ -634,12 +634,93 @@ function appendCandidates(card, json) {
   return true;
 }
 
+// ── 이름 없이 그림만 넣은 경우: 판정이 아니라 **무엇으로 읽혔는가** 를 보여준다 ──
+// 대조할 이름이 없으므로 "일치/다름" 은 성립하지 않는다. 대신 읽은 구조를 그리고,
+// InChIKey 로 이름을 역조회하고, SMILES 를 복사할 수 있게 준다.
+function appendIdentification(card, json) {
+  const read = json.read || {};
+  if (!read.smiles) return false;
+
+  const h = document.createElement("p");
+  h.className = "verdict-grade";
+  h.textContent = json.grade === "strong"
+    ? "인식기 둘이 서로 다른 구조로 학습됐는데도 같게 읽었습니다"
+    : "인식기 하나가 읽은 것입니다 - 대조할 이름이 없어 확인되지 않았습니다";
+  card.appendChild(h);
+
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-start;margin:.5rem 0";
+
+  const svg = smallSvg(read.smiles, 220, 180);
+  if (svg) {
+    const art = document.createElement("div");
+    art.style.cssText = "border:1px solid #e0e0e0;border-radius:8px;padding:.3rem;background:#fff";
+    art.innerHTML = svg;
+    wrap.appendChild(art);
+  }
+
+  const info = document.createElement("div");
+  info.style.cssText = "flex:1 1 260px;min-width:240px";
+
+  const nameEl = document.createElement("p");
+  nameEl.style.cssText = "font-size:1.05rem;font-weight:700;margin:.1rem 0 .35rem";
+  const local = keyName(read.inchikey);
+  nameEl.textContent = local || "이름을 찾는 중…";
+  info.appendChild(nameEl);
+
+  const rows = [];
+  if (read.smiles) rows.push(["SMILES", escapeHtml(read.smiles)]);
+  if (read.inchikey) rows.push(["InChIKey", escapeHtml(read.inchikey)]);
+  if (read.heavy_formula) rows.push(["중원자 조성", escapeHtml(read.heavy_formula)]);
+  info.appendChild(buildEvidenceBox(rows));
+
+  const bar = document.createElement("div");
+  bar.style.cssText = "margin:.45rem 0";
+  const mk = (label, text) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn btn-sm";
+    b.textContent = label;
+    b.style.cssText = "margin:.15rem .3rem .15rem 0";
+    b.addEventListener("click", () => copyText(text, label.replace("복사", "").trim()));
+    return b;
+  };
+  bar.appendChild(mk("SMILES 복사", read.smiles));
+  if (read.inchikey) bar.appendChild(mk("InChIKey 복사", read.inchikey));
+  info.appendChild(bar);
+
+  const tip = document.createElement("p");
+  tip.className = "verdict-note";
+  tip.textContent = "이름을 위 칸에 넣으면 정본과 대조해 맞는지까지 판정합니다.";
+  info.appendChild(tip);
+
+  wrap.appendChild(info);
+  card.appendChild(wrap);
+
+  // 내장 표에 없으면 PubChem 으로 역조회한다. 실패해도 화면은 이미 서 있다.
+  if (!local && read.inchikey) {
+    identifyByKey(read.inchikey)
+      .then((hit) => {
+        nameEl.textContent = hit ? (hit.title || hit.name) : "이름 없음 (PubChem 미등재 - 새 분자일 수 있습니다)";
+      })
+      .catch(() => { nameEl.textContent = "이름 조회 실패"; });
+  }
+  return true;
+}
+
 function renderVerdict(json) {
   const state = json.verdict === "match" ? "match" : json.verdict === "mismatch" ? "mismatch" : "unreadable";
   const card = openVerdict(state);
 
   if (state === "unreadable") {
     card.appendChild(verdictLabel(state, "판정 불가"));
+    // 이름 없이 그림만 넣었고 읽기에는 성공했다 - 판정이 아니라 식별을 보여준다.
+    const noName = !json.reference;
+    if (noName && (json.read || {}).smiles) {
+      card.appendChild(verdictLabel("unreadable", "이 그림은 이렇게 읽혔습니다"));
+      appendIdentification(card, json);
+      return;
+    }
+
     // 슬라이드를 통째로 넣어 "너무 크다" 로 걸린 경우 - 막다른 길이 아니라 한 동작이 되게.
     const tooBig = (json.reasons || []).some((x) => x.indexOf("지나치게 큽니다") >= 0);
     if (tooBig) {
