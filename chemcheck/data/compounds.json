@@ -1,5 +1,5 @@
 {
- "count": 423,
+ "count": 670,
  "entries": {
   "(-)-menthol": {
    "cid": 16666,
@@ -3121,6 +3121,18 @@
    "smiles": "CC(C)(C)O",
    "title": "tert-Butanol"
   },
+  "tert-부탄올": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "tert부탄올": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
   "testosterone": {
    "cid": 6013,
    "formula": "C19H28O2",
@@ -3384,9 +3396,1501 @@
    "iupac": "methanol",
    "smiles": "CO",
    "title": "Methanol"
+  },
+  "β-카로틴": {
+   "cid": 5280489,
+   "formula": "C40H56",
+   "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C"
+  },
+  "β카로틴": {
+   "cid": 5280489,
+   "formula": "C40H56",
+   "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C"
+  },
+  "가성소다": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+   "smiles": "[OH-].[Na+]"
+  },
+  "갈락토스": {
+   "cid": 6036,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-SVZMEOIVSA-N",
+   "iupac": "(3R,4S,5R,6R)-6-(hydroxymethyl)oxane-2,3,4,5-tetrol",
+   "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H](C(O1)O)O)O)O)O",
+   "title": "D-Galactose"
+  },
+  "개미산": {
+   "cid": 284,
+   "formula": "CH2O2",
+   "inchikey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+   "smiles": "C(=O)O"
+  },
+  "과당": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+   "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O"
+  },
+  "과망가니즈산칼륨": {
+   "cid": 516875,
+   "formula": "KMnO4",
+   "inchikey": "VZJVWSHVAAUDKD-UHFFFAOYSA-N",
+   "smiles": "[O-][Mn](=O)(=O)=O.[K+]"
+  },
+  "과망가니즈산포타슘": {
+   "cid": 516875,
+   "formula": "KMnO4",
+   "inchikey": "VZJVWSHVAAUDKD-UHFFFAOYSA-N",
+   "smiles": "[O-][Mn](=O)(=O)=O.[K+]"
+  },
+  "과망간산칼륨": {
+   "cid": 516875,
+   "formula": "KMnO4",
+   "inchikey": "VZJVWSHVAAUDKD-UHFFFAOYSA-N",
+   "smiles": "[O-][Mn](=O)(=O)=O.[K+]"
+  },
+  "과산화수소": {
+   "cid": 784,
+   "formula": "H2O2",
+   "inchikey": "MHAJPDPJQMAIIY-UHFFFAOYSA-N",
+   "smiles": "OO"
+  },
+  "구아닌": {
+   "cid": 135398634,
+   "formula": "C5H5N5O",
+   "inchikey": "UYTPUPDQBNUYGX-UHFFFAOYSA-N",
+   "smiles": "C1=NC2=C(N1)C(=O)NC(=N2)N"
+  },
+  "구연산": {
+   "cid": 311,
+   "formula": "C6H8O7",
+   "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)C(CC(=O)O)(C(=O)O)O"
+  },
+  "글루코스": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
+  "글루코오스": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
+  "글리세롤": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+   "smiles": "C(C(CO)O)O"
+  },
+  "글리세린": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+   "smiles": "C(C(CO)O)O"
+  },
+  "글리신": {
+   "cid": 750,
+   "formula": "C2H5NO2",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)N"
+  },
+  "나이트로글리세린": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
+  },
+  "나이트로벤젠": {
+   "cid": 7416,
+   "formula": "C6H5NO2",
+   "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)[N+](=O)[O-]"
+  },
+  "나프록센": {
+   "cid": 156391,
+   "formula": "C14H14O3",
+   "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N",
+   "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O"
+  },
+  "나프탈렌": {
+   "cid": 931,
+   "formula": "C10H8",
+   "inchikey": "UFWIBTONFRDIAS-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C2C=CC=CC2=C1"
+  },
+  "노말부탄": {
+   "cid": 7843,
+   "formula": "C4H10",
+   "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N",
+   "smiles": "CCCC"
+  },
+  "노말헥산": {
+   "cid": 8058,
+   "formula": "C6H14",
+   "inchikey": "VLKZOEOYAKHREP-UHFFFAOYSA-N",
+   "smiles": "CCCCCC"
+  },
+  "니코틴": {
+   "cid": 89594,
+   "formula": "C10H14N2",
+   "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N",
+   "smiles": "CN1CCC[C@H]1C2=CN=CC=C2"
+  },
+  "니트로글리세린": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+   "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]"
+  },
+  "니트로벤젠": {
+   "cid": 7416,
+   "formula": "C6H5NO2",
+   "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)[N+](=O)[O-]"
+  },
+  "다이메틸설폭사이드": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+   "smiles": "CS(=O)C"
+  },
+  "다이메틸폼아마이드": {
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+   "smiles": "CN(C)C=O"
+  },
+  "다이에틸에터": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
+  "다이클로로메테인": {
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "inchikey": "YMWUJEATGCHHMB-UHFFFAOYSA-N",
+   "smiles": "C(Cl)Cl"
+  },
+  "도파민": {
+   "cid": 681,
+   "formula": "C8H11NO2",
+   "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=C(C=C1CCN)O)O"
+  },
+  "디디티": {
+   "cid": 3036,
+   "formula": "C14H9Cl5",
+   "inchikey": "YVGGHNCTFXOJCH-UHFFFAOYSA-N",
+   "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)Cl)C(Cl)(Cl)Cl)Cl"
+  },
+  "디메틸설폭사이드": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+   "smiles": "CS(=O)C"
+  },
+  "디메틸술폭시드": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+   "smiles": "CS(=O)C"
+  },
+  "디메틸포름아미드": {
+   "cid": 6228,
+   "formula": "C3H7NO",
+   "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+   "smiles": "CN(C)C=O"
+  },
+  "디에틸에테르": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
+  "디클로로메탄": {
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "inchikey": "YMWUJEATGCHHMB-UHFFFAOYSA-N",
+   "smiles": "C(Cl)Cl"
+  },
+  "락토스": {
+   "cid": 6134,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
+   "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
+  },
+  "락토오스": {
+   "cid": 6134,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
+   "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
+  },
+  "락트산": {
+   "cid": 612,
+   "formula": "C3H6O3",
+   "inchikey": "JVTAAEKCZFNVCJ-UHFFFAOYSA-N",
+   "smiles": "CC(C(=O)O)O"
+  },
+  "레티놀": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C"
+  },
+  "류신": {
+   "cid": 6106,
+   "formula": "C6H13NO2",
+   "inchikey": "ROHFNLRQFUQHCH-YFKPBYRVSA-N",
+   "iupac": "(2S)-2-amino-4-methylpentanoic acid",
+   "smiles": "CC(C)C[C@@H](C(=O)O)N",
+   "title": "L-Leucine"
+  },
+  "리놀레산": {
+   "cid": 5280450,
+   "formula": "C18H32O2",
+   "inchikey": "OYHQOLUKZRVURQ-HZJYTTRNSA-N",
+   "smiles": "CCCCC/C=C\\C/C=C\\CCCCCCCC(=O)O"
+  },
+  "리놀레인산": {
+   "cid": 5280450,
+   "formula": "C18H32O2",
+   "inchikey": "OYHQOLUKZRVURQ-HZJYTTRNSA-N",
+   "smiles": "CCCCC/C=C\\C/C=C\\CCCCCCCC(=O)O"
+  },
+  "리모넨": {
+   "cid": 22311,
+   "formula": "C10H16",
+   "inchikey": "XMGQYMWWDOXHJM-UHFFFAOYSA-N",
+   "smiles": "CC1=CCC(CC1)C(=C)C"
+  },
+  "리보스": {
+   "cid": 10975657,
+   "formula": "C5H10O5",
+   "inchikey": "SRBFZHDQGSBBOR-SOOFDHNKSA-N",
+   "smiles": "C1[C@H]([C@H]([C@H](C(O1)O)O)O)O"
+  },
+  "리보오스": {
+   "cid": 10975657,
+   "formula": "C5H10O5",
+   "inchikey": "SRBFZHDQGSBBOR-SOOFDHNKSA-N",
+   "smiles": "C1[C@H]([C@H]([C@H](C(O1)O)O)O)O"
+  },
+  "말레산": {
+   "cid": 444266,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-UPHRSURJSA-N",
+   "smiles": "C(=C\\C(=O)O)\\C(=O)O"
+  },
+  "말레익산": {
+   "cid": 444266,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-UPHRSURJSA-N",
+   "smiles": "C(=C\\C(=O)O)\\C(=O)O"
+  },
+  "메탄": {
+   "cid": 297,
+   "formula": "CH4",
+   "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N",
+   "smiles": "C"
+  },
+  "메탄올": {
+   "cid": 887,
+   "formula": "CH4O",
+   "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+   "smiles": "CO"
+  },
+  "메테인": {
+   "cid": 297,
+   "formula": "CH4",
+   "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N",
+   "smiles": "C"
+  },
+  "메티오닌": {
+   "cid": 6137,
+   "formula": "C5H11NO2S",
+   "inchikey": "FFEARJCKVFRZRR-BYPYZUCNSA-N",
+   "iupac": "(2S)-2-amino-4-methylsulfanylbutanoic acid",
+   "smiles": "CSCC[C@@H](C(=O)O)N",
+   "title": "L-Methionine"
+  },
+  "메틸아민": {
+   "cid": 6329,
+   "formula": "CH5N",
+   "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N",
+   "smiles": "CN"
+  },
+  "메틸알코올": {
+   "cid": 887,
+   "formula": "CH4O",
+   "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+   "smiles": "CO"
+  },
+  "멘톨": {
+   "cid": 1254,
+   "formula": "C10H20O",
+   "inchikey": "NOOLISFMXDJSKH-UHFFFAOYSA-N",
+   "smiles": "CC1CCC(C(C1)O)C(C)C"
+  },
+  "모르핀": {
+   "cid": 5288826,
+   "formula": "C17H19NO3",
+   "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
+   "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O"
+  },
+  "몰핀": {
+   "cid": 5288826,
+   "formula": "C17H19NO3",
+   "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
+   "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O"
+  },
+  "무수아세트산": {
+   "cid": 7918,
+   "formula": "C4H6O3",
+   "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC(=O)C"
+  },
+  "무수초산": {
+   "cid": 7918,
+   "formula": "C4H6O3",
+   "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC(=O)C"
+  },
+  "물": {
+   "cid": 962,
+   "formula": "H2O",
+   "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+   "smiles": "O"
+  },
+  "바닐린": {
+   "cid": 1183,
+   "formula": "C8H8O3",
+   "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
+   "smiles": "COC1=C(C=CC(=C1)C=O)O"
+  },
+  "발린": {
+   "cid": 6287,
+   "formula": "C5H11NO2",
+   "inchikey": "KZSNJWFQEVHDMF-BYPYZUCNSA-N",
+   "iupac": "(2S)-2-amino-3-methylbutanoic acid",
+   "smiles": "CC(C)[C@@H](C(=O)O)N",
+   "title": "L-Valine"
+  },
+  "베타-카로틴": {
+   "cid": 5280489,
+   "formula": "C40H56",
+   "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C"
+  },
+  "베타카로틴": {
+   "cid": 5280489,
+   "formula": "C40H56",
+   "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C"
+  },
+  "벤젠": {
+   "cid": 241,
+   "formula": "C6H6",
+   "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+   "smiles": "C1=CC=CC=C1"
+  },
+  "벤조산": {
+   "cid": 243,
+   "formula": "C7H6O2",
+   "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)C(=O)O"
+  },
+  "벤즈알데하이드": {
+   "cid": 240,
+   "formula": "C7H6O",
+   "inchikey": "HUMNYLRZRPPJDN-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)C=O"
+  },
+  "벤즈알데히드": {
+   "cid": 240,
+   "formula": "C7H6O",
+   "inchikey": "HUMNYLRZRPPJDN-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)C=O"
+  },
+  "벤질페니실린": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "부탄": {
+   "cid": 7843,
+   "formula": "C4H10",
+   "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N",
+   "smiles": "CCCC"
+  },
+  "뷰테인": {
+   "cid": 7843,
+   "formula": "C4H10",
+   "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N",
+   "smiles": "CCCC"
+  },
+  "비스페놀 a": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "비스페놀 ａ": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "비스페놀a": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "비스페놀ａ": {
+   "cid": 6623,
+   "formula": "C15H16O2",
+   "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O"
+  },
+  "비타민 a": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C"
+  },
+  "비타민 c": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "비타민 ａ": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C"
+  },
+  "비타민 ｃ": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "비타민a": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C"
+  },
+  "비타민c": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "비타민ａ": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+   "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C"
+  },
+  "비타민ｃ": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "사염화탄소": {
+   "cid": 5943,
+   "formula": "CCl4",
+   "inchikey": "VZGDMQKNWNREIO-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)(Cl)Cl"
+  },
+  "사이클로헥산": {
+   "cid": 8078,
+   "formula": "C6H12",
+   "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+   "smiles": "C1CCCCC1"
+  },
+  "사이클로헥세인": {
+   "cid": 8078,
+   "formula": "C6H12",
+   "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+   "smiles": "C1CCCCC1"
+  },
+  "사이토신": {
+   "cid": 597,
+   "formula": "C4H5N3O",
+   "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC(=O)N=C1)N"
+  },
+  "살리실산": {
+   "cid": 338,
+   "formula": "C7H6O3",
+   "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C(=C1)C(=O)O)O"
+  },
+  "삼차부탄올": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "석신산": {
+   "cid": 1110,
+   "formula": "C4H6O4",
+   "inchikey": "KDYFGRWQOYBRFD-UHFFFAOYSA-N",
+   "smiles": "C(CC(=O)O)C(=O)O"
+  },
+  "설탕": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
+  },
+  "세로토닌": {
+   "cid": 5202,
+   "formula": "C10H12N2O",
+   "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+   "smiles": "C1=CC2=C(C=C1O)C(=CN2)CCN"
+  },
+  "소금": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+   "smiles": "[Na+].[Cl-]"
+  },
+  "수산": {
+   "cid": 971,
+   "formula": "C2H2O4",
+   "inchikey": "MUBZPKHOEPUJKR-UHFFFAOYSA-N",
+   "smiles": "C(=O)(C(=O)O)O"
+  },
+  "수산화나트륨": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+   "smiles": "[OH-].[Na+]"
+  },
+  "수산화소듐": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+   "smiles": "[OH-].[Na+]"
+  },
+  "수크로스": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
+  },
+  "수크로오스": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
+  },
+  "숙신산": {
+   "cid": 1110,
+   "formula": "C4H6O4",
+   "inchikey": "KDYFGRWQOYBRFD-UHFFFAOYSA-N",
+   "smiles": "C(CC(=O)O)C(=O)O"
+  },
+  "스타이렌": {
+   "cid": 7501,
+   "formula": "C8H8",
+   "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+   "smiles": "C=CC1=CC=CC=C1"
+  },
+  "스테아르산": {
+   "cid": 5281,
+   "formula": "C18H36O2",
+   "inchikey": "QIQXTHQIDYTFRH-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCCCCCCCCCCC(=O)O"
+  },
+  "스테아린산": {
+   "cid": 5281,
+   "formula": "C18H36O2",
+   "inchikey": "QIQXTHQIDYTFRH-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCCCCCCCCCCC(=O)O"
+  },
+  "스티렌": {
+   "cid": 7501,
+   "formula": "C8H8",
+   "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+   "smiles": "C=CC1=CC=CC=C1"
+  },
+  "시스테인": {
+   "cid": 5862,
+   "formula": "C3H7NO2S",
+   "inchikey": "XUJNEKJLAYXESH-REOHCLBHSA-N",
+   "smiles": "C([C@@H](C(=O)O)N)S"
+  },
+  "시클로헥산": {
+   "cid": 8078,
+   "formula": "C6H12",
+   "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+   "smiles": "C1CCCCC1"
+  },
+  "시토신": {
+   "cid": 597,
+   "formula": "C4H5N3O",
+   "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC(=O)N=C1)N"
+  },
+  "시트르산": {
+   "cid": 311,
+   "formula": "C6H8O7",
+   "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+   "smiles": "C(C(=O)O)C(CC(=O)O)(C(=O)O)O"
+  },
+  "아닐린": {
+   "cid": 6115,
+   "formula": "C6H7N",
+   "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)N"
+  },
+  "아데노신 삼인산": {
+   "cid": 5957,
+   "formula": "C10H16N5O13P3",
+   "inchikey": "ZKHQWZAMYRWXGA-KQYNXXCUSA-N",
+   "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N"
+  },
+  "아데노신삼인산": {
+   "cid": 5957,
+   "formula": "C10H16N5O13P3",
+   "inchikey": "ZKHQWZAMYRWXGA-KQYNXXCUSA-N",
+   "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N"
+  },
+  "아데닌": {
+   "cid": 190,
+   "formula": "C5H5N5",
+   "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+   "smiles": "C1=NC2=NC=NC(=C2N1)N"
+  },
+  "아드레날린": {
+   "cid": 5816,
+   "formula": "C9H13NO3",
+   "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
+   "smiles": "CNC[C@@H](C1=CC(=C(C=C1)O)O)O"
+  },
+  "아목시실린": {
+   "cid": 33613,
+   "formula": "C16H19N3O5S",
+   "inchikey": "LSQZJLSUYDQPKJ-NJBDSQKTSA-N",
+   "iupac": "(2S,5R,6R)-6-[[(2R)-2-amino-2-(4-hydroxyphenyl)acetyl]amino]-3,3-dimethyl-7-oxo-4-thia-1-azabicyclo[3.2.0]heptane-2-carboxylic acid",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)[C@@H](C3=CC=C(C=C3)O)N)C(=O)O)C",
+   "title": "Amoxicillin"
+  },
+  "아산화질소": {
+   "cid": 948,
+   "formula": "N2O",
+   "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+   "smiles": "[N-]=[N+]=O"
+  },
+  "아세토나이트릴": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+   "smiles": "CC#N"
+  },
+  "아세토니트릴": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+   "smiles": "CC#N"
+  },
+  "아세토페논": {
+   "cid": 7410,
+   "formula": "C8H8O",
+   "inchikey": "KWOLFJPFCHCOCG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C1=CC=CC=C1"
+  },
+  "아세톤": {
+   "cid": 180,
+   "formula": "C3H6O",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C"
+  },
+  "아세트산": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "smiles": "CC(=O)O"
+  },
+  "아세트산무수물": {
+   "cid": 7918,
+   "formula": "C4H6O3",
+   "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC(=O)C"
+  },
+  "아세트산에틸": {
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+   "smiles": "CCOC(=O)C"
+  },
+  "아세트아미노펜": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "아세트알데하이드": {
+   "cid": 177,
+   "formula": "C2H4O",
+   "inchikey": "IKHGUXGNUITLKF-UHFFFAOYSA-N",
+   "smiles": "CC=O"
+  },
+  "아세트알데히드": {
+   "cid": 177,
+   "formula": "C2H4O",
+   "inchikey": "IKHGUXGNUITLKF-UHFFFAOYSA-N",
+   "smiles": "CC=O"
+  },
+  "아세틸렌": {
+   "cid": 6326,
+   "formula": "C2H2",
+   "inchikey": "HSFWRNGVRCDJHI-UHFFFAOYSA-N",
+   "smiles": "C#C"
+  },
+  "아세틸살리실산": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
+  },
+  "아세틸콜린": {
+   "cid": 187,
+   "formula": "C7H16NO2+",
+   "inchikey": "OIPILFWXSMYKGL-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OCC[N+](C)(C)C"
+  },
+  "아스코르브산": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "아스코르빈산": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+   "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O"
+  },
+  "아스피린": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+   "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O"
+  },
+  "아이소뷰테인": {
+   "cid": 6360,
+   "formula": "C4H10",
+   "inchikey": "NNPPMTNAJDCUHE-UHFFFAOYSA-N",
+   "smiles": "CC(C)C"
+  },
+  "아이소프로판올": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
+  "안식향산": {
+   "cid": 243,
+   "formula": "C7H6O2",
+   "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)C(=O)O"
+  },
+  "알라닌": {
+   "cid": 5950,
+   "formula": "C3H7NO2",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+   "smiles": "C[C@@H](C(=O)O)N"
+  },
+  "암모니아": {
+   "cid": 222,
+   "formula": "H3N",
+   "inchikey": "QGZKDVFQNNGYKY-UHFFFAOYSA-N",
+   "smiles": "N"
+  },
+  "에스트라다이올": {
+   "cid": 5757,
+   "formula": "C18H24O2",
+   "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
+   "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O"
+  },
+  "에스트라디올": {
+   "cid": 5757,
+   "formula": "C18H24O2",
+   "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
+   "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O"
+  },
+  "에타인": {
+   "cid": 6326,
+   "formula": "C2H2",
+   "inchikey": "HSFWRNGVRCDJHI-UHFFFAOYSA-N",
+   "smiles": "C#C"
+  },
+  "에탄": {
+   "cid": 6324,
+   "formula": "C2H6",
+   "inchikey": "OTMSDBZUPAUEDD-UHFFFAOYSA-N",
+   "smiles": "CC"
+  },
+  "에탄올": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "smiles": "CCO"
+  },
+  "에테르": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+   "smiles": "CCOCC"
+  },
+  "에테인": {
+   "cid": 6324,
+   "formula": "C2H6",
+   "inchikey": "OTMSDBZUPAUEDD-UHFFFAOYSA-N",
+   "smiles": "CC"
+  },
+  "에텐": {
+   "cid": 6325,
+   "formula": "C2H4",
+   "inchikey": "VGGSQFUCUMXWEO-UHFFFAOYSA-N",
+   "smiles": "C=C"
+  },
+  "에틸렌": {
+   "cid": 6325,
+   "formula": "C2H4",
+   "inchikey": "VGGSQFUCUMXWEO-UHFFFAOYSA-N",
+   "smiles": "C=C"
+  },
+  "에틸렌글라이콜": {
+   "cid": 174,
+   "formula": "C2H6O2",
+   "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
+   "smiles": "C(CO)O"
+  },
+  "에틸렌글리콜": {
+   "cid": 174,
+   "formula": "C2H6O2",
+   "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
+   "smiles": "C(CO)O"
+  },
+  "에틸렌다이아민테트라아세트산": {
+   "cid": 6049,
+   "formula": "C10H16N2O8",
+   "inchikey": "KCXVZYZYPLLWCC-UHFFFAOYSA-N",
+   "smiles": "C(CN(CC(=O)O)CC(=O)O)N(CC(=O)O)CC(=O)O"
+  },
+  "에틸렌디아민사아세트산": {
+   "cid": 6049,
+   "formula": "C10H16N2O8",
+   "inchikey": "KCXVZYZYPLLWCC-UHFFFAOYSA-N",
+   "smiles": "C(CN(CC(=O)O)CC(=O)O)N(CC(=O)O)CC(=O)O"
+  },
+  "에틸아세테이트": {
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+   "smiles": "CCOC(=O)C"
+  },
+  "에틸알코올": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "smiles": "CCO"
+  },
+  "에피네프린": {
+   "cid": 5816,
+   "formula": "C9H13NO3",
+   "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
+   "smiles": "CNC[C@@H](C1=CC(=C(C=C1)O)O)O"
+  },
+  "염산": {
+   "cid": 313,
+   "formula": "ClH",
+   "inchikey": "VEXZGXHMUGYJMC-UHFFFAOYSA-N",
+   "smiles": "Cl"
+  },
+  "염화나트륨": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+   "smiles": "[Na+].[Cl-]"
+  },
+  "염화메틸렌": {
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "inchikey": "YMWUJEATGCHHMB-UHFFFAOYSA-N",
+   "smiles": "C(Cl)Cl"
+  },
+  "염화소듐": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+   "smiles": "[Na+].[Cl-]"
+  },
+  "오존": {
+   "cid": 24823,
+   "formula": "O3",
+   "inchikey": "CBENFWSGALASAD-UHFFFAOYSA-N",
+   "smiles": "[O-][O+]=O"
+  },
+  "옥살산": {
+   "cid": 971,
+   "formula": "C2H2O4",
+   "inchikey": "MUBZPKHOEPUJKR-UHFFFAOYSA-N",
+   "smiles": "C(=O)(C(=O)O)O"
+  },
+  "올레산": {
+   "cid": 445639,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-KTKRTIGZSA-N",
+   "smiles": "CCCCCCCC/C=C\\CCCCCCCC(=O)O"
+  },
+  "올레인산": {
+   "cid": 445639,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-KTKRTIGZSA-N",
+   "smiles": "CCCCCCCC/C=C\\CCCCCCCC(=O)O"
+  },
+  "요소": {
+   "cid": 1176,
+   "formula": "CH4N2O",
+   "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+   "smiles": "C(=O)(N)N"
+  },
+  "우라실": {
+   "cid": 1174,
+   "formula": "C4H4N2O2",
+   "inchikey": "ISAKRJDGNUQOIC-UHFFFAOYSA-N",
+   "smiles": "C1=CNC(=O)NC1=O"
+  },
+  "우레아": {
+   "cid": 1176,
+   "formula": "CH4N2O",
+   "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+   "smiles": "C(=O)(N)N"
+  },
+  "유당": {
+   "cid": 6134,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
+   "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
+  },
+  "이부프로펜": {
+   "cid": 3672,
+   "formula": "C13H18O2",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+   "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O"
+  },
+  "이산화탄소": {
+   "cid": 280,
+   "formula": "CO2",
+   "inchikey": "CURLTUGMZLYLDI-UHFFFAOYSA-N",
+   "smiles": "C(=O)=O"
+  },
+  "이소부탄": {
+   "cid": 6360,
+   "formula": "C4H10",
+   "inchikey": "NNPPMTNAJDCUHE-UHFFFAOYSA-N",
+   "smiles": "CC(C)C"
+  },
+  "이소프로판올": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
+  "이소프로필알코올": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+   "smiles": "CC(C)O"
+  },
+  "인돌": {
+   "cid": 798,
+   "formula": "C8H7N",
+   "inchikey": "SIKJAQJRHWYJAI-UHFFFAOYSA-N",
+   "iupac": "1H-indole",
+   "smiles": "C1=CC=C2C(=C1)C=CN2",
+   "title": "Indole"
+  },
+  "인산": {
+   "cid": 1004,
+   "formula": "H3O4P",
+   "inchikey": "NBIIXXVUZAFLBC-UHFFFAOYSA-N",
+   "smiles": "OP(=O)(O)O"
+  },
+  "일산화이질소": {
+   "cid": 948,
+   "formula": "N2O",
+   "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+   "smiles": "[N-]=[N+]=O"
+  },
+  "일산화탄소": {
+   "cid": 281,
+   "formula": "CO",
+   "inchikey": "UGFAIRIUMAVXCW-UHFFFAOYSA-N",
+   "smiles": "[C-]#[O+]"
+  },
+  "자당": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O"
+  },
+  "장뇌": {
+   "cid": 2537,
+   "formula": "C10H16O",
+   "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N",
+   "smiles": "CC1(C2CCC1(C(=O)C2)C)C"
+  },
+  "젖당": {
+   "cid": 6134,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
+   "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O"
+  },
+  "젖산": {
+   "cid": 612,
+   "formula": "C3H6O3",
+   "inchikey": "JVTAAEKCZFNVCJ-UHFFFAOYSA-N",
+   "smiles": "CC(C(=O)O)O"
+  },
+  "주석산": {
+   "cid": 444305,
+   "formula": "C4H6O6",
+   "inchikey": "FEWJPZIEWOKRBE-JCYAYHJZSA-N",
+   "smiles": "[C@@H]([C@H](C(=O)O)O)(C(=O)O)O"
+  },
+  "주정": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+   "smiles": "CCO"
+  },
+  "중탄산나트륨": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+   "smiles": "C(=O)(O)[O-].[Na+]"
+  },
+  "질산": {
+   "cid": 944,
+   "formula": "HNO3",
+   "inchikey": "GRYLNZFGIOXLOG-UHFFFAOYSA-N",
+   "smiles": "[N+](=O)(O)[O-]"
+  },
+  "초산": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+   "smiles": "CC(=O)O"
+  },
+  "초산에틸": {
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+   "smiles": "CCOC(=O)C"
+  },
+  "카페인": {
+   "cid": 2519,
+   "formula": "C8H10N4O2",
+   "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+   "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C"
+  },
+  "캄포르": {
+   "cid": 2537,
+   "formula": "C10H16O",
+   "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N",
+   "smiles": "CC1(C2CCC1(C(=O)C2)C)C"
+  },
+  "캠퍼": {
+   "cid": 2537,
+   "formula": "C10H16O",
+   "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N",
+   "smiles": "CC1(C2CCC1(C(=O)C2)C)C"
+  },
+  "캡사이신": {
+   "cid": 1548943,
+   "formula": "C18H27NO3",
+   "inchikey": "YKPUWZUDDOIDPM-SOFGYWHQSA-N",
+   "smiles": "CC(C)/C=C/CCCCC(=O)NCC1=CC(=C(C=C1)O)OC"
+  },
+  "코데인": {
+   "cid": 5284371,
+   "formula": "C18H21NO3",
+   "inchikey": "OROGSEYTTFOCAN-DNJOTXNNSA-N",
+   "iupac": "(4R,4aR,7S,7aR,12bS)-9-methoxy-3-methyl-2,4,4a,7,7a,13-hexahydro-1H-4,12-methanobenzofuro[3,2-e]isoquinolin-7-ol",
+   "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)OC)O[C@H]3[C@H](C=C4)O",
+   "title": "Codeine"
+  },
+  "콜레스테롤": {
+   "cid": 5997,
+   "formula": "C27H46O",
+   "inchikey": "HVYWMOMLDIMFJA-DPAQBDIFSA-N",
+   "smiles": "C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C"
+  },
+  "퀴닌": {
+   "cid": 3034034,
+   "formula": "C20H24N2O2",
+   "inchikey": "LOUPRKONTZGTKE-WZBLMQSHSA-N",
+   "smiles": "COC1=CC2=C(C=CN=C2C=C1)[C@H]([C@@H]3C[C@@H]4CCN3C[C@@H]4C=C)O"
+  },
+  "클로로포름": {
+   "cid": 6212,
+   "formula": "CHCl3",
+   "inchikey": "HEDRZPFGACZZDS-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)Cl"
+  },
+  "클로로폼": {
+   "cid": 6212,
+   "formula": "CHCl3",
+   "inchikey": "HEDRZPFGACZZDS-UHFFFAOYSA-N",
+   "smiles": "C(Cl)(Cl)Cl"
+  },
+  "키니네": {
+   "cid": 3034034,
+   "formula": "C20H24N2O2",
+   "inchikey": "LOUPRKONTZGTKE-WZBLMQSHSA-N",
+   "smiles": "COC1=CC2=C(C=CN=C2C=C1)[C@H]([C@@H]3C[C@@H]4CCN3C[C@@H]4C=C)O"
+  },
+  "타르타르산": {
+   "cid": 444305,
+   "formula": "C4H6O6",
+   "inchikey": "FEWJPZIEWOKRBE-JCYAYHJZSA-N",
+   "smiles": "[C@@H]([C@H](C(=O)O)O)(C(=O)O)O"
+  },
+  "타이레놀": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "타이로신": {
+   "cid": 6057,
+   "formula": "C9H11NO3",
+   "inchikey": "OUYCCCASQSFEME-QMMMGPOBSA-N",
+   "smiles": "C1=CC(=CC=C1C[C@@H](C(=O)O)N)O"
+  },
+  "타이민": {
+   "cid": 1135,
+   "formula": "C5H6N2O2",
+   "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+   "smiles": "CC1=CNC(=O)NC1=O"
+  },
+  "탄산": {
+   "cid": 767,
+   "formula": "CH2O3",
+   "inchikey": "BVKZGUZCCUSVTD-UHFFFAOYSA-N",
+   "iupac": "carbonic acid",
+   "smiles": "C(=O)(O)O",
+   "title": "Carbonic Acid"
+  },
+  "탄산수소나트륨": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+   "smiles": "C(=O)(O)[O-].[Na+]"
+  },
+  "탄산수소소듐": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+   "smiles": "C(=O)(O)[O-].[Na+]"
+  },
+  "탄산칼슘": {
+   "cid": 10112,
+   "formula": "CCaO3",
+   "inchikey": "VTYYLEPIZMXCLO-UHFFFAOYSA-L",
+   "smiles": "C(=O)([O-])[O-].[Ca+2]"
+  },
+  "테스토스테론": {
+   "cid": 6013,
+   "formula": "C19H28O2",
+   "inchikey": "MUMGGOZAMZWBJJ-DYKIIFRCSA-N",
+   "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=CC(=O)CC[C@]34C"
+  },
+  "테오브로민": {
+   "cid": 5429,
+   "formula": "C7H8N4O2",
+   "inchikey": "YAPQBXQYLJRXSA-UHFFFAOYSA-N",
+   "iupac": "3,7-dimethylpurine-2,6-dione",
+   "smiles": "CN1C=NC2=C1C(=O)NC(=O)N2C",
+   "title": "Theobromine"
+  },
+  "테트라하이드로퓨란": {
+   "cid": 8028,
+   "formula": "C4H8O",
+   "inchikey": "WYURNTSHIVDZCO-UHFFFAOYSA-N",
+   "smiles": "C1CCOC1"
+  },
+  "테트라히드로푸란": {
+   "cid": 8028,
+   "formula": "C4H8O",
+   "inchikey": "WYURNTSHIVDZCO-UHFFFAOYSA-N",
+   "smiles": "C1CCOC1"
+  },
+  "톨루엔": {
+   "cid": 1140,
+   "formula": "C7H8",
+   "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+   "smiles": "CC1=CC=CC=C1"
+  },
+  "트라이나이트로톨루엔": {
+   "cid": 8376,
+   "formula": "C7H5N3O6",
+   "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+   "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]"
+  },
+  "트리니트로톨루엔": {
+   "cid": 8376,
+   "formula": "C7H5N3O6",
+   "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+   "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]"
+  },
+  "트립토판": {
+   "cid": 6305,
+   "formula": "C11H12N2O2",
+   "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
+   "smiles": "C1=CC=C2C(=C1)C(=CN2)C[C@@H](C(=O)O)N"
+  },
+  "티로신": {
+   "cid": 6057,
+   "formula": "C9H11NO3",
+   "inchikey": "OUYCCCASQSFEME-QMMMGPOBSA-N",
+   "smiles": "C1=CC(=CC=C1C[C@@H](C(=O)O)N)O"
+  },
+  "티민": {
+   "cid": 1135,
+   "formula": "C5H6N2O2",
+   "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+   "smiles": "CC1=CNC(=O)NC1=O"
+  },
+  "파라세타몰": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+   "smiles": "CC(=O)NC1=CC=C(C=C1)O"
+  },
+  "팔미트산": {
+   "cid": 985,
+   "formula": "C16H32O2",
+   "inchikey": "IPCSVZSSVZVIGE-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCCCCCCCCC(=O)O"
+  },
+  "팔미틱산": {
+   "cid": 985,
+   "formula": "C16H32O2",
+   "inchikey": "IPCSVZSSVZVIGE-UHFFFAOYSA-N",
+   "smiles": "CCCCCCCCCCCCCCCC(=O)O"
+  },
+  "페놀": {
+   "cid": 996,
+   "formula": "C6H6O",
+   "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+   "smiles": "C1=CC=C(C=C1)O"
+  },
+  "페니실린": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "페니실린 g": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "페니실린 ｇ": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "페니실린g": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "페니실린ｇ": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+   "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C"
+  },
+  "페닐알라닌": {
+   "cid": 6140,
+   "formula": "C9H11NO2",
+   "inchikey": "COLNVLDHVKWLRT-QMMMGPOBSA-N",
+   "smiles": "C1=CC=C(C=C1)C[C@@H](C(=O)O)N"
+  },
+  "포도당": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+   "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O"
+  },
+  "포름산": {
+   "cid": 284,
+   "formula": "CH2O2",
+   "inchikey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+   "smiles": "C(=O)O"
+  },
+  "포름알데하이드": {
+   "cid": 712,
+   "formula": "CH2O",
+   "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
+   "smiles": "C=O"
+  },
+  "포름알데히드": {
+   "cid": 712,
+   "formula": "CH2O",
+   "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
+   "smiles": "C=O"
+  },
+  "폼산": {
+   "cid": 284,
+   "formula": "CH2O2",
+   "inchikey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+   "smiles": "C(=O)O"
+  },
+  "폼알데하이드": {
+   "cid": 712,
+   "formula": "CH2O",
+   "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
+   "smiles": "C=O"
+  },
+  "푸마르산": {
+   "cid": 444972,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-OWOJBTEDSA-N",
+   "smiles": "C(=C/C(=O)O)\\C(=O)O"
+  },
+  "퓨린": {
+   "cid": 1044,
+   "formula": "C5H4N4",
+   "inchikey": "KDCGOANMDULRCW-UHFFFAOYSA-N",
+   "iupac": "7H-purine",
+   "smiles": "C1=C2C(=NC=N1)N=CN2",
+   "title": "Purine"
+  },
+  "퓨마르산": {
+   "cid": 444972,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-OWOJBTEDSA-N",
+   "smiles": "C(=C/C(=O)O)\\C(=O)O"
+  },
+  "프럭토스": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+   "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O"
+  },
+  "프로판": {
+   "cid": 6334,
+   "formula": "C3H8",
+   "inchikey": "ATUOYWHBWRKTHZ-UHFFFAOYSA-N",
+   "smiles": "CCC"
+  },
+  "프로페인": {
+   "cid": 6334,
+   "formula": "C3H8",
+   "inchikey": "ATUOYWHBWRKTHZ-UHFFFAOYSA-N",
+   "smiles": "CCC"
+  },
+  "프룩토스": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+   "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O"
+  },
+  "피루브산": {
+   "cid": 1060,
+   "formula": "C3H4O3",
+   "inchikey": "LCTONWCANYUPML-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C(=O)O"
+  },
+  "피루빈산": {
+   "cid": 1060,
+   "formula": "C3H4O3",
+   "inchikey": "LCTONWCANYUPML-UHFFFAOYSA-N",
+   "smiles": "CC(=O)C(=O)O"
+  },
+  "피리딘": {
+   "cid": 1049,
+   "formula": "C5H5N",
+   "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+   "smiles": "C1=CC=NC=C1"
+  },
+  "피리미딘": {
+   "cid": 9260,
+   "formula": "C4H4N2",
+   "inchikey": "CZPWVGJYEJSRLH-UHFFFAOYSA-N",
+   "iupac": "pyrimidine",
+   "smiles": "C1=CN=CN=C1",
+   "title": "Pyrimidine"
+  },
+  "헥산": {
+   "cid": 8058,
+   "formula": "C6H14",
+   "inchikey": "VLKZOEOYAKHREP-UHFFFAOYSA-N",
+   "smiles": "CCCCCC"
+  },
+  "헥세인": {
+   "cid": 8058,
+   "formula": "C6H14",
+   "inchikey": "VLKZOEOYAKHREP-UHFFFAOYSA-N",
+   "smiles": "CCCCCC"
+  },
+  "호박산": {
+   "cid": 1110,
+   "formula": "C4H6O4",
+   "inchikey": "KDYFGRWQOYBRFD-UHFFFAOYSA-N",
+   "smiles": "C(CC(=O)O)C(=O)O"
+  },
+  "황산": {
+   "cid": 1118,
+   "formula": "H2O4S",
+   "inchikey": "QAOWNCQODCNURD-UHFFFAOYSA-N",
+   "smiles": "OS(=O)(=O)O"
+  },
+  "히스타민": {
+   "cid": 774,
+   "formula": "C5H9N3",
+   "inchikey": "NTYJJOPFIAHURM-UHFFFAOYSA-N",
+   "smiles": "C1=C(NC=N1)CCN"
+  },
+  "ｔｅｒｔ-부탄올": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
+  },
+  "ｔｅｒｔ부탄올": {
+   "cid": 6386,
+   "formula": "C4H10O",
+   "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+   "smiles": "CC(C)(C)O"
   }
  },
- "generated": "2026-09-09T08:33:35+00:00",
+ "generated": "2026-09-09T11:14:03+00:00",
  "note": "PubChem 응답을 그대로 받아 적은 것. 여기서 구조를 추론하지 않는다.",
  "source": "PubChem PUG REST /compound/name/{}/property/InChIKey,MolecularFormula,SMILES,IUPACName,Title"
 }

@@ -186,6 +186,37 @@ def test_offline_table_agrees_with_rdkit() -> None:
     print("통과: 동봉한 표가 실제 구조와 어긋나지 않는다.")
 
 
+def test_offline_table_has_korean_keys_for_the_browser() -> None:
+    """web/ 은 이 표를 그대로 브라우저에 실어서 문자열 그대로 대조한다 - korean_name()
+    도 _ko_key() 도 부르지 못한다(파이썬 없음). 그래서 표기 차이를 표 쪽에서 미리
+    다 구워 둬야 한다(scripts/build_offline_table.py 의 add_korean_keys/ko_key_variants).
+
+    여기서는 그 표기 확장이 실제로 표에 들어갔는지, 그리고 같은 화합물을 가리키는지만
+    본다 - 확장 자체는 build 스크립트가 한다.
+    """
+    offline = names._load_offline()
+    aspirin = offline.get("아스피린")
+    assert aspirin and aspirin["inchikey"] == "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+
+    # 같은 화합물을 가리키는 표기 차이(공백·하이픈·전각·새표기/옛표기)가 모두 한 키다.
+    groups = [
+        ["비스페놀a", "비스페놀 a", "비스페놀ａ"],           # 라틴 접미사: 붙여쓰기·띄어쓰기·전각
+        ["tert부탄올", "tert-부탄올"],                        # 하이픈 유무
+        ["메탄", "메테인"],                                    # 옛 표기 / 대한화학회 새 표기
+        ["베타카로틴", "베타-카로틴", "β-카로틴"],              # 그리스 문자 표기
+    ]
+    for group in groups:
+        keys = [offline.get(k) for k in group]
+        assert all(keys), f"{group} 중 표에 없는 표기가 있다: {list(zip(group, keys))}"
+        inchikeys = {k["inchikey"] for k in keys}
+        assert len(inchikeys) == 1, f"{group} 가 서로 다른 화합물을 가리킨다: {inchikeys}"
+
+    hangul_keys = [k for k in offline if any("가" <= ch <= "힣" for ch in k)]
+    assert len(hangul_keys) >= 200, f"한글 키가 너무 적다 ({len(hangul_keys)}) - 표기 확장이 빠졌나?"
+    print(f"  한글 키 {len(hangul_keys)}개, 표기 변형 {len(groups)}그룹 모두 같은 화합물로 수렴")
+    print("통과: 브라우저가 그대로 실어도 한글·표기 차이로 놓치지 않는다.")
+
+
 def test_backs_off_and_retries_on_throttling() -> None:
     """PubChem 이 503 으로 밀어내면 물러섰다 다시 묻는다. 한 번 실패로 버리지 않는다."""
     calls: list[str] = []
@@ -528,6 +559,7 @@ if __name__ == "__main__":
         test_formula_is_not_a_name,
         test_offline_table_resolves_without_network,
         test_offline_table_agrees_with_rdkit,
+        test_offline_table_has_korean_keys_for_the_browser,
         test_backs_off_and_retries_on_throttling,
         test_network_failure_is_not_cached_as_missing,
         test_greek_prefix_is_not_dropped,
