@@ -21,7 +21,7 @@ from chemcheck.names import PubChemResolver
 from chemcheck.ocsr import DecimerEngine
 from server.judge import EngineRead, build_result
 
-BUILD = os.environ.get("CHEMCHECK_BUILD", "cloudrun-1")
+BUILD = os.environ.get("CHEMCHECK_BUILD", "cloudrun-2-nonsense-gate")
 
 _resolver = PubChemResolver(timeout=8.0, max_retries=1)
 _engine = DecimerEngine()
