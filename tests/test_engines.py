@@ -272,6 +272,40 @@ def test_available_never_raises() -> None:
     print("통과: 인식기가 어떻게 깨지든 도구는 죽지 않는다.")
 
 
+def test_decimer_confidence_is_mean_token_probability() -> None:
+    """DECIMER 의 신뢰도는 토큰별 softmax 확률의 평균이다. 토큰이 없으면 NaN.
+
+    이 값은 MolScribe 의 점수와 같은 자가 아니다 (Prediction docstring). 여기서
+    보는 것은 계산이 요약을 지어내지 않는다는 것뿐이다 - 값이 확률의 평균이고,
+    없으면 없다고 한다.
+    """
+    import math
+
+    from chemcheck import ocsr
+
+    engine = ocsr.DecimerEngine()
+    calls = []
+
+    def fake_predict(path, confidence=False):
+        calls.append(confidence)
+        return "c1ccccc1", [("c", 0.99), ("1", 0.97), ("c", 0.5), ("1", 0.94)]
+
+    engine._predict = fake_predict           # available() 이 True 가 되는 조건
+    pred = engine.recognize(Path("ring.png"))
+
+    assert calls == [True], "신뢰도를 달라고 하지 않았다"
+    assert pred is not None and pred.smiles == "c1ccccc1"
+    assert abs(pred.confidence - (0.99 + 0.97 + 0.5 + 0.94) / 4) < 1e-9, pred.confidence
+    assert pred.engine == "decimer"
+
+    engine._predict = lambda path, confidence=False: ("C", [])
+    assert math.isnan(engine.recognize(Path("one.png")).confidence), "토큰이 없는데 값을 지어냈다"
+    assert math.isnan(ocsr.decimer_confidence([]))
+
+    print(f"  4 토큰 (0.99, 0.97, 0.50, 0.94) -> {pred.confidence:.4f}")
+    print("통과: DECIMER 신뢰도는 토큰 확률의 평균이고, 없으면 NaN 이다.")
+
+
 if __name__ == "__main__":
     test_broken_engine_does_not_crash()
     print()
@@ -282,3 +316,5 @@ if __name__ == "__main__":
     test_self_consistency_only_when_decimer_is_alone()
     print()
     test_available_never_raises()
+    print()
+    test_decimer_confidence_is_mean_token_probability()
