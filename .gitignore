@@ -35,3 +35,7 @@ venv/
 .wheels/
 models/
 samples/demo_*.png
+
+# bench 생성물 - build_deck 이 다시 만든다
+bench/decks/synthetic.pptx
+bench/decks/synthetic_images/
