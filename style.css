@@ -280,3 +280,13 @@ main.container { padding-bottom: var(--s-9); }
 .road-num { opacity: .78; font-size: .8rem !important; }
 
 @media (max-width: 640px) { .hero, .tiers, .road, .steps { flex-direction: column; } }
+
+/* 헤드라인 숫자 */
+.headline-stat { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  background: #fff4f3; border: 1px solid #f0c9c5; border-radius: 10px;
+  padding: .9rem 1rem; margin: .8rem 0 1rem; }
+.stat-num { font-size: 2.6rem; font-weight: 800; color: #b3261e; line-height: 1; white-space: nowrap; }
+.stat-num span { font-size: 1.2rem; font-weight: 600; opacity: .7; }
+.stat-txt { flex: 1 1 320px; }
+.stat-txt p { margin: 0 0 .35rem; }
+.stat-how { font-size: .82rem; line-height: 1.55; opacity: .85; }
