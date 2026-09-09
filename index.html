@@ -3,311 +3,92 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>chemcheck draw</title>
-<style>
-  :root { --ink:#1b1b1f; --mute:#6b6f76; --line:#d9dce1; --ok:#1e7f43; --warn:#a15c00; --bad:#b3261e; --bg:#fafafa; --card:#fff; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui, "Malgun Gothic", sans-serif; }
-  main { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .sub { color: var(--mute); margin: 0 0 20px; }
-  form { display:grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items:end; }
-  label { display:block; font-size: 13px; color: var(--mute); margin-bottom: 4px; }
-  input { width:100%; box-sizing:border-box; padding: 9px 10px; border:1px solid var(--line); border-radius:6px; font: inherit; font-family: ui-monospace, Consolas, monospace; }
-  button { padding: 9px 16px; border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:6px; font:inherit; cursor:pointer; }
-  button:disabled { opacity:.5; cursor:default; }
-  #status { color: var(--mute); font-size: 13px; margin: 10px 0 0; min-height: 1.2em; }
-  .card { background: var(--card); border:1px solid var(--line); border-radius: 10px; padding: 18px; margin-top: 18px; display:grid; grid-template-columns: minmax(260px, 460px) 1fr; gap: 18px; }
-  .card[hidden] { display:none; }
-  .drawings { display:flex; gap:10px; flex-wrap:wrap; align-content:flex-start; }
-  .drawbox { flex:1 1 200px; min-width:180px; }
-  .drawlabel { color: var(--mute); font-size: 12px; margin: 0 0 4px; text-align:center; }
-  .draw { border:1px solid var(--line); border-radius: 8px; background:#fff; min-height: 220px; display:flex; align-items:center; justify-content:center; }
-  .draw svg { max-width:100%; height:auto; }
-  .verdict { font-size: 18px; font-weight: 600; margin: 0 0 10px; }
-  .verdict.ok { color: var(--ok); } .verdict.warn { color: var(--warn); } .verdict.bad { color: var(--bad); }
-  dl { display:grid; grid-template-columns: 110px 1fr; gap: 4px 12px; margin:0; font-size: 14px; }
-  dt { color: var(--mute); } dd { margin:0; font-family: ui-monospace, Consolas, monospace; word-break: break-all; }
-  .why { color: var(--mute); font-size: 13px; margin: 12px 0 0; }
-  .err { color: var(--bad); margin-top: 14px; }
-  footer { color: var(--mute); font-size: 12px; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 12px; }
-  @media (max-width: 720px) { form, .card { grid-template-columns: 1fr; } }
-</style>
+<title>chemcheck</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <main>
-  <h1>chemcheck draw</h1>
-  <p class="sub">이름이나 SMILES 를 넣으면 정본 구조를 그리고 InChIKey 를 낸다. 둘 다 넣으면 같은 화합물인지 판정한다. 서버 없음 - 그리기와 InChIKey 는 이 브라우저 안에서 RDKit 이 계산한다.</p>
+  <h1>chemcheck</h1>
+  <p class="sub">LLM 이 화합물이라며 준 SMILES 를 이름의 정본과 대조합니다 - InChIKey 가 같으면 🟢, 다르면 🔴.
+    이름만 넣어도 정본은 곧바로 뜹니다. 이미지를 붙이면 서버가 그림 자체도 읽어 대조합니다(처음엔 최대 1분).</p>
 
-  <form id="f">
-    <div><label for="name">이름 (한글/영문/약칭, PubChem 이 아는 이름)</label><input id="name" placeholder="아스피린 / aspirin" autocomplete="off"></div>
-    <div><label for="smiles">SMILES (LLM 이 준 것 등)</label><input id="smiles" placeholder="CC(=O)Oc1ccccc1C(=O)O" autocomplete="off"></div>
-    <button id="go" type="submit" disabled>확인</button>
-  </form>
-  <p id="status">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</p>
+  <section class="image-drop">
+    <div class="dropzone" id="dropzone" tabindex="0">
+      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 이름칸을 채우고, 서버가 그림도 읽어 대조합니다</p>
+      <button type="button" id="fileBtn">파일 선택</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+    <div class="image-preview" id="imagePreview" hidden></div>
+    <p class="field-note" id="imageNote"></p>
+  </section>
 
-  <section id="result" class="card" hidden>
-    <div class="drawings" id="drawings"></div>
-    <div>
-      <p class="verdict" id="verdict"></p>
-      <dl id="facts"></dl>
-      <p class="why" id="why"></p>
+  <section class="fields">
+    <div class="field">
+      <label for="nameInput">이름</label>
+      <input id="nameInput" placeholder="아스피린 / aspirin / caffeine" autocomplete="off">
+    </div>
+    <div class="field field-smiles">
+      <label for="smilesInput">SMILES - LLM 이 준 것을 여기에 붙여넣으세요 (핵심 검출 경로)</label>
+      <input id="smilesInput" placeholder="CC(=O)Oc1ccccc1C(=O)O" autocomplete="off">
     </div>
   </section>
+  <div class="suggestions" id="suggestions" hidden></div>
+  <p id="status">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</p>
+
+  <section class="canon-card" id="canonCard" hidden>
+    <div class="canon-draw" id="canonDraw"></div>
+    <div>
+      <p class="canon-title" id="canonTitle"></p>
+      <dl class="facts" id="canonFacts"></dl>
+      <div class="copy-row">
+        <button type="button" id="copyPng">PNG 복사</button>
+        <button type="button" id="copySvg">SVG 다운로드</button>
+        <button type="button" id="copySmiles">SMILES 복사</button>
+        <button type="button" id="copyKey">InChIKey 복사</button>
+      </div>
+      <p class="copy-note" id="copyNote"></p>
+    </div>
+  </section>
+
+  <section class="verdict-section" id="verdictSection" hidden>
+    <h2>대조 결과 (이름 + SMILES)</h2>
+    <div class="verdict-card" id="verdictCard"></div>
+  </section>
+
+  <section class="verdict-section" id="imageVerdictSection" hidden>
+    <h2>대조 결과 (이미지 - 서버)</h2>
+    <div class="verdict-card" id="imageVerdictCard"></div>
+  </section>
+
+  <section class="canon-card" id="soloCard" hidden></section>
+
   <p class="err" id="err"></p>
+
+  <section class="wildcatch">
+    <h2>야생에서 잡은 오류 - 기록 (상호작용 없음)</h2>
+    <p class="sub2">이 섹션은 버튼이 없습니다 - 상호작용 없는 기록입니다. 오늘(2026-09-09) 서버가 뜨기 전, 로컬 CLI(OCSR, 인식기 둘)로
+      처음 실제 데이터에서 잡은 사례를 그대로 옮겨 적었습니다. 지금은 위 이미지 칸에 이 그림을 붙여넣으면 서버가 살아서 같은 방식으로 검사합니다.</p>
+    <div class="wildcatch-body">
+      <img class="wildcatch-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
+      <div class="wildcatch-facts">
+        <p class="verdict-pill mismatch">🔴 오류 (기록 - 로컬 CLI 실측)</p>
+        <div class="evidence">
+          <div class="row"><div class="k">이름 "Caffeine" 의 정본</div><div>RYYVLZVUVIJVGH-UHFFFAOYSA-N (C8N4O2)</div></div>
+          <div class="row"><div class="k">이미지가 적은 화학식</div><div>C8H10N4O2</div></div>
+          <div class="row"><div class="k">DECIMER 가 읽은 것</div><div>CSXLFNRQOLIQAN-UHFFFAOYSA-N (C9N4O2) ← 골격부터 다르다, 탄소 하나 많음</div></div>
+          <div class="row"><div class="k">MolScribe</div><div>파싱 실패(5가 질소) - 원자만 세면 역시 C9N4O2, 같은 이상을 다른 방식으로 봤다</div></div>
+        </div>
+        <p class="why">Gemini 가 그린 카페인은 N9 에 메틸이 하나 더 붙어 있다 - 그릴 수 없는 구조라 두 인식기 중 하나는 파싱조차 못 했다.
+          그런데도 이미지 자신이 적어 둔 화학식(C8H10N4O2)과도 맞지 않는다. 이름·인식기 둘·인쇄된 화학식, 넷 중 셋이 "탄소 8 대 9" 를 가리켰다.</p>
+      </div>
+    </div>
+  </section>
 
   <footer id="foot"></footer>
 </main>
 
 <script src="compounds.js"></script>
 <script src="https://unpkg.com/@rdkit/rdkit@2025.3.4-1.0.0/dist/RDKit_minimal.js"></script>
-<script>
-(function () {
-  "use strict";
-  const TABLE = window.CHEMCHECK_TABLE || {};
-  const ALIASES = window.CHEMCHECK_ALIASES || {};
-  const BY_KEY = {};
-  for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
-  const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
-
-  const $ = (id) => document.getElementById(id);
-  const status = (t) => { $("status").textContent = t; };
-  let RDKit = null;
-
-  $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 + 한글·약칭 별칭 ${Object.keys(ALIASES).length}개 (chemcheck/data/compounds.json · lecture_compounds.json · names.py 의 KO_ALIASES, web/build_table.py 가 구움). 표에 없는 이름은 PubChem PUG REST 를 브라우저에서 직접 부른다. 구조 그림·InChIKey: RDKit.js (WASM) - 서버로 나가는 것은 PubChem 조회뿐이다.`;
-
-  // ---------------------------------------------------------- 이름 정규화
-
-  // 유니코드 대시 변종("β‑carotene" 의 그 대시 등) -> 일반 하이픈.
-  const DASH_RE = /[‐‑‒–—−]/g;
-
-  // 앞뒤 공백·전각 문자(NFKC)·대시 변종·대소문자를 지운다. 내부 공백은 하나로 줄인다.
-  // web/build_table.py 의 normalize_exact 와 규칙을 맞춘다 - 갈라지면 표와 안 맞는다.
-  function normalizeExact(s) {
-    s = s.normalize("NFKC").trim().replace(DASH_RE, "-");
-    return s.split(/\s+/).join(" ").toLowerCase();
-  }
-
-  // normalize_exact 에 더해 공백·하이픈을 아예 없앤다("비스페놀 A" == "비스페놀A").
-  // 한글 표기·약칭(H2SO4 등) 조회는 이 느슨한 키로 한다.
-  function normalizeLoose(s) {
-    return normalizeExact(s).replace(/[\s-]+/g, "");
-  }
-
-  // ---------------------------------------------------------- 이름 → 정본
-
-  async function resolveName(name) {
-    const exact = normalizeExact(name);
-    if (TABLE[exact]) return { ...TABLE[exact], source: "내장 표", query: name };
-    const aliasKey = ALIASES[normalizeLoose(name)];
-    if (aliasKey && BY_KEY[aliasKey]) {
-      const { name: _drop, ...row } = BY_KEY[aliasKey];
-      return { ...row, source: "내장 표(한글/약칭)", query: name };
-    }
-    const url = `${PUBCHEM}/name/${encodeURIComponent(name.trim())}/property/SMILES,InChIKey,Title/JSON`;
-    const res = await fetch(url);
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
-    const p = (await res.json()).PropertyTable.Properties[0];
-    return { smiles: p.SMILES, inchikey: p.InChIKey, cid: p.CID, title: p.Title, source: "PubChem", query: name };
-  }
-
-  async function identifyByKey(inchikey) {
-    if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "내장 표" };
-    const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title/JSON`);
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
-    const p = (await res.json()).PropertyTable.Properties[0];
-    return { title: p.Title, cid: p.CID, source: "PubChem" };
-  }
-
-  // ---------------------------------------------------------- RDKit 계산
-
-  function describe(smiles) {
-    const mol = RDKit.get_mol(smiles);
-    if (!mol || !mol.is_valid()) { if (mol) mol.delete(); return null; }
-    try {
-      const inchi = mol.get_inchi();
-      return {
-        smiles: mol.get_smiles(),
-        inchi,
-        inchikey: RDKit.get_inchikey_for_inchi(inchi),
-        svg: mol.get_svg(360, 300),
-      };
-    } finally { mol.delete(); }
-  }
-
-  function compareKeys(a, b) {
-    if (a === b) return { cls: "ok", text: "일치 - 같은 화합물이다" };
-    if (a.slice(0, 14) === b.slice(0, 14)) return { cls: "warn", text: "골격은 같고 입체·전하가 다르다" };
-    return { cls: "bad", text: "불일치 - 다른 화합물이다" };
-  }
-
-  // ---------------------------------------------------- 다른 곳 칠하기 (부분 구조)
-  //
-  // RDKit.js(MinimalLib) 는 rdFMCS(진짜 MCS)를 내지 않는다 - get_substruct_match 로
-  // "한쪽이 다른 쪽을 완전히 포함하는가"만 알 수 있다. 그래서 여기서 하는 일은 MCS 가
-  // 아니라 포함 관계 진단이다: 관능기 하나가 붙거나 빠진 차이(아스피린 vs 살리실산
-  // 같은)는 잡아서 그 부분만 칠한다. 골격 자체가 다르면(위치이성질체, 고리 크기 차이,
-  // 치환기 종류가 다른 경우) 어느 쪽도 다른 쪽을 포함하지 않으므로 null - 그때는
-  // "칠하지 못한다"고 말만 한다. 서버를 세워 rdFMCS 를 부르지 않는다.
-
-  function molAtomBondCounts(mol) {
-    const m = JSON.parse(mol.get_json()).molecules[0];
-    return { atoms: m.atoms.length, bonds: m.bonds.length };
-  }
-
-  function complementIndices(total, matched) {
-    const set = new Set(matched || []);
-    const out = [];
-    for (let i = 0; i < total; i++) if (!set.has(i)) out.push(i);
-    return out;
-  }
-
-  function highlightDiff(refSmiles, userSmiles) {
-    const refMol = RDKit.get_mol(refSmiles);
-    const userMol = RDKit.get_mol(userSmiles);
-    try {
-      if (!refMol || !refMol.is_valid() || !userMol || !userMol.is_valid()) return null;
-
-      const refInUser = JSON.parse(userMol.get_substruct_match(refMol)); // 정본이 입력 안에 통째로 있나
-      if (refInUser.atoms && refInUser.atoms.length) {
-        const c = molAtomBondCounts(userMol);
-        return { side: "user", atoms: complementIndices(c.atoms, refInUser.atoms), bonds: complementIndices(c.bonds, refInUser.bonds) };
-      }
-      const userInRef = JSON.parse(refMol.get_substruct_match(userMol)); // 입력이 정본 안에 통째로 있나
-      if (userInRef.atoms && userInRef.atoms.length) {
-        const c = molAtomBondCounts(refMol);
-        return { side: "ref", atoms: complementIndices(c.atoms, userInRef.atoms), bonds: complementIndices(c.bonds, userInRef.bonds) };
-      }
-      return null; // 포함 관계가 아니다 - 어디가 다른지 칠하지 못한다
-    } finally {
-      refMol.delete(); userMol.delete();
-    }
-  }
-
-  function svgWithHighlight(smiles, highlight) {
-    const mol = RDKit.get_mol(smiles);
-    try {
-      if (!mol || !mol.is_valid()) return "";
-      if (!highlight || !highlight.atoms.length) return mol.get_svg(260, 220);
-      const details = JSON.stringify({
-        atoms: highlight.atoms, bonds: highlight.bonds,
-        highlightColour: [0.94, 0.42, 0.42], width: 260, height: 220,
-      });
-      return mol.get_svg_with_highlights(details);
-    } finally { mol.delete(); }
-  }
-
-  // ---------------------------------------------------------- 화면
-
-  function show({ drawings, verdict, facts, why }) {
-    const box = $("drawings");
-    box.innerHTML = "";
-    for (const { label, svg } of drawings) {
-      const wrap = document.createElement("div"); wrap.className = "drawbox";
-      if (label) { const p = document.createElement("p"); p.className = "drawlabel"; p.textContent = label; wrap.appendChild(p); }
-      const draw = document.createElement("div"); draw.className = "draw"; draw.innerHTML = svg || "";
-      wrap.appendChild(draw);
-      box.appendChild(wrap);
-    }
-    const v = $("verdict"); v.textContent = verdict.text; v.className = "verdict " + verdict.cls;
-    const dl = $("facts"); dl.innerHTML = "";
-    for (const [k, val] of facts) {
-      if (val === undefined || val === null || val === "") continue;
-      const dt = document.createElement("dt"); dt.textContent = k;
-      const dd = document.createElement("dd");
-      if (val && val.href) { const a = document.createElement("a"); a.href = val.href; a.textContent = val.text; a.target = "_blank"; a.rel = "noopener"; dd.appendChild(a); }
-      else dd.textContent = val;
-      dl.append(dt, dd);
-    }
-    $("why").textContent = why || "";
-    $("result").hidden = false;
-    $("err").textContent = "";
-  }
-
-  function fail(msg) { $("result").hidden = true; $("err").textContent = msg; }
-  const cidLink = (cid) => cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${cid}`, text: `CID ${cid}` } : null;
-
-  async function run(name, smiles) {
-    name = name.trim(); smiles = smiles.trim();
-    if (!name && !smiles) return fail("이름이나 SMILES 중 하나는 넣어야 한다.");
-    $("go").disabled = true; status("계산 중…");
-    try {
-      const ref = name ? await resolveName(name) : null;
-      if (name && !ref) return fail(`"${name}" - 내장 표에도 PubChem 에도 없는 이름이다. 영문 일반명이나 IUPAC 이름으로 다시 넣어라.`);
-      const refDesc = ref ? describe(ref.smiles) : null;
-      const user = smiles ? describe(smiles) : null;
-      if (smiles && !user) return fail("SMILES 를 읽을 수 없다. RDKit 이 파싱하지 못했다: " + smiles);
-
-      if (ref && user) {
-        const verdict = compareKeys(ref.inchikey, user.inchikey);
-        const refSmiles = refDesc ? refDesc.smiles : ref.smiles;
-        if (verdict.cls === "ok") {
-          show({
-            drawings: [{ label: null, svg: user.svg }], verdict,
-            facts: [["이름", `${ref.title || name} (${ref.source})`], ["PubChem", cidLink(ref.cid)],
-                    ["정본 InChIKey", ref.inchikey], ["입력 InChIKey", user.inchikey],
-                    ["정본 SMILES", refSmiles], ["입력 SMILES", user.smiles]],
-            why: "그림은 입력한 SMILES 를 RDKit 이 다시 그린 것이다. 판정은 InChIKey 비교 - 앞 14자가 골격, 나머지가 입체·이성질체·전하다.",
-          });
-        } else {
-          const diff = highlightDiff(refSmiles, user.smiles);
-          const refSvg = svgWithHighlight(refSmiles, diff && diff.side === "ref" ? diff : null);
-          const userSvg = svgWithHighlight(user.smiles, diff && diff.side === "user" ? diff : null);
-          let diffNote;
-          if (diff && diff.side === "user") diffNote = "빨간 부분 - 입력에는 있는데 정본에는 없다.";
-          else if (diff && diff.side === "ref") diffNote = "빨간 부분 - 정본에는 있는데 입력에는 없다.";
-          else diffNote = "두 구조가 부분 포함 관계가 아니라(고리 크기·위치·치환기 종류 차이 등) 어디가 다른지는 못 칠한다 - RDKit.js(MinimalLib)는 MCS(rdFMCS)를 지원하지 않는다. 관능기가 붙거나 빠진 차이만 칠할 수 있다.";
-          show({
-            drawings: [{ label: "정본", svg: refSvg }, { label: "입력", svg: userSvg }], verdict,
-            facts: [["이름", `${ref.title || name} (${ref.source})`], ["PubChem", cidLink(ref.cid)],
-                    ["정본 InChIKey", ref.inchikey], ["입력 InChIKey", user.inchikey],
-                    ["정본 SMILES", refSmiles], ["입력 SMILES", user.smiles]],
-            why: "판정은 InChIKey 비교 - 앞 14자가 골격, 나머지가 입체·이성질체·전하다. " + diffNote,
-          });
-        }
-      } else if (ref) {
-        const agree = refDesc && refDesc.inchikey === ref.inchikey;
-        show({
-          drawings: [{ label: null, svg: refDesc ? refDesc.svg : "" }], verdict: { cls: "ok", text: `${ref.title || name} - 정본 구조` },
-          facts: [["출처", ref.source], ["PubChem", cidLink(ref.cid)], ["InChIKey", ref.inchikey],
-                  ["SMILES", refDesc ? refDesc.smiles : ref.smiles],
-                  ["자체 검산", agree ? "RDKit 이 SMILES 에서 낸 InChIKey 가 정본과 같다" : `주의: RDKit 계산 ${refDesc && refDesc.inchikey} ≠ 정본`]],
-          why: "추론 없음. 이름은 정본 표나 PubChem 에서 찾고, 그 SMILES 를 RDKit 이 그렸다.",
-        });
-      } else {
-        const who = await identifyByKey(user.inchikey);
-        show({
-          drawings: [{ label: null, svg: user.svg }],
-          verdict: who ? { cls: "ok", text: `${who.title} 로 확인됐다` } : { cls: "warn", text: "PubChem 에 없는 구조다" },
-          facts: [["출처", who ? who.source : "-"], ["PubChem", who ? cidLink(who.cid) : null],
-                  ["InChIKey", user.inchikey], ["정규 SMILES", user.smiles]],
-          why: who ? "InChIKey 로 PubChem 을 역조회했다. 이름이 맞는지는 그 이름을 위 칸에 넣어 다시 확인하면 된다."
-                   : "구조 자체는 유효하지만 PubChem 에 등록된 화합물이 아니다. LLM 이 만들어 낸 구조일 수 있다.",
-        });
-      }
-    } catch (e) {
-      fail("실패: " + (e && e.message ? e.message : e) + " (PubChem 은 네트워크가 필요하다)");
-    } finally {
-      $("go").disabled = false; status(`RDKit ${RDKit.version()} 준비됨`);
-    }
-  }
-
-  $("f").addEventListener("submit", (ev) => { ev.preventDefault(); run($("name").value, $("smiles").value); });
-
-  // ?name=…&smiles=… 로 열면 바로 계산한다 (공유 링크·헤드리스 테스트용).
-  const q = new URLSearchParams(location.search);
-  if (q.get("name")) $("name").value = q.get("name");
-  if (q.get("smiles")) $("smiles").value = q.get("smiles");
-
-  const t0 = performance.now();
-  window.initRDKitModule().then((m) => {
-    RDKit = m;
-    $("go").disabled = false;
-    status(`RDKit ${m.version()} 준비됨 (${Math.round(performance.now() - t0)}ms)`);
-    if (q.get("name") || q.get("smiles")) run($("name").value, $("smiles").value);
-  }).catch((e) => { status(""); fail("RDKit 을 불러오지 못했다: " + e); });
-})();
-</script>
+<script src="app.js"></script>
 </body>
 </html>
