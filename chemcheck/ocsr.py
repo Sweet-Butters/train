@@ -23,6 +23,9 @@ class Engine:
     """OCSR 백엔드 공통 인터페이스."""
 
     name = "base"
+    # 마지막 recognize 가 결과를 못 낸 이유. 조용히 None 만 돌려주면 사용자는
+    # 인식기가 못 읽은 것인지 죽은 것인지 알 수 없다.
+    last_error: str | None = None
 
     def available(self) -> bool:
         raise NotImplementedError
@@ -59,8 +62,15 @@ class MolScribeEngine(Engine):
 
             device = "cuda" if torch.cuda.is_available() else "cpu"
             self._model = MolScribe(str(self.checkpoint), device=device)
-        out = self._model.predict_image_file(
-            str(image_path), return_atoms_bonds=False, return_confidence=True
+        # predict_image_file 은 cv2.imread 라 윈도우에서 한글 경로를 못 연다.
+        # PIL 로 읽어 배열로 넘긴다 (scripts/ocsr_worker.py 와 같은 이유).
+        import numpy as np
+        from PIL import Image
+
+        with Image.open(image_path) as img:
+            rgb = np.asarray(img.convert("RGB"))
+        out = self._model.predict_image(
+            rgb, return_atoms_bonds=False, return_confidence=True
         )
         smiles = out.get("smiles")
         if not smiles:
@@ -152,9 +162,14 @@ class SubprocessEngine(Engine):
     def recognize(self, image_path: Path) -> Prediction | None:
         if not self.available():
             return None
+        self.last_error = None
         reply = self._worker.call(str(image_path))
-        if reply is None or "smiles" not in reply:
-            return None  # 죽었거나, 이 장만 실패했거나. 어느 쪽이든 판정하지 않는다.
+        if reply is None:
+            self.last_error = self._worker.unavailable_reason or "응답 없음"
+            return None  # 죽었거나 멎었다. 판정하지 않는다.
+        if "smiles" not in reply:
+            self.last_error = str(reply.get("error", reply))
+            return None  # 이 장만 실패했다. 사유는 남기고 판정하지 않는다.
 
         confidence = reply.get("confidence")
         # 신뢰도를 주지 않는 인식기는 NaN 으로 남긴다. 없는 값을 지어내지 않는다.

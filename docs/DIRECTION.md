@@ -190,3 +190,20 @@ MVP 는 `Sweet-Butters/chemcheck` 에서 직접 일한다. 병렬로 돌아가�
 
 메모리 게이트(`D:/orca/workspaces/train/heavy_gate.sh`)와 `__main__` 가드 규칙.
 두 엔진이 같이 뜨면 3GB 다. 하루 범위라고 기계가 커지지는 않는다.
+
+## 결정 2 보태기 — 하루 범위 안에서 네 트랙의 새 역할
+
+MVP 가 조립을 하는 동안 나머지는 논다. 놀릴 이유가 없다. MVP 와 파일이 겹치지 않는
+부품 넷을 준다. MVP 는 이들을 **부르기만** 한다.
+
+| 트랙 | 오늘 만드는 부품 | 소유 파일 | 무거움 |
+|---|---|---|---|
+| **A** 인식기 | `Pool(16)` 제거, DECIMER 실동작 확인, 콜드스타트 측정 | `ocsr.py`, `scripts/ocsr_worker.py`, `tests/test_engines.py` | 게이트 |
+| **B** 입력 | `inputs.prepare_image()` - 스크린샷·투명·반전·거대·한글경로 정규화 | `inputs.py`(신규), `tests/test_inputs.py` | 없음 |
+| **C** 이름 | 교과서 화합물 100개 목록 + `draw` 적중률 + 못 찾은 종류별 수정 | `names.py`, `data/`, `tests/test_names.py` | 없음 |
+| **D** 평가 | 렌더 변주 50장으로 엔진별/합의 정확도 + **자신 있게 틀림** 비율 | `bench/` | 게이트, 하루 끝 한 번 |
+| **MVP** 조립 | `recognize`·`draw` 명령, 왕복 그림, README | `cli.py`, `render.py`, `recognize.py`/`draw.py`(신규) | 게이트 |
+
+브랜치는 기존 넷을 base 로 fast-forward 해서 다시 쓴다. 죽은 브랜치(`feat-a`, `feat-b`,
+`worktree-frolicking-coalescing-donut`)는 main 에 이미 병합돼 있어 지운다. 웹 브랜치
+(`origin/claude/repo-status-check-4vmkco`)는 원격 참고용으로 둔다 - 지우지 않는다.

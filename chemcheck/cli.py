@@ -1,4 +1,11 @@
-"""명령줄 진입점:  python -m chemcheck 슬라이드.pdf"""
+"""명령줄 진입점.
+
+    python -m chemcheck recognize 그림.png [그림2.png ...] [--out 폴더]   그림 -> SMILES
+    python -m chemcheck draw "아스피린" [--out 폴더]                     이름 -> 구조
+    python -m chemcheck check 슬라이드.pdf                                (기존) 슬라이드 검사
+
+부명령 없이 파일만 주면 check 로 본다 - 기존 사용법을 깨지 않는다.
+"""
 from __future__ import annotations
 
 import argparse
@@ -119,9 +126,9 @@ def summary_lines(results: list) -> list[str]:
     return out
 
 
-def main(argv: list[str] | None = None) -> int:
+def check_main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
-        prog="chemcheck",
+        prog="chemcheck check",
         description="슬라이드·PDF 속 화학 구조 그림이 옆에 적힌 이름과 맞는지 검사합니다.",
     )
     parser.add_argument("file", type=Path, help="검사할 .pdf 또는 .pptx")
@@ -175,6 +182,142 @@ def main(argv: list[str] | None = None) -> int:
 
     counts = summarize(results)
     return 1 if counts[Verdict.ERROR] else 0
+
+# ── 양방향 구조 도구 ────────────────────────────────────────────────────────
+
+STATUS_MARK = {
+    "agreed": "[ 합의 ]",
+    "uncertain": "[확신없음]",
+    "single": "[확신없음]",
+    "no_result": "[결과없음]",
+    "no_engine": "[인식기없음]",
+}
+
+
+def _fmt_conf(value: float) -> str:
+    return "nan" if value != value else f"{value:.3f}"
+
+
+def _load_engines_or_explain(checkpoint: Path) -> list:
+    engines = load_engines(checkpoint if checkpoint.exists() else None)
+    if not engines:
+        print("인식기 없음: 설치된 구조 인식기(OCSR)가 없습니다.")
+        for line in LAST_DIAGNOSTICS:
+            print(f"      {line}")
+        print("      bash scripts/setup_ocsr.sh 와 scripts/fetch_models.py 로 인식기를 먼저 세우세요.")
+    elif len(engines) == 1:
+        print(f"인식기: {engines[0].name}  (하나뿐 - 합의를 볼 수 없어 답은 전부 '확신 없음'으로 나옵니다)")
+    else:
+        print(f"인식기: {', '.join(e.name for e in engines)}")
+    return engines
+
+
+def recognition_lines(rec) -> list[str]:
+    """recognize 결과 한 건을 사람에게 보여준다. 엔진별 원문·정규화·키·신뢰도, 그 다음 결론."""
+    out = [f"── {rec.image.name}"]
+    for r in rec.results:
+        out.append(f"   {r.engine}")
+        out.append(f"      원 SMILES  {r.raw_smiles}")
+        out.append(f"      canonical  {r.canonical or '(구조로 읽지 못함)'}")
+        out.append(f"      InChIKey   {r.inchikey or '-'}")
+        out.append(f"      신뢰도     {_fmt_conf(r.confidence)}")
+    out.append(f"   {STATUS_MARK[rec.status]} {rec.reason}")
+    answer = rec.answer
+    if answer is not None:
+        out.append(f"      SMILES    {answer.smiles}")
+        out.append(f"      InChIKey  {answer.inchikey}")
+        out.append(f"      신뢰도    {_fmt_conf(answer.confidence)}")
+        if answer.image:
+            out.append(f"      다시 그림  {answer.image}")
+    elif rec.candidates:
+        for i, c in enumerate(rec.candidates, start=1):
+            out.append(f"      후보 {i} ({'+'.join(c.engines)})  신뢰도 {_fmt_conf(c.confidence)}")
+            out.append(f"         SMILES    {c.smiles}")
+            out.append(f"         InChIKey  {c.inchikey}")
+            if c.image:
+                out.append(f"         다시 그림  {c.image}")
+        out.append("      후보 중 하나를 답으로 고르지 않습니다. 그림을 보고 사람이 정하세요.")
+    return out
+
+
+def recognize_main(argv: list[str]) -> int:
+    from .structure import recognize
+
+    parser = argparse.ArgumentParser(
+        prog="chemcheck recognize",
+        description="구조 그림을 SMILES 로 읽습니다. 인식기 둘이 합의해야 답입니다.",
+    )
+    parser.add_argument("images", nargs="+", type=Path, help="구조 그림 (png/jpg)")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="다시 그린 그림을 남길 폴더 (기본: 그림과 같은 폴더)")
+    parser.add_argument("--molscribe", type=Path, default=None,
+                        help=f"MolScribe 체크포인트 (기본: {DEFAULT_CHECKPOINT})")
+    args = parser.parse_args(argv)
+
+    missing = [p for p in args.images if not p.exists()]
+    if missing:
+        for p in missing:
+            print(f"파일이 없습니다: {p}", file=sys.stderr)
+        return 2
+
+    engines = _load_engines_or_explain(args.molscribe or DEFAULT_CHECKPOINT)
+    print()
+    worst = 0
+    for image in args.images:
+        out_dir = args.out or image.parent
+        rec = recognize(image, engines, out_dir)
+        for line in recognition_lines(rec):
+            print(line)
+        print()
+        worst = max(worst, {"agreed": 0, "uncertain": 1, "single": 1,
+                            "no_result": 1, "no_engine": 3}[rec.status])
+    return worst
+
+
+def draw_main(argv: list[str]) -> int:
+    from .structure import draw, lookup_name
+
+    parser = argparse.ArgumentParser(
+        prog="chemcheck draw",
+        description="화합물 이름으로 PubChem 정본 구조를 그립니다. 추측하지 않습니다.",
+    )
+    parser.add_argument("name", help='화합물 이름 (예: "아스피린", "ibuprofen", "vitamin C")')
+    parser.add_argument("--out", type=Path, default=Path("."), help="PNG 를 남길 폴더 (기본: 현재 폴더)")
+    args = parser.parse_args(argv)
+
+    drawn = draw(args.name, args.out)
+    if drawn is None:
+        looked = lookup_name(args.name)
+        print(f"찾지 못함: '{args.name}'", end="")
+        if looked != args.name:
+            print(f" ('{looked}' 로 조회)", end="")
+        print()
+        print("      PubChem 이 이 이름을 화합물로 해석하지 못했습니다 (또는 망이 없고 동봉 표에도 없음).")
+        print("      비슷한 이름을 추측해 그리지 않습니다. 영문 이름이나 IUPAC 이름으로 다시 시도하세요.")
+        return 1
+
+    print(f"이름      {drawn.query}" + (f"  ({drawn.name})" if drawn.name != drawn.query else ""))
+    print(f"출처      {drawn.source}")
+    print(f"분자식    {drawn.formula}")
+    print(f"SMILES    {drawn.smiles}")
+    if drawn.canonical != drawn.smiles:
+        print(f"canonical {drawn.canonical}")
+    print(f"InChIKey  {drawn.inchikey}")
+    print(f"그림      {drawn.image}")
+    return 0
+
+
+SUBCOMMANDS = {"recognize": recognize_main, "draw": draw_main, "check": check_main}
+
+
+def main(argv: list[str] | None = None) -> int:
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in SUBCOMMANDS:
+        return SUBCOMMANDS[argv[0]](argv[1:])
+    if argv and argv[0] not in ("-h", "--help"):
+        return check_main(argv)  # 기존 사용법: python -m chemcheck 슬라이드.pdf
+    print(__doc__.strip())
+    return 0 if argv else 2
 
 
 if __name__ == "__main__":
