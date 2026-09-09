@@ -191,6 +191,87 @@ def test_self_consistency_only_when_decimer_is_alone() -> None:
     print("통과: 3배 비용은 그것 말고 방법이 없을 때만 치른다.")
 
 
+# 진짜로 올리면 안 되는 것들. 테스트 안에서 이 이름들의 import 는 언제나 막는다 -
+# 안 막으면 DECIMER 가 TensorFlow 와 가중치를 올리며 2분 반을 먹는다.
+HEAVY_MODULES = ("molscribe", "DECIMER", "torch", "tensorflow")
+
+
+def _exploding_import(target: str, exc: BaseException):
+    """`target` 의 import 는 `exc` 로, 다른 무거운 모듈은 ImportError 로 터뜨린다."""
+    import builtins
+
+    real_import = builtins.__import__
+
+    def fake(name, *args, **kwargs):
+        top = name.split(".")[0]
+        if top == target:
+            raise exc
+        if top in HEAVY_MODULES:
+            raise ImportError(f"{top} 없음 (테스트가 막음)")
+        return real_import(name, *args, **kwargs)
+
+    return fake
+
+
+def test_available_never_raises() -> None:
+    """`Engine.available()` 은 어떤 상황에서도 예외를 올리지 않는다.
+
+    MVP 의 `recognize` 는 `load_engines` 를 부르기만 한다. 그 안에서 인식기 하나가
+    터지면 다른 인식기까지 같이 죽고 사용자는 '도구가 깨졌다' 만 본다. 인식기가
+    없는 것과 도구가 죽는 것은 다른 일이다.
+
+    ImportError 만 잡으면 부족하다. 윈도우의 torch 는 DLL 을 못 찾으면 OSError 로,
+    DECIMER 는 가중치 zip 이 깨지면 BadZipFile 로, 회선이 끊기면 그 밖의 무엇으로든
+    죽는다. 전부 '없다' 로 접혀야 한다.
+    """
+    import builtins
+    import zipfile
+
+    from chemcheck import ocsr
+
+    broken_imports = [
+        ("molscribe", OSError("DLL load failed while importing torch (흉내)")),
+        ("molscribe", RuntimeError("CUDA 초기화 실패 (흉내)")),
+        ("DECIMER", zipfile.BadZipFile("받다 만 가중치 (흉내)")),
+        ("DECIMER", OSError("회선 끊김 (흉내)")),
+        ("torch", ImportError("torch 없음 (흉내)")),
+    ]
+    engines = [
+        lambda: ocsr.MolScribeEngine(None),
+        lambda: ocsr.MolScribeEngine(Path("없는/체크포인트.pth")),
+        lambda: ocsr.DecimerEngine(),
+        lambda: ocsr.SubprocessEngine(Path("없는/python.exe"), "molscribe"),
+        lambda: ocsr.SubprocessEngine(Path(sys.executable), "molscribe",
+                                      Path("없는/체크포인트.pth")),
+        lambda: ocsr.SelfConsistent(ocsr.DecimerEngine()),
+    ]
+
+    real_import = builtins.__import__
+    checked = 0
+    for module, exc in broken_imports:
+        for make in engines:
+            engine = make()
+            builtins.__import__ = _exploding_import(module, exc)
+            try:
+                available = engine.available()   # 예외가 올라오면 여기서 실패
+                engines_loaded = ocsr.load_engines(None)
+            finally:
+                builtins.__import__ = real_import
+            assert available is False,                 f"{engine.name}: {module} 가 {type(exc).__name__} 로 터졌는데 있다고 했다"
+            assert engine.unavailable_reason,                 f"{engine.name}: 못 쓰는 이유를 남기지 않았다"
+            assert all(e.available() for e in engines_loaded),                 "load_engines 가 못 쓰는 인식기를 돌려줬다"
+            checked += 1
+
+    # 워커 스크립트가 없어도 마찬가지다.
+    engine = ocsr.SubprocessEngine(Path(sys.executable), "molscribe")
+    engine.WORKER = Path("없는/워커.py")
+    assert engine.available() is False and engine.unavailable_reason
+    checked += 1
+
+    print(f"  {checked} 가지 고장에서 available() 이 조용히 False 를 돌려줬다")
+    print("통과: 인식기가 어떻게 깨지든 도구는 죽지 않는다.")
+
+
 if __name__ == "__main__":
     test_broken_engine_does_not_crash()
     print()
@@ -199,3 +280,5 @@ if __name__ == "__main__":
     test_bridge_carries_non_ascii_paths_both_ways()
     print()
     test_self_consistency_only_when_decimer_is_alone()
+    print()
+    test_available_never_raises()
