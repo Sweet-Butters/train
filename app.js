@@ -400,6 +400,7 @@ async function runExample(ex) {
     if (!res.ok) throw new Error("HTTP " + res.status);
     const blob = await res.blob();
     const q = $("queryInput");
+    EXAMPLE_RUNNING = true;
     if (q) { q.value = ex.name || ""; }
     // 원본을 입력 칸에 실제로 띄운다 - 사용자가 붙여넣은 것과 같은 상태가 되게.
     if (CROPPER && typeof CROPPER.load === "function") CROPPER.load(blob);
@@ -409,6 +410,7 @@ async function runExample(ex) {
     const n = $("imageNote");
     if (n) n.textContent = "예제를 불러오지 못했다: " + (e && e.message ? e.message : e);
   } finally {
+    EXAMPLE_RUNNING = false;
     btns.forEach((b) => { b.disabled = false; });
   }
 }
@@ -494,12 +496,30 @@ function setupExamples() {
   applyCycle();
 })();
 
-let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에 걸리면 다시 연다
+let CROPPER = null;   // crop.js 가 준 { recrop, reset, load }
+// 예제 버튼은 이름을 일부러 채운다. 사용자가 새로 넣은 이미지와 구분해야
+// 이름칸을 비울지 정할 수 있다.
+let EXAMPLE_RUNNING = false;
 
 // ── index.html 이 제공하는 촬영·지우기 버튼을 배선한다 ─────────────────────
 // 재설계에서 #cameraBtn / #cameraInput / #imageClear 가 dropzone **밖에** 생겼는데
 // app.js 는 그것들을 모르고 있었다. crop.js 는 dropzone 안만 다시 그리므로 이
 // 버튼들은 아무도 듣지 않는 채 남아 있었다 - 눌러도 아무 일이 없던 이유다.
+// 새 이미지가 들어오면 이름칸을 비운다. 그러지 않으면 앞서 누른 예제나 직접 친
+// 이름이 남아, 그림만 넣었는데도 그 이름의 정본과 대조해 "다름" 이 뜬다 -
+// 입력이 그림뿐인데 정답이 어디서 나왔는지 알 수 없는 화면이 된다.
+function onImageLoaded(blob) {
+  if (!EXAMPLE_RUNNING) {
+    const q = $("queryInput");
+    if (q && q.value.trim()) {
+      q.value = "";
+      hideVerdict();
+      imageNote("새 이미지라 이름칸을 비웠습니다 - 이름과 대조하려면 다시 입력하세요.");
+    }
+  }
+  showImagePreview(blob);
+}
+
 function setupPageImageButtons() {
   const camBtn = $("cameraBtn"), camInput = $("cameraInput");
   if (camBtn && camInput) {
@@ -510,7 +530,7 @@ function setupPageImageButtons() {
       // input.value 를 여기서 비우면 모바일 일부에서 File 참조가 그 자리에서
       // 무효가 된다(사진을 골라도 아무 일이 없던 원인). 처리 뒤에 비운다.
       imageNote("사진을 불러오는 중…");
-      showImagePreview(f);                     // 무엇을 넣었는지 즉시 보이게
+      onImageLoaded(f);                        // 미리보기 + 이름칸 정리
       imageNote("사진을 불러왔습니다 - 구조 부분만 드래그해 자른 뒤 확인을 누르세요.");
       if (CROPPER && typeof CROPPER.load === "function") {
         try { CROPPER.load(f); }
@@ -535,9 +555,9 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100505");
+    const mod = await import("./crop.js?v=202609100522");
     if (mod && typeof mod.mountCropper === "function") {
-      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: showImagePreview }) || null;
+      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: onImageLoaded }) || null;
       usingCropper = true;
       return;
     }
@@ -602,7 +622,7 @@ async function handleImageInner(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100505");
+    const mod = await import("./ocr.js?v=202609100522");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
@@ -936,6 +956,12 @@ function renderVerdict(json) {
   }
 
   card.appendChild(verdictLabel(state, state === "match" ? "일치" : "다름"));
+  if (json.reference && json.reference.name) {
+    const against = document.createElement("p");
+    against.className = "verdict-note";
+    against.textContent = `이름 "${json.reference.name}" 의 정본과 대조한 결과입니다.`;
+    card.appendChild(against);
+  }
   if (json.grade) {
     // 확신 등급은 색이 아니라 작은 글씨 한 줄로.
     const g = document.createElement("p"); g.className = "verdict-grade";
