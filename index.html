@@ -9,204 +9,119 @@
 <body>
 <header class="site-header container">
   <a class="wordmark" href="index.html">chemcheck</a>
-  <nav class="site-nav"><a href="try.html">직접 해보기 →</a></nav>
+  <nav class="site-nav"><a href="#pricing">요금제</a><a href="api.html">API</a><a href="how.html">이 판정은 어떻게? →</a></nav>
 </header>
 
 <main class="container">
-  <section class="hero section">
-    <h1>LLM 이 그린 화학구조, 믿어도 될까요?</h1>
-    <p class="lede">이름을 대면 정본이 곧바로 뜨고, 이미지를 주면 서버가 그림을 읽어 InChIKey 로 대조합니다.
-      맞는지 틀린지는 추론이 아니라 문자열 비교입니다.</p>
-    <div class="headline-stat">
-      <div class="stat-num">6 <span>/ 10</span></div>
-      <div class="stat-txt">
-        <p><strong>AI 가 그린 구조 중 판정할 수 있었던 10 장에서, 6 장이 요청한 분자가 아니었습니다.</strong></p>
-        <p class="stat-how">교과서 화합물 10 개를 Gemini 와 GPT 에게 같은 프롬프트로 요청해 <strong>20 장</strong>을 모았습니다.
-          그중 <strong>10 장은 판정하지 않았습니다</strong> - 그림에서 구조를 확실히 읽지 못했기 때문입니다.
-          판정한 10 장 중 6 장의 골격이 이름의 정본과 달랐습니다.
-          한 건(GPT 의 니코틴)은 인식기 둘이 <em>독립적으로 같은 골격</em>을 읽어 확신 등급이 strong 입니다.
-          <strong>못 읽은 절반을 먼저 밝힙니다</strong> - 침묵하는 검사기는 오탐률 0% 로 완벽해 보이고 동시에 쓸모없습니다.
-          원자료 20 장과 판정 하나하나가
-          <a href="https://github.com/Sweet-Butters/train/tree/main/bench/aiimages">bench/aiimages</a> 에 그대로 있습니다.</p>
+  <!-- 첫 화면 = 도구. 텍스트칸 하나, 이미지칸 하나, 예제 버튼. 결과 카드는 입력이 있을 때만. -->
+  <section class="tool">
+    <p class="intro">화합물 이름을 넣으면 정본 구조가 나옵니다.<br>AI 가 그린 그림이 있으면 같이 넣어 대조하세요.</p>
+
+    <div class="query">
+      <input id="queryInput" placeholder="화합물 이름 또는 SMILES" autocomplete="off" spellcheck="false" autofocus>
+      <div class="suggestions" id="suggestions" hidden></div>
+    </div>
+
+    <div class="dropzone" id="dropzone" tabindex="0">
+      <p class="hint">이미지를 붙여넣거나 끌어오세요</p>
+      <button type="button" class="btn btn-sm" id="fileBtn">파일</button>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+    <div class="image-row">
+      <button type="button" class="btn btn-sm" id="cameraBtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>촬영</button>
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+      <span class="status" id="serverStatus"></span>
+      <span class="status" id="rdkitStatus"></span>
+    </div>
+    <div class="image-preview" id="imagePreview" hidden>
+      <img id="imagePreviewImg" alt="넣은 이미지">
+      <button type="button" class="btn btn-sm" id="imageClear">지우기</button>
+    </div>
+    <p class="field-note" id="imageNote"></p>
+    <p class="err" id="err"></p>
+
+    <div class="examples" id="examples">
+      <p class="examples-title">바로 해보기</p>
+    </div>
+
+    <article class="result" id="result" hidden></article>
+  </section>
+
+  <section class="section pricing" id="pricing">
+    <div class="pricing-head">
+      <h2>요금제</h2>
+      <div class="toggle" role="group" aria-label="결제 주기">
+        <button type="button" class="toggle-btn is-on" data-cycle="monthly" aria-pressed="true">월</button>
+        <button type="button" class="toggle-btn" data-cycle="yearly" aria-pressed="false">연 <span class="toggle-note">2 개월 무료</span></button>
       </div>
     </div>
-
-    <div class="cta-row">
-      <a class="btn btn-primary" href="try.html">직접 해보기 →</a>
-      <a class="btn" href="#api">API 보기</a>
-    </div>
-  </section>
-
-  <section class="story section">
-    <p class="eyebrow">2026-09-09, 실제 데이터에서 잡은 오류</p>
-    <h2>Gemini 가 그린 "카페인"은 자기 캡션과도 맞지 않았다</h2>
-    <div class="story-grid">
-      <figure>
-        <img src="evidence/caffeine_gemini.jpeg" width="1024" height="572"
-             alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
-        <figcaption>Gemini Pro 에게 "카페인 그려줘" 라고 해서 받은 그대로. 제목·화학식·IUPAC 명은 전부 정확하다.</figcaption>
-      </figure>
-      <div>
-        <blockquote>
-          이름의 정본과 그림에서 읽은 구조는 골격부터 다르다. 카페인은 탄소 8 개인데 이 그림은 9 개다.
-          N9 에 메틸이 하나 더 붙어 있어 중성 분자로는 존재할 수 없는데, 이미지는 스스로
-          <code>C8H10N4O2</code> 라고 적어 놓았다. 캡션과 그림이 서로 다른 말을 하고 있었다.
-        </blockquote>
-        <ul class="keys">
-          <li><span class="k">이름의 정본</span><span class="v">RYYVLZVUVIJVGH</span></li>
-          <li><span class="k">그림에서 읽은 것</span><span class="v">CSXLFNRQOLIQAN</span></li>
-          <li><span class="k">탄소</span><span class="v">8 대 9</span></li>
-        </ul>
-        <p class="caption">인식기에는 <strong>구조 영역만 오려서</strong> 넣었다. 슬라이드를 통째로 넣으면
-          제목·3D 그림·설명이 섞여 인식기가 엉뚱한 사슬을 읽는다 &mdash; 그때는 도구가
-          <em>판정하지 않고</em> &ldquo;구조 부분만 잘라서 다시 시도해 보세요&rdquo; 라고 답한다.
-          맞는 그림을 틀렸다고 말하지 않는 것이 이 도구의 첫 약속이다.</p>
-        <div class="cta-row">
-          <a class="btn btn-primary" href="try.html?sample=caffeine_gemini">이 이미지로 직접 해보기 →</a>
-          <p class="caption">살아 있는 서버가 매번 새로 계산한다. 미리 적어둔 결과는 없다.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <h2>작동 방식</h2>
-    <ol class="steps">
-      <li>
-        <span class="num">01</span>
-        <h3>넣는다</h3>
-        <p>이름이나 SMILES 를 치거나, 이미지를 붙여넣는다. 칸은 하나다.</p>
-      </li>
-      <li>
-        <span class="num">02</span>
-        <h3>대조한다</h3>
-        <p>정본은 브라우저에서 즉시. 그림은 서버가 읽어 InChIKey 로 비교한다.</p>
-      </li>
-      <li>
-        <span class="num">03</span>
-        <h3>판정을 본다</h3>
-        <p class="legend">
-          <span><span class="dot match"></span>일치</span>
-          <span><span class="dot mismatch"></span>다름</span>
-          <span><span class="dot unreadable"></span>판정 불가</span>
-        </p>
-        <p>판정 불가는 경고가 아니라 침묵이다. 확신이 없으면 틀렸다고 말하지 않는다.</p>
-      </li>
-    </ol>
-  </section>
-
-  <section class="api section" id="api">
-    <h2>API</h2>
-    <p>화면이 쓰는 것과 같은 엔드포인트입니다. 그대로 붙여 코드에서 검사할 수 있습니다.</p>
-    <pre><code>POST <span data-server-url></span>/api/check
-Content-Type: multipart/form-data
-
-  image: &lt;file&gt;
-  name:  "Caffeine"
-
--&gt; 200 application/json
-{
-  "verdict":   "match" | "mismatch" | "unreadable",
-  "grade":     "strong" | "weak" | null,
-  "reference": {"name","smiles","inchikey","formula"},
-  "read":      {"smiles","inchikey","heavy_formula","engines":[...]},
-  "reasons":   ["골격이 다릅니다 (...)", "중원자 조성 ..."]
-}</code></pre>
-  </section>
-
-  <section class="section">
-    <h2>요금제</h2>
-    <p class="sub2">베타 기간입니다. 아래는 <strong>실측된 원가</strong> 위에 세운 계획이고, 지금은 결제를 받지 않습니다.</p>
-    <div class="plans">
-
-      <div class="plan">
+    <div class="plans" role="radiogroup" aria-label="요금제 선택" id="plans">
+      <div class="plan" role="radio" aria-checked="false" tabindex="-1" data-plan="free" data-summary="Free · 하루 10 건 · 이름·SMILES·이미지 대조 · ₩0">
         <h3>Free</h3>
-        <p class="price">&#8361;0</p>
+        <p class="price"><span class="amount">&#8361;0</span></p>
         <p class="plan-lead">하루 10 건. 교육 · 개인.</p>
         <ul>
-          <li>이름 &middot; SMILES 대조 (브라우저에서 완결)</li>
+          <li>이름 · SMILES 대조</li>
           <li>이미지 대조 하루 10 건</li>
-          <li>정본 구조 내려받기 (PNG &middot; SVG &middot; SMILES &middot; InChIKey)</li>
+          <li>정본 구조 내려받기 (PNG · SVG · SMILES · InChIKey)</li>
         </ul>
-        <p class="plan-why">쐐기입니다 &mdash; 강의자료를 만드는 사람이 먼저 씁니다.</p>
+        <a class="btn plan-cta" href="#queryInput" data-action="start">지금 시작</a>
       </div>
-
-      <div class="plan plan-featured">
+      <div class="plan" role="radio" aria-checked="true" tabindex="0" data-plan="pro" data-summary="Pro · 월 2,000 건 · 배치 업로드 · {price}">
         <span class="plan-badge">가장 많이 쓰는</span>
         <h3>Pro</h3>
-        <p class="price">$29 <span class="per">/ 월</span></p>
+        <p class="price"><span class="amount" data-monthly="$29" data-yearly="$290">$29</span> <span class="per" data-monthly="/ 월" data-yearly="/ 년">/ 월</span></p>
         <p class="plan-lead">월 2,000 건. 배치 업로드.</p>
         <ul>
           <li>Free 의 전부</li>
-          <li>여러 장 한 번에 &middot; 결과 CSV 내려받기</li>
-          <li>PDF &middot; PPTX 통째 검사 <span class="soon">예정</span></li>
+          <li>여러 장 한 번에 · 결과 CSV 내려받기</li>
+          <li>API 키</li>
         </ul>
-        <p class="plan-why">강의자료 &middot; 논문 &middot; 포스터를 정기적으로 만드는 개인과 연구실.</p>
+        <a class="btn btn-primary plan-cta" href="api.html#key">업그레이드</a>
       </div>
-
-      <div class="plan">
+      <div class="plan" role="radio" aria-checked="false" tabindex="-1" data-plan="enterprise" data-summary="Enterprise · 전용 엔드포인트 · SLA · 온프레미스 · 건당 과금">
         <h3>Enterprise</h3>
-        <p class="price">건당 과금</p>
-        <p class="plan-lead">전용 엔드포인트 &middot; SLA &middot; 온프레미스.</p>
+        <p class="price"><span class="amount">건당 과금</span></p>
+        <p class="plan-lead">전용 엔드포인트 · SLA · 온프레미스.</p>
         <ul>
           <li>전용 엔드포인트와 처리량 보장</li>
-          <li>온프레미스 배포 (자료가 밖으로 나가지 않습니다)</li>
-          <li>감사 로그 &middot; 판정 근거 보존</li>
+          <li>온프레미스 배포</li>
+          <li>감사 로그 · 판정 근거 보존</li>
         </ul>
-        <p class="plan-why">화학을 다루는 LLM 제품에 넣는 출력 가드레일. <strong>여기가 본 시장입니다.</strong></p>
+        <a class="btn plan-cta" href="api.html#contact">문의하기</a>
       </div>
-
     </div>
+    <p class="plan-summary" id="planSummary"></p>
+    <p class="unit-cost">판정 1 건당 원가 약 <strong>$0.002</strong>. 추론 모델을 부르지 않아 토큰 비용이 없습니다.</p>
+  </section>
 
-    <p class="unit-cost"><strong>단위 원가 판정 1 건당 약 $0.002</strong>
-      &mdash; Cloud Run 실측(CPU 2 코어, 따뜻할 때 2~5 초). 추론 모델을 부르지 않으므로
-      <strong>토큰 비용이 없고</strong>, 원가가 트래픽에 선형입니다.</p>
+  <section class="section api-teaser" id="api">
+    <h2>API</h2>
+    <p>화면이 쓰는 것과 같은 엔드포인트입니다. 키 없이 지금 호출됩니다.</p>
+    <pre><code>POST <span data-server-url></span>/api/check
+Content-Type: multipart/form-data   image=&lt;file&gt;  name="Caffeine"</code></pre>
+    <a class="btn" href="api.html">개발자 콘솔 열기 →</a>
   </section>
 
   <section class="section">
     <h2>어디에 쓰이나</h2>
-    <p class="sub2">공통점 하나입니다 &mdash; <strong>남이 만든 그림을 받는 쪽</strong>. 자기가 그릴 수 있으면 검사가 필요 없습니다.</p>
-    <div class="markets">
-      <div class="market">
-        <h3>학술 출판 &middot; 피어 리뷰</h3>
-        <p>캡션에는 <span class="mono">4a (Aspirin)</span> 이라 적고 그림에는 메틸기가 빠진 구조를 그리는 일이 흔합니다.
-          리뷰어가 수십 개를 눈으로 대조하는 것은 고통이고, 놓치면 그대로 실립니다.</p>
-        <p class="market-why">투고 전 &lsquo;맞춤법 검사&rsquo;. 표절 검사가 그렇게 들어갔습니다.</p>
-      </div>
-      <div class="market">
-        <h3>특허 &middot; 지식재산</h3>
-        <p>청구항의 긴 IUPAC 이름과 도면의 구조식이 어긋나면 치명적인 결함이 됩니다.
-          변리사와 심사관은 둘이 일치한다는 것을 확신해야 합니다.</p>
-        <p class="market-why">InChIKey 문자열 비교라 &ldquo;확신했다&rdquo; 는 말에 근거가 남습니다.</p>
-      </div>
-      <div class="market">
-        <h3>제약 데이터 정제</h3>
-        <p>전자연구노트(ELN)와 레거시 DB 에는 손으로 친 이름과 캡처한 구조 그림이 뒤섞여 있고,
-          그중 상당수가 서로 맞지 않습니다.</p>
-        <p class="market-why">불일치만 솎아내는 자동화. 사람이 볼 것을 줄여 줍니다.</p>
-      </div>
-    </div>
-    <p class="market-timing"><strong>왜 지금인가.</strong> 예전에는 그림을 사람이 그렸고 오류가 드물어 검증 도구를 각 잡고 만들 시장이 아니었습니다.
-      지금은 생성형 AI 가 구조를 쏟아내고, <strong>사람보다 훨씬 자주 그리고 훨씬 당당하게</strong> 틀린 그림과 이름을 짝지어 놓습니다.
-      위 헤드라인의 6/10 이 그 증거입니다.</p>
-  </section>
-
-  <section class="section">
-    <h2>로드맵</h2>
-    <ul class="roadmap">
-      <li><span class="tag">인식기</span><span>서버에 두 번째 인식기(MolScribe)를 다시 올려 합의 판정을 복원한다. 지금은 DECIMER 하나뿐이다.</span></li>
-      <li><span class="tag">판정</span><span>입체화학까지 본다. 지금은 InChIKey 앞 14자(골격)만 비교한다.</span></li>
-      <li><span class="tag">이미지</span><span>슬라이드 한 장에 구조가 여럿일 때 자동으로 나눠 보내는 분할기.</span></li>
-      <li><span class="tag">검증</span><span>90장 평가 코퍼스로 판정 정확도를 잰다.</span></li>
-    </ul>
+    <dl class="uses">
+      <dt>강의자료 · 발표</dt><dd>이름을 치면 PubChem 정본 구조가 나오고, PNG · SVG 로 바로 복사됩니다.</dd>
+      <dt>학술 출판 · 피어 리뷰</dt><dd>캡션의 이름과 그림의 구조가 맞는지 투고 전에 확인합니다.</dd>
+      <dt>특허 · 지식재산</dt><dd>청구항의 IUPAC 이름과 도면의 구조식이 일치하는지 근거를 남깁니다.</dd>
+      <dt>제약 데이터 정제</dt><dd>ELN 과 레거시 DB 에서 이름과 구조 그림이 어긋난 항목만 골라냅니다.</dd>
+    </dl>
   </section>
 </main>
 
 <footer class="site-footer container">
-  chemcheck. LLM 이 그린 화학구조를 이름의 정본과 대조합니다. 서버: Cloud Run · 인식기: DECIMER.
+  chemcheck · <a href="how.html">이 판정은 어떻게?</a> · <a href="api.html">API</a> · <a href="https://github.com/Sweet-Butters/train">소스</a>
 </footer>
 
-<script src="config.js"></script>
+<script src="config.js?v=202609100428"></script>
 <script>for (const el of document.querySelectorAll("[data-server-url]")) el.textContent = window.CHEMCHECK_SERVER;</script>
+<script src="compounds.js?v=202609100428"></script>
+<script src="vendor/RDKit_minimal.js"></script>
+<script src="app.js?v=202609100428"></script>
 </body>
 </html>
