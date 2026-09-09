@@ -18,15 +18,18 @@
     <p class="lede">이름을 대면 정본이 곧바로 뜨고, 이미지를 주면 서버가 그림을 읽어 InChIKey 로 대조합니다.
       맞는지 틀린지는 추론이 아니라 문자열 비교입니다.</p>
     <div class="headline-stat">
-      <div class="stat-num">3 <span>/ 10</span></div>
+      <div class="stat-num">6 <span>/ 10</span></div>
       <div class="stat-txt">
-        <p><strong>AI 가 스스로 적어 놓은 SMILES 10 개 중 3 개가 다른 분자였습니다.</strong></p>
-        <p class="stat-how">교과서 화합물 10 개(에탄올·아세트산·톨루엔·페놀·아세톤·카페인·아스피린·니코틴·글루코스·페니실린 G)를
-          한 프롬프트로 요청해 받은 그림에서, 그림 안에 인쇄된 SMILES 를 RDKit 으로 검증했습니다.
-          니코틴은 고리 질소가 둘인 <em>피라진</em>이었고(피리딘이 아닙니다), 카페인은 메틸 위치가 다른 분자였고,
-          페니실린 G 는 SMILES 로 파싱조차 되지 않았습니다.
-          <strong>사람 판단도 이미지 인식도 개입하지 않았습니다</strong> - 문자열을 InChIKey 로 바꿔 비교했을 뿐입니다.</p>
+        <p><strong>AI 가 그린 구조 중 판정할 수 있었던 10 장에서, 6 장이 요청한 분자가 아니었습니다.</strong></p>
+        <p class="stat-how">교과서 화합물 10 개를 Gemini 와 GPT 에게 같은 프롬프트로 요청해 <strong>20 장</strong>을 모았습니다.
+          그중 <strong>10 장은 판정하지 않았습니다</strong> - 그림에서 구조를 확실히 읽지 못했기 때문입니다.
+          판정한 10 장 중 6 장의 골격이 이름의 정본과 달랐습니다.
+          한 건(GPT 의 니코틴)은 인식기 둘이 <em>독립적으로 같은 골격</em>을 읽어 확신 등급이 strong 입니다.
+          <strong>못 읽은 절반을 먼저 밝힙니다</strong> - 침묵하는 검사기는 오탐률 0% 로 완벽해 보이고 동시에 쓸모없습니다.
+          원자료 20 장과 판정 하나하나가
+          <a href="https://github.com/Sweet-Butters/train/tree/main/bench/aiimages">bench/aiimages</a> 에 그대로 있습니다.</p>
       </div>
+    </div>
     </div>
 
     <div class="cta-row">
