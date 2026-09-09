@@ -506,8 +506,10 @@ function setupPageImageButtons() {
     camBtn.addEventListener("click", () => camInput.click());
     camInput.addEventListener("change", () => {
       const f = camInput.files && camInput.files[0];
-      camInput.value = "";                       // 같은 사진을 다시 찍어도 change 가 뜨게
-      if (!f) return;
+      if (!f) { imageNote("사진을 받지 못했습니다 - 다시 시도해 주세요."); return; }
+      // input.value 를 여기서 비우면 모바일 일부에서 File 참조가 그 자리에서
+      // 무효가 된다(사진을 골라도 아무 일이 없던 원인). 처리 뒤에 비운다.
+      imageNote("사진을 불러오는 중…");
       showImagePreview(f);                     // 무엇을 넣었는지 즉시 보이게
       imageNote("사진을 불러왔습니다 - 구조 부분만 드래그해 자른 뒤 확인을 누르세요.");
       if (CROPPER && typeof CROPPER.load === "function") {
@@ -516,6 +518,8 @@ function setupPageImageButtons() {
       } else {
         handleImage(f);
       }
+      // 같은 사진을 다시 골라도 change 가 뜨게 - 단 처리가 끝난 뒤에.
+      setTimeout(() => { try { camInput.value = ""; } catch (e) { /* 무시 */ } }, 0);
     });
   }
   const clear = $("imageClear");
@@ -531,7 +535,7 @@ function setupPageImageButtons() {
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100458");
+    const mod = await import("./crop.js?v=202609100505");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage, onLoad: showImagePreview }) || null;
       usingCropper = true;
@@ -575,9 +579,14 @@ function showImagePreview(blob) {
   if (!img) {
     img = document.createElement("img");
     img.alt = "넣은 이미지";
+    img.id = "imagePreviewImg";
     box.appendChild(img);
   }
-  img.src = URL.createObjectURL(blob);
+  try {
+    img.src = URL.createObjectURL(blob);
+  } catch (e) {
+    imageNote("이미지를 화면에 띄우지 못했습니다: " + ((e && e.message) || e));
+  }
 }
 function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
@@ -593,7 +602,7 @@ async function handleImageInner(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100458");
+    const mod = await import("./ocr.js?v=202609100505");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
