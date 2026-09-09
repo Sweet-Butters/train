@@ -26,6 +26,15 @@ def emit(obj: dict) -> None:
     sys.stdout.flush()
 
 
+def load_rgb(path: str):
+    """그림 파일을 RGB numpy 배열로. 경로 인코딩과 무관하게 연다."""
+    import numpy as np
+    from PIL import Image
+
+    with Image.open(path) as img:
+        return np.asarray(img.convert("RGB"))
+
+
 def load_molscribe(checkpoint: str):
     import torch
     from molscribe import MolScribe
@@ -34,8 +43,11 @@ def load_molscribe(checkpoint: str):
     model = MolScribe(checkpoint, device=device)
 
     def recognize(path: str) -> dict:
-        out = model.predict_image_file(
-            path, return_atoms_bonds=False, return_confidence=True
+        # predict_image_file 은 cv2.imread 를 쓰는데, 윈도우의 OpenCV 는 한글이
+        # 든 경로를 못 연다 (이 기계는 임시 폴더부터 한글이다). 빈 배열이 넘어가
+        # cvtColor 단언에서 죽는다. PIL 로 직접 읽어 RGB 배열로 넘긴다.
+        out = model.predict_image(
+            load_rgb(path), return_atoms_bonds=False, return_confidence=True
         )
         smiles = out.get("smiles")
         if not smiles:
