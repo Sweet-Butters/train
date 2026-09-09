@@ -280,7 +280,7 @@ def test_pptx_drawn_structure_is_recorded() -> None:
                 )
 
         deck = _deck(work / "drawn.pptx", build)
-        slides = from_pptx(deck, work / "out")
+        slides = from_pptx(deck, work / "out", render_vectors=False)
 
         assert slides[0].images == []
         assert len(slides[0].vector_regions) == 1
@@ -332,7 +332,7 @@ def test_pptx_region_box_matches_group_position() -> None:
                 )
 
         deck = _deck(work / "placed.pptx", build)
-        slides = from_pptx(deck, work / "out")
+        slides = from_pptx(deck, work / "out", render_vectors=False)
 
         left, top, right, bottom = slides[0].vector_regions[0].box
         assert abs(left - 0.20) < 0.02, left
@@ -341,8 +341,12 @@ def test_pptx_region_box_matches_group_position() -> None:
         assert abs(bottom - 0.333) < 0.02, bottom
 
 
-def test_pptx_region_image_is_none_without_renderer() -> None:
-    """그려 줄 프로그램이 없으면 이미지는 안 만들지만 기록은 남는다."""
+def test_pptx_region_without_rendering_keeps_only_the_place() -> None:
+    """렌더를 끄면 자리는 남고 이미지는 만들지 않는다.
+
+    그려 줄 프로그램이 없는 기계에서도 같은 상태가 된다. 자리를 아는 것과
+    그려낸 것은 다르며, 둘을 섞으면 못 뽑은 구조를 뽑은 줄 알게 된다.
+    """
     from pptx.enum.shapes import MSO_CONNECTOR
     from pptx.util import Inches
 
@@ -358,13 +362,13 @@ def test_pptx_region_image_is_none_without_renderer() -> None:
                 )
 
         deck = _deck(work / "norender.pptx", build)
-        slides = from_pptx(deck, work / "out")
+        slides = from_pptx(deck, work / "out", render_vectors=False)
 
         assert len(slides[0].vector_regions) == 1
         region = slides[0].vector_regions[0]
-        # 렌더가 됐든 안 됐든 앞뒤가 맞아야 한다.
-        assert region.image is None or region.image.exists()
-        assert (region.image in slides[0].images) == (region.image is not None)
+        assert region.image is None
+        assert slides[0].images == []
+        assert region.box != (0.0, 0.0, 1.0, 1.0), "자리를 못 잡았다"
 
 
 def test_vector_region_crop_targets_the_right_place() -> None:
@@ -399,14 +403,64 @@ def test_vector_region_crop_targets_the_right_place() -> None:
         assert miss.image is None or _ink(miss.image) == 0, "빈 자리에서 잉크가 나왔다"
 
 
+# --------------------------------- 변환기가 있을 때: 끝에서 끝까지
+
+
+def _has_converter() -> bool:
+    return extract._find_converter() is not None
+
+
+def test_drawn_structure_becomes_a_real_image() -> None:
+    """도형으로 그린 구조가 실제로 판정 가능한 이미지가 된다.
+
+    B 트랙이 존재하는 이유 그 자체다. 그려 줄 프로그램이 없는 기계에서는
+    건너뛴다.
+    """
+    import pytest
+    from pptx.enum.shapes import MSO_CONNECTOR
+    from pptx.util import Inches
+
+    if not _has_converter():
+        pytest.skip("LibreOffice 없음 - 렌더 경로를 돌릴 수 없다")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+
+        def build(slide):
+            # 육각 고리를 결합선 6개로 그린다. 임베드 이미지는 하나도 없다.
+            center_x, center_y, radius = 3.0, 2.75, 0.75
+            corners = [
+                (
+                    center_x + radius * math.cos(math.radians(60 * i)),
+                    center_y + radius * math.sin(math.radians(60 * i)),
+                )
+                for i in range(6)
+            ]
+            group = slide.shapes.add_group_shape()
+            for i, (x0, y0) in enumerate(corners):
+                x1, y1 = corners[(i + 1) % 6]
+                group.shapes.add_connector(
+                    MSO_CONNECTOR.STRAIGHT,
+                    Inches(x0), Inches(y0), Inches(x1), Inches(y1),
+                )
+
+        deck = _deck(work / "drawn_ring.pptx", build)
+        slides = from_pptx(deck, work / "out")
+
+        assert len(slides[0].vector_regions) == 1
+        region = slides[0].vector_regions[0]
+        assert region.image is not None, "변환기가 있는데 이미지를 못 만들었다"
+        assert region.image.exists()
+        assert _ink(region.image) > 0, "오려낸 자리가 비어 있다"
+        assert region.image in slides[0].images, "판정 대상에 안 들어갔다"
+
+
 # ------------------------------------------- 변환기가 없거나 실패할 때
 
 
 def test_convert_returns_none_without_libreoffice(monkeypatch) -> None:
     """LibreOffice 가 없으면 조용히 포기한다. 예외를 던지면 안 된다."""
-    import shutil
-
-    monkeypatch.setattr(shutil, "which", lambda _name: None)
+    monkeypatch.setattr(extract, "_find_converter", lambda: None)
 
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
@@ -415,10 +469,9 @@ def test_convert_returns_none_without_libreoffice(monkeypatch) -> None:
 
 def test_convert_returns_none_when_it_fails(monkeypatch) -> None:
     """변환이 실패해도 추출 전체가 죽지 않는다."""
-    import shutil
     import subprocess
 
-    monkeypatch.setattr(shutil, "which", lambda _name: "soffice")
+    monkeypatch.setattr(extract, "_find_converter", lambda: "soffice")
 
     def boom(*_args, **_kwargs):
         raise subprocess.CalledProcessError(1, "soffice")
@@ -432,15 +485,29 @@ def test_convert_returns_none_when_it_fails(monkeypatch) -> None:
 
 def test_convert_returns_none_when_output_missing(monkeypatch) -> None:
     """변환기가 성공했다고 해도 결과 파일이 없으면 없는 것이다."""
-    import shutil
     import subprocess
 
-    monkeypatch.setattr(shutil, "which", lambda _name: "soffice")
+    monkeypatch.setattr(extract, "_find_converter", lambda: "soffice")
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: None)
 
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         assert extract._pptx_to_pdf(work / "deck.pptx", work / "conv") is None
+
+
+def test_converter_is_found_outside_path(monkeypatch) -> None:
+    """PATH 에 없어도 표준 설치 위치에 있으면 찾는다.
+
+    Windows 설치 관리자는 PATH 를 건드리지 않는다. which 만 보면
+    설치돼 있는데도 렌더를 통째로 건너뛴다.
+    """
+    import shutil
+
+    monkeypatch.delenv("CHEMCHECK_SOFFICE", raising=False)
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
+    monkeypatch.setattr(extract, "_CONVERTER_PATHS", (__file__,))
+
+    assert extract._find_converter() == __file__
 
 
 # ------------------------------------------------------------------- 공통

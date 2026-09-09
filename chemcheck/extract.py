@@ -351,6 +351,41 @@ def _union(boxes: list[Box]) -> Box:
     )
 
 
+# LibreOffice 는 Windows 와 macOS 에서 설치해도 PATH 에 등록되지 않는다.
+# which 만 믿으면 설치돼 있는데도 못 찾아 조용히 렌더를 건너뛴다.
+_CONVERTER_PATHS = (
+    r"C:\Program Files\LibreOffice\program\soffice.exe",
+    r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+    "/Applications/LibreOffice.app/Contents/MacOS/soffice",
+    "/usr/bin/soffice",
+    "/usr/bin/libreoffice",
+    "/usr/local/bin/soffice",
+    "/snap/bin/libreoffice",
+)
+
+
+def _find_converter() -> str | None:
+    """LibreOffice 실행 파일을 찾는다. 없으면 None.
+
+    환경변수, PATH, 표준 설치 위치 순으로 본다. 설치 관리자가 PATH 를
+    건드리지 않는 플랫폼이 있어서 PATH 만 보면 설치된 것도 놓친다.
+    """
+    import os
+    import shutil
+
+    override = os.environ.get("CHEMCHECK_SOFFICE")
+    if override and Path(override).exists():
+        return override
+    for name in ("soffice", "libreoffice"):
+        found = shutil.which(name)
+        if found:
+            return found
+    for candidate in _CONVERTER_PATHS:
+        if Path(candidate).exists():
+            return candidate
+    return None
+
+
 def _pptx_to_pdf(path: Path, out_dir: Path) -> Path | None:
     """LibreOffice 로 pptx 를 pdf 로 바꾼다. 없거나 실패하면 None.
 
@@ -361,10 +396,9 @@ def _pptx_to_pdf(path: Path, out_dir: Path) -> Path | None:
     없으면 조용히 포기한다. 구조를 못 뽑았다는 사실은 vector_regions 에
     남으므로 침묵이 되지는 않는다.
     """
-    import shutil
     import subprocess
 
-    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    soffice = _find_converter()
     if soffice is None:
         return None
 
@@ -423,7 +457,12 @@ def _fill_vector_images(deck_pdf: Path, slides: list[Slide], out_dir: Path) -> N
         document.close()
 
 
-def from_pptx(path: Path, out_dir: Path) -> list[Slide]:
+def from_pptx(path: Path, out_dir: Path, render_vectors: bool = True) -> list[Slide]:
+    """render_vectors 를 끄면 도형 구조를 찾기만 하고 그리지는 않는다.
+
+    그리는 데 외부 프로그램을 띄우므로 장당 수 초가 걸린다. 자리만
+    알면 되는 곳에서는 끄는 편이 낫다.
+    """
     from pptx import Presentation
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -484,7 +523,7 @@ def from_pptx(path: Path, out_dir: Path) -> list[Slide]:
 
         slides.append(Slide(slide_no, "\n".join(texts), images, regions))
 
-    if any(slide.vector_regions for slide in slides):
+    if render_vectors and any(slide.vector_regions for slide in slides):
         converted = _pptx_to_pdf(path, out_dir / "_converted")
         if converted is not None:
             _fill_vector_images(converted, slides, out_dir)
