@@ -615,9 +615,9 @@ function renderImageVerdict(json) {
 // ============================================================ 시작
 
 $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (web/build_table.py 가 chemcheck/data 에서 구움). ` +
-  `이름·SMILES 대조와 InChIKey·화학식 계산은 이 브라우저 안에서 표·PubChem·RDKit(WASM) 만으로 끝난다 - 서버가 없다. ` +
-  `이미지는 web/crop.js·web/ocr.js 가 있으면 이름칸을 자동으로 채운다(오늘은 없을 수 있다) - 없어도 두 칸은 그대로 동작한다. ` +
-  `그림 자체를 읽는 검사(OCSR)는 3GB 인식기가 필요해 로컬 CLI 의 몫이다 - 아래 "야생에서 잡은 오류" 참고.`;
+  `이름·SMILES 대조와 InChIKey·화학식 계산은 이 브라우저 안에서 표·PubChem·RDKit(WASM) 만으로 끝난다 - 서버가 필요 없다. ` +
+  `이미지는 web/crop.js·web/ocr.js 가 있으면 이름칸을 자동으로 채우고(오늘은 없을 수 있다), 그림 자체는 서버(${CHECK_URL})가 읽어 대조한다 - ` +
+  `처음이면(콜드스타트) 최대 1분, 서버가 응답하지 않으면 정본만 보여준다.`;
 
 setupImageInput();
 
