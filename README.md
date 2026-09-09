@@ -79,6 +79,17 @@ python tests/test_pipeline.py   # 심어둔 오류를 잡는지 검증
 
 2장은 아스피린이라 써놓고 살리실산을 그립니다. 아세틸기 하나 차이라 눈으로는 거의 구분되지 않습니다.
 
+### 데모 실측 (2026-09-09, `recognize` 로 4장, `draw` 와 대조)
+
+| 장 | 써놓은 이름 | `draw` 이름의 골격 | `recognize` 합의 골격 (MolScribe 신뢰도) | 판정 |
+|---|---|---|---|---|
+| 1 | Aspirin | BSYNRYMUTXBXSQ | BSYNRYMUTXBXSQ (0.887) | 같다 |
+| 2 | Aspirin | BSYNRYMUTXBXSQ | **YGSDEFSMJLZEOE** (0.857) = 살리실산 | **다르다** - 심어둔 오류 |
+| 3 | Caffeine | RYYVLZVUVIJVGH | RYYVLZVUVIJVGH (0.882) | 같다 |
+| 4 | Caffeine | RYYVLZVUVIJVGH | **YAPQBXQYLJRXSA** (0.902) = 메틸기 하나 빠짐 | **다르다** - 심어둔 오류 |
+
+4장 모두 두 인식기(MolScribe·DECIMER)가 골격에 합의했고, 심어둔 오류 2건은 이름의 골격과 다른 키로 나왔습니다. 골격이 같은지는 InChIKey 앞 14자 비교뿐이고, 마지막 판정은 `--out` 에 남는 왕복 그림을 사람이 봅니다. 두 엔진 적재 약 160초, 장당 30~100초 (16GB 기계, CPU).
+
 ## 구조
 
 | 파일 | 역할 |
