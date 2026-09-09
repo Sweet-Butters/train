@@ -363,5 +363,5 @@ export function mountCropper(container, { onCrop }) {
     return new Promise((resolve) => out.toBlob((b) => resolve(b), "image/png"));
   }
 
-  return { recrop, reset };
+  return { recrop, reset, load: loadBlob };
 }

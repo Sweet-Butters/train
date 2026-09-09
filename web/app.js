@@ -16,6 +16,45 @@ const HEALTH_URL = SERVER + "/api/health";
 const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
 
 const $ = (id) => document.getElementById(id);
+
+// ── 결과 DOM 을 JS 가 만든다 ────────────────────────────────────────────────
+// index.html 재설계에서 <article id="result"> 가 빈 껍데기가 되면서, app.js 가
+// 기대하던 11 개 id(canon·molDraw·molTitle·molFacts·molSource·verdict·copy*)가
+// 사라졌다. 모듈 최상단의 copyPng 리스너 등록이 null 에서 죽어 **그 아래 코드가
+// 통째로 실행되지 않았다** - 예제 버튼도 판정 렌더도 그래서 아무 일이 없었다.
+// HTML 에 있으면 그대로 쓰고, 없으면 여기서 만든다.
+(function ensureResultDom() {
+  const host = document.getElementById("result");
+  if (!host || document.getElementById("verdict")) return;
+  const mk = (tag, id, cls) => {
+    const e = document.createElement(tag);
+    if (id) e.id = id;
+    if (cls) e.className = cls;
+    return e;
+  };
+  const canon = mk("div", "canon", "canon");
+  canon.hidden = true;
+  canon.appendChild(mk("div", "molDraw", "mol-draw"));
+  const side = mk("div", null, "mol-side");
+  side.appendChild(mk("p", "molSource", "mol-source"));
+  side.appendChild(mk("h2", "molTitle", "mol-name"));
+  side.appendChild(mk("dl", "molFacts", "facts"));
+  const row = mk("div", null, "copy-row");
+  for (const [id, label] of [["copyPng", "PNG 복사"], ["copySvg", "SVG 다운로드"],
+                             ["copySmiles", "SMILES 복사"], ["copyKey", "InChIKey 복사"]]) {
+    const b = mk("button", id, "btn btn-sm");
+    b.type = "button"; b.textContent = label;
+    row.appendChild(b);
+  }
+  side.appendChild(row);
+  side.appendChild(mk("p", "copyNote", "copy-note"));
+  canon.appendChild(side);
+  host.appendChild(canon);
+
+  const v = mk("div", "verdict", "verdict");
+  v.hidden = true;
+  host.appendChild(v);
+})();
 let RDKit = null;
 let currentMol = null;
 
@@ -346,6 +385,9 @@ async function runExample(ex) {
     const blob = await res.blob();
     const q = $("queryInput");
     if (q) { q.value = ex.name || ""; }
+    // 원본을 입력 칸에 실제로 띄운다 - 사용자가 붙여넣은 것과 같은 상태가 되게.
+    if (CROPPER && typeof CROPPER.load === "function") CROPPER.load(blob);
+    else showImagePreview(blob);
     await handleImage(blob);
   } catch (e) {
     const n = $("imageNote");
@@ -382,7 +424,7 @@ let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에
 async function setupImageInput() {
   const dropzone = $("dropzone");
   try {
-    const mod = await import("./crop.js?v=202609100432");
+    const mod = await import("./crop.js?v=202609100435");
     if (mod && typeof mod.mountCropper === "function") {
       CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
       usingCropper = true;
@@ -432,7 +474,7 @@ async function handleImage(blob) {
 
   let hints = null;
   try {
-    const mod = await import("./ocr.js?v=202609100432");
+    const mod = await import("./ocr.js?v=202609100435");
     if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
   } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
 
