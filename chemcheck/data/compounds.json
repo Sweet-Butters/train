@@ -1,0 +1,863 @@
+{
+ "count": 171,
+ "entries": {
+  "acetaldehyde": {
+   "cid": 177,
+   "formula": "C2H4O",
+   "inchikey": "IKHGUXGNUITLKF-UHFFFAOYSA-N"
+  },
+  "acetaminophen": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N"
+  },
+  "acetic acid": {
+   "cid": 176,
+   "formula": "C2H4O2",
+   "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N"
+  },
+  "acetic anhydride": {
+   "cid": 7918,
+   "formula": "C4H6O3",
+   "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N"
+  },
+  "acetone": {
+   "cid": 180,
+   "formula": "C3H6O",
+   "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N"
+  },
+  "acetonitrile": {
+   "cid": 6342,
+   "formula": "C2H3N",
+   "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N"
+  },
+  "acetophenone": {
+   "cid": 7410,
+   "formula": "C8H8O",
+   "inchikey": "KWOLFJPFCHCOCG-UHFFFAOYSA-N"
+  },
+  "acetyl-coa": {
+   "cid": 444493,
+   "formula": "C23H38N7O17P3S",
+   "inchikey": "ZSLZBFCDCINBPY-ZSJPKINUSA-N"
+  },
+  "acetylcholine": {
+   "cid": 187,
+   "formula": "C7H16NO2+",
+   "inchikey": "OIPILFWXSMYKGL-UHFFFAOYSA-N"
+  },
+  "acetylene": {
+   "cid": 6326,
+   "formula": "C2H2",
+   "inchikey": "HSFWRNGVRCDJHI-UHFFFAOYSA-N"
+  },
+  "acetylsalicylic acid": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+  },
+  "adenine": {
+   "cid": 190,
+   "formula": "C5H5N5",
+   "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N"
+  },
+  "adenosine": {
+   "cid": 60961,
+   "formula": "C10H13N5O4",
+   "inchikey": "OIRDTQYFTABQOQ-KQYNXXCUSA-N"
+  },
+  "adenosine triphosphate": {
+   "cid": 5957,
+   "formula": "C10H16N5O13P3",
+   "inchikey": "ZKHQWZAMYRWXGA-KQYNXXCUSA-N"
+  },
+  "adrenaline": {
+   "cid": 5816,
+   "formula": "C9H13NO3",
+   "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N"
+  },
+  "alanine": {
+   "cid": 5950,
+   "formula": "C3H7NO2",
+   "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N"
+  },
+  "alpha-ketoglutaric acid": {
+   "cid": 51,
+   "formula": "C5H6O5",
+   "inchikey": "KPGXRSRHYNQIFN-UHFFFAOYSA-N"
+  },
+  "ammonia": {
+   "cid": 222,
+   "formula": "H3N",
+   "inchikey": "QGZKDVFQNNGYKY-UHFFFAOYSA-N"
+  },
+  "amoxicillin": {
+   "cid": 33613,
+   "formula": "C16H19N3O5S",
+   "inchikey": "LSQZJLSUYDQPKJ-NJBDSQKTSA-N"
+  },
+  "aniline": {
+   "cid": 6115,
+   "formula": "C6H7N",
+   "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N"
+  },
+  "anthracene": {
+   "cid": 8418,
+   "formula": "C14H10",
+   "inchikey": "MWPLVEDNUUSJAV-UHFFFAOYSA-N"
+  },
+  "ascorbic acid": {
+   "cid": 54670067,
+   "formula": "C6H8O6",
+   "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N"
+  },
+  "aspartame": {
+   "cid": 134601,
+   "formula": "C14H18N2O5",
+   "inchikey": "IAOZJIPTCAWIRG-QWRGUYRKSA-N"
+  },
+  "aspirin": {
+   "cid": 2244,
+   "formula": "C9H8O4",
+   "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"
+  },
+  "atorvastatin": {
+   "cid": 60823,
+   "formula": "C33H35FN2O5",
+   "inchikey": "XUKUURHRXDUEBC-KAYWLYCHSA-N"
+  },
+  "atropine": {
+   "cid": 174174,
+   "formula": "C17H23NO3",
+   "inchikey": "RKUNBYITZUJHSG-PJPHBNEVSA-N"
+  },
+  "azobenzene": {
+   "cid": 2272,
+   "formula": "C12H10N2",
+   "inchikey": "DMLAVOWQYNRWNQ-UHFFFAOYSA-N"
+  },
+  "benzaldehyde": {
+   "cid": 240,
+   "formula": "C7H6O",
+   "inchikey": "HUMNYLRZRPPJDN-UHFFFAOYSA-N"
+  },
+  "benzene": {
+   "cid": 241,
+   "formula": "C6H6",
+   "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N"
+  },
+  "benzoic acid": {
+   "cid": 243,
+   "formula": "C7H6O2",
+   "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N"
+  },
+  "biotin": {
+   "cid": 171548,
+   "formula": "C10H16N2O3S",
+   "inchikey": "YBJHBAHKTGYVGT-ZKWXMUAHSA-N"
+  },
+  "butane": {
+   "cid": 7843,
+   "formula": "C4H10",
+   "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N"
+  },
+  "caffeine": {
+   "cid": 2519,
+   "formula": "C8H10N4O2",
+   "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N"
+  },
+  "camphor": {
+   "cid": 2537,
+   "formula": "C10H16O",
+   "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N"
+  },
+  "capsaicin": {
+   "cid": 1548943,
+   "formula": "C18H27NO3",
+   "inchikey": "YKPUWZUDDOIDPM-SOFGYWHQSA-N"
+  },
+  "carbon dioxide": {
+   "cid": 280,
+   "formula": "CO2",
+   "inchikey": "CURLTUGMZLYLDI-UHFFFAOYSA-N"
+  },
+  "carbon monoxide": {
+   "cid": 281,
+   "formula": "CO",
+   "inchikey": "UGFAIRIUMAVXCW-UHFFFAOYSA-N"
+  },
+  "carbon tetrachloride": {
+   "cid": 5943,
+   "formula": "CCl4",
+   "inchikey": "VZGDMQKNWNREIO-UHFFFAOYSA-N"
+  },
+  "carbonic acid": {
+   "cid": 767,
+   "formula": "CH2O3",
+   "inchikey": "BVKZGUZCCUSVTD-UHFFFAOYSA-N"
+  },
+  "chloroform": {
+   "cid": 6212,
+   "formula": "CHCl3",
+   "inchikey": "HEDRZPFGACZZDS-UHFFFAOYSA-N"
+  },
+  "cholecalciferol": {
+   "cid": 5280795,
+   "formula": "C27H44O",
+   "inchikey": "QYSXJUFSXHHAJI-YRZJJWOYSA-N"
+  },
+  "cholesterol": {
+   "cid": 5997,
+   "formula": "C27H46O",
+   "inchikey": "HVYWMOMLDIMFJA-DPAQBDIFSA-N"
+  },
+  "cholic acid": {
+   "cid": 221493,
+   "formula": "C24H40O5",
+   "inchikey": "BHQCQFFYRZLCQQ-OELDTZBJSA-N"
+  },
+  "citric acid": {
+   "cid": 311,
+   "formula": "C6H8O7",
+   "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N"
+  },
+  "citronellal": {
+   "cid": 7794,
+   "formula": "C10H18O",
+   "inchikey": "NEHNMFOYXAPHSD-UHFFFAOYSA-N"
+  },
+  "codeine": {
+   "cid": 5284371,
+   "formula": "C18H21NO3",
+   "inchikey": "OROGSEYTTFOCAN-DNJOTXNNSA-N"
+  },
+  "cortisol": {
+   "cid": 5754,
+   "formula": "C21H30O5",
+   "inchikey": "JYGXADMDTFJGBT-VWUMJDOOSA-N"
+  },
+  "cyanocobalamin": {
+   "cid": 166596686,
+   "formula": "C63H88CoN14O14P",
+   "inchikey": "RMRCNWBMXRMIRW-WZHZPDAFSA-L"
+  },
+  "cyclohexane": {
+   "cid": 8078,
+   "formula": "C6H12",
+   "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N"
+  },
+  "cyclohexanone": {
+   "cid": 7967,
+   "formula": "C6H10O",
+   "inchikey": "JHIVVAPYMSGYDF-UHFFFAOYSA-N"
+  },
+  "cysteine": {
+   "cid": 5862,
+   "formula": "C3H7NO2S",
+   "inchikey": "XUJNEKJLAYXESH-REOHCLBHSA-N"
+  },
+  "cytidine": {
+   "cid": 6175,
+   "formula": "C9H13N3O5",
+   "inchikey": "UHDGCWIWMRVCDJ-XVFCMESISA-N"
+  },
+  "cytosine": {
+   "cid": 597,
+   "formula": "C4H5N3O",
+   "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N"
+  },
+  "deoxyribose": {
+   "cid": 9828112,
+   "formula": "C5H10O4",
+   "inchikey": "PDWIQYODPROSQH-PYHARJCCSA-N"
+  },
+  "diazepam": {
+   "cid": 3016,
+   "formula": "C16H13ClN2O",
+   "inchikey": "AAOVKJBEBIDNHE-UHFFFAOYSA-N"
+  },
+  "dichloromethane": {
+   "cid": 6344,
+   "formula": "CH2Cl2",
+   "inchikey": "YMWUJEATGCHHMB-UHFFFAOYSA-N"
+  },
+  "diethyl ether": {
+   "cid": 3283,
+   "formula": "C4H10O",
+   "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N"
+  },
+  "dimethyl sulfoxide": {
+   "cid": 679,
+   "formula": "C2H6OS",
+   "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N"
+  },
+  "dopamine": {
+   "cid": 681,
+   "formula": "C8H11NO2",
+   "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N"
+  },
+  "ephedrine": {
+   "cid": 9294,
+   "formula": "C10H15NO",
+   "inchikey": "KWGRBVOPPLSCSI-WPRPVWTQSA-N"
+  },
+  "epinephrine": {
+   "cid": 5816,
+   "formula": "C9H13NO3",
+   "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N"
+  },
+  "estradiol": {
+   "cid": 5757,
+   "formula": "C18H24O2",
+   "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N"
+  },
+  "ethane": {
+   "cid": 6324,
+   "formula": "C2H6",
+   "inchikey": "OTMSDBZUPAUEDD-UHFFFAOYSA-N"
+  },
+  "ethanol": {
+   "cid": 702,
+   "formula": "C2H6O",
+   "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
+  },
+  "ethyl acetate": {
+   "cid": 8857,
+   "formula": "C4H8O2",
+   "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N"
+  },
+  "ethylene": {
+   "cid": 6325,
+   "formula": "C2H4",
+   "inchikey": "VGGSQFUCUMXWEO-UHFFFAOYSA-N"
+  },
+  "ethylene glycol": {
+   "cid": 174,
+   "formula": "C2H6O2",
+   "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N"
+  },
+  "eugenol": {
+   "cid": 3314,
+   "formula": "C10H12O2",
+   "inchikey": "RRAFCDWBNXTKKO-UHFFFAOYSA-N"
+  },
+  "folic acid": {
+   "cid": 135398658,
+   "formula": "C19H19N7O6",
+   "inchikey": "OVBPIULPVIDEAO-LBPRGKRZSA-N"
+  },
+  "formaldehyde": {
+   "cid": 712,
+   "formula": "CH2O",
+   "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N"
+  },
+  "formic acid": {
+   "cid": 284,
+   "formula": "CH2O2",
+   "inchikey": "BDAGIHXWWSANSR-UHFFFAOYSA-N"
+  },
+  "fructose": {
+   "cid": 2723872,
+   "formula": "C6H12O6",
+   "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N"
+  },
+  "fumaric acid": {
+   "cid": 444972,
+   "formula": "C4H4O4",
+   "inchikey": "VZCYOOQTPOCHFL-OWOJBTEDSA-N"
+  },
+  "galactose": {
+   "cid": 6036,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-SVZMEOIVSA-N"
+  },
+  "geraniol": {
+   "cid": 637566,
+   "formula": "C10H18O",
+   "inchikey": "GLZPCOQZEFWAFX-JXMROGBWSA-N"
+  },
+  "glucose": {
+   "cid": 5793,
+   "formula": "C6H12O6",
+   "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N"
+  },
+  "glycerol": {
+   "cid": 753,
+   "formula": "C3H8O3",
+   "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N"
+  },
+  "glycine": {
+   "cid": 750,
+   "formula": "C2H5NO2",
+   "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N"
+  },
+  "glycogen": {
+   "cid": 439177,
+   "formula": "C24H42O21",
+   "inchikey": "BYSGBSNPRWKUQH-UJDJLXLFSA-N"
+  },
+  "guanine": {
+   "cid": 135398634,
+   "formula": "C5H5N5O",
+   "inchikey": "UYTPUPDQBNUYGX-UHFFFAOYSA-N"
+  },
+  "guanosine": {
+   "cid": 135398635,
+   "formula": "C10H13N5O5",
+   "inchikey": "NYHBQMYGNKIUIF-UUOKFMHZSA-N"
+  },
+  "hexane": {
+   "cid": 8058,
+   "formula": "C6H14",
+   "inchikey": "VLKZOEOYAKHREP-UHFFFAOYSA-N"
+  },
+  "histamine": {
+   "cid": 774,
+   "formula": "C5H9N3",
+   "inchikey": "NTYJJOPFIAHURM-UHFFFAOYSA-N"
+  },
+  "hydrochloric acid": {
+   "cid": 313,
+   "formula": "ClH",
+   "inchikey": "VEXZGXHMUGYJMC-UHFFFAOYSA-N"
+  },
+  "hydrogen": {
+   "cid": 783,
+   "formula": "H2",
+   "inchikey": "UFHFLCQGNIYNRP-UHFFFAOYSA-N"
+  },
+  "hydrogen peroxide": {
+   "cid": 784,
+   "formula": "H2O2",
+   "inchikey": "MHAJPDPJQMAIIY-UHFFFAOYSA-N"
+  },
+  "ibuprofen": {
+   "cid": 3672,
+   "formula": "C13H18O2",
+   "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N"
+  },
+  "indigo": {
+   "cid": 10215,
+   "formula": "C16H10N2O2",
+   "inchikey": "QQILFGKZUJYXGS-UHFFFAOYSA-N"
+  },
+  "indole": {
+   "cid": 798,
+   "formula": "C8H7N",
+   "inchikey": "SIKJAQJRHWYJAI-UHFFFAOYSA-N"
+  },
+  "isopropyl alcohol": {
+   "cid": 3776,
+   "formula": "C3H8O",
+   "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N"
+  },
+  "lactic acid": {
+   "cid": 612,
+   "formula": "C3H6O3",
+   "inchikey": "JVTAAEKCZFNVCJ-UHFFFAOYSA-N"
+  },
+  "lactose": {
+   "cid": 6134,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N"
+  },
+  "leucine": {
+   "cid": 6106,
+   "formula": "C6H13NO2",
+   "inchikey": "ROHFNLRQFUQHCH-YFKPBYRVSA-N"
+  },
+  "lidocaine": {
+   "cid": 3676,
+   "formula": "C14H22N2O",
+   "inchikey": "NNJVILVZKWQKPM-UHFFFAOYSA-N"
+  },
+  "limonene": {
+   "cid": 22311,
+   "formula": "C10H16",
+   "inchikey": "XMGQYMWWDOXHJM-UHFFFAOYSA-N"
+  },
+  "linalool": {
+   "cid": 6549,
+   "formula": "C10H18O",
+   "inchikey": "CDOSHBSSFJOMGT-UHFFFAOYSA-N"
+  },
+  "linoleic acid": {
+   "cid": 5280450,
+   "formula": "C18H32O2",
+   "inchikey": "OYHQOLUKZRVURQ-HZJYTTRNSA-N"
+  },
+  "malic acid": {
+   "cid": 525,
+   "formula": "C4H6O5",
+   "inchikey": "BJEPYKJPYRNKOW-UHFFFAOYSA-N"
+  },
+  "maltose": {
+   "cid": 439186,
+   "formula": "C12H22O11",
+   "inchikey": "GUBGYTABKSRVRQ-PICCSMPSSA-N"
+  },
+  "menthol": {
+   "cid": 1254,
+   "formula": "C10H20O",
+   "inchikey": "NOOLISFMXDJSKH-UHFFFAOYSA-N"
+  },
+  "metformin": {
+   "cid": 4091,
+   "formula": "C4H11N5",
+   "inchikey": "XZWYZXLIPXDOLR-UHFFFAOYSA-N"
+  },
+  "methane": {
+   "cid": 297,
+   "formula": "CH4",
+   "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N"
+  },
+  "methanol": {
+   "cid": 887,
+   "formula": "CH4O",
+   "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N"
+  },
+  "methionine": {
+   "cid": 6137,
+   "formula": "C5H11NO2S",
+   "inchikey": "FFEARJCKVFRZRR-BYPYZUCNSA-N"
+  },
+  "methyl salicylate": {
+   "cid": 4133,
+   "formula": "C8H8O3",
+   "inchikey": "OSWPMRLSEDHDFF-UHFFFAOYSA-N"
+  },
+  "methylamine": {
+   "cid": 6329,
+   "formula": "CH5N",
+   "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N"
+  },
+  "morphine": {
+   "cid": 5288826,
+   "formula": "C17H19NO3",
+   "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N"
+  },
+  "naphthalene": {
+   "cid": 931,
+   "formula": "C10H8",
+   "inchikey": "UFWIBTONFRDIAS-UHFFFAOYSA-N"
+  },
+  "naproxen": {
+   "cid": 156391,
+   "formula": "C14H14O3",
+   "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N"
+  },
+  "niacin": {
+   "cid": 938,
+   "formula": "C6H5NO2",
+   "inchikey": "PVNIIMVLHYAWGP-UHFFFAOYSA-N"
+  },
+  "nicotine": {
+   "cid": 89594,
+   "formula": "C10H14N2",
+   "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N"
+  },
+  "nitric acid": {
+   "cid": 944,
+   "formula": "HNO3",
+   "inchikey": "GRYLNZFGIOXLOG-UHFFFAOYSA-N"
+  },
+  "nitrobenzene": {
+   "cid": 7416,
+   "formula": "C6H5NO2",
+   "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N"
+  },
+  "nitrogen": {
+   "cid": 947,
+   "formula": "N2",
+   "inchikey": "IJGRMHOSHXDMSA-UHFFFAOYSA-N"
+  },
+  "nitroglycerin": {
+   "cid": 4510,
+   "formula": "C3H5N3O9",
+   "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N"
+  },
+  "oleic acid": {
+   "cid": 445639,
+   "formula": "C18H34O2",
+   "inchikey": "ZQPPMHVWECSIRJ-KTKRTIGZSA-N"
+  },
+  "omeprazole": {
+   "cid": 4594,
+   "formula": "C17H19N3O3S",
+   "inchikey": "SUBDBMMJDZJVOS-UHFFFAOYSA-N"
+  },
+  "oxaloacetic acid": {
+   "cid": 970,
+   "formula": "C4H4O5",
+   "inchikey": "KHPXUQMNIQBQEV-UHFFFAOYSA-N"
+  },
+  "oxygen": {
+   "cid": 977,
+   "formula": "O2",
+   "inchikey": "MYMOFIZGZYHOMD-UHFFFAOYSA-N"
+  },
+  "ozone": {
+   "cid": 24823,
+   "formula": "O3",
+   "inchikey": "CBENFWSGALASAD-UHFFFAOYSA-N"
+  },
+  "palmitic acid": {
+   "cid": 985,
+   "formula": "C16H32O2",
+   "inchikey": "IPCSVZSSVZVIGE-UHFFFAOYSA-N"
+  },
+  "paracetamol": {
+   "cid": 1983,
+   "formula": "C8H9NO2",
+   "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N"
+  },
+  "penicillin": {
+   "cid": 2349,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-UHFFFAOYSA-N"
+  },
+  "penicillin g": {
+   "cid": 5904,
+   "formula": "C16H18N2O4S",
+   "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N"
+  },
+  "phenanthrene": {
+   "cid": 995,
+   "formula": "C14H10",
+   "inchikey": "YNPNZTXNASCQKK-UHFFFAOYSA-N"
+  },
+  "phenol": {
+   "cid": 996,
+   "formula": "C6H6O",
+   "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N"
+  },
+  "phosphoric acid": {
+   "cid": 1004,
+   "formula": "H3O4P",
+   "inchikey": "NBIIXXVUZAFLBC-UHFFFAOYSA-N"
+  },
+  "potassium permanganate": {
+   "cid": 516875,
+   "formula": "KMnO4",
+   "inchikey": "VZJVWSHVAAUDKD-UHFFFAOYSA-N"
+  },
+  "progesterone": {
+   "cid": 5994,
+   "formula": "C21H30O2",
+   "inchikey": "RJKFOVLPORLFTN-LEKSSAKUSA-N"
+  },
+  "propane": {
+   "cid": 6334,
+   "formula": "C3H8",
+   "inchikey": "ATUOYWHBWRKTHZ-UHFFFAOYSA-N"
+  },
+  "purine": {
+   "cid": 1044,
+   "formula": "C5H4N4",
+   "inchikey": "KDCGOANMDULRCW-UHFFFAOYSA-N"
+  },
+  "pyridine": {
+   "cid": 1049,
+   "formula": "C5H5N",
+   "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N"
+  },
+  "pyridoxine": {
+   "cid": 1054,
+   "formula": "C8H11NO3",
+   "inchikey": "LXNHXLLTXMVWPM-UHFFFAOYSA-N"
+  },
+  "pyrimidine": {
+   "cid": 9260,
+   "formula": "C4H4N2",
+   "inchikey": "CZPWVGJYEJSRLH-UHFFFAOYSA-N"
+  },
+  "pyruvic acid": {
+   "cid": 1060,
+   "formula": "C3H4O3",
+   "inchikey": "LCTONWCANYUPML-UHFFFAOYSA-N"
+  },
+  "quinine": {
+   "cid": 3034034,
+   "formula": "C20H24N2O2",
+   "inchikey": "LOUPRKONTZGTKE-WZBLMQSHSA-N"
+  },
+  "retinol": {
+   "cid": 445354,
+   "formula": "C20H30O",
+   "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N"
+  },
+  "riboflavin": {
+   "cid": 493570,
+   "formula": "C17H20N4O6",
+   "inchikey": "AUNGANRZJHBGPY-SCRDCRAPSA-N"
+  },
+  "ribose": {
+   "cid": 10975657,
+   "formula": "C5H10O5",
+   "inchikey": "SRBFZHDQGSBBOR-SOOFDHNKSA-N"
+  },
+  "saccharin": {
+   "cid": 5143,
+   "formula": "C7H5NO3S",
+   "inchikey": "CVHZOJJKTDOEJC-UHFFFAOYSA-N"
+  },
+  "salicylic acid": {
+   "cid": 338,
+   "formula": "C7H6O3",
+   "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N"
+  },
+  "serotonin": {
+   "cid": 5202,
+   "formula": "C10H12N2O",
+   "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N"
+  },
+  "simvastatin": {
+   "cid": 54454,
+   "formula": "C25H38O5",
+   "inchikey": "RYMZZMVNJRMUDD-HGQWONQESA-N"
+  },
+  "sodium bicarbonate": {
+   "cid": 516892,
+   "formula": "CHNaO3",
+   "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M"
+  },
+  "sodium chloride": {
+   "cid": 5234,
+   "formula": "ClNa",
+   "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M"
+  },
+  "sodium hydroxide": {
+   "cid": 14798,
+   "formula": "HNaO",
+   "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M"
+  },
+  "stearic acid": {
+   "cid": 5281,
+   "formula": "C18H36O2",
+   "inchikey": "QIQXTHQIDYTFRH-UHFFFAOYSA-N"
+  },
+  "streptomycin": {
+   "cid": 19649,
+   "formula": "C21H39N7O12",
+   "inchikey": "UCSJYZPVAKXKNQ-HZYVHMACSA-N"
+  },
+  "styrene": {
+   "cid": 7501,
+   "formula": "C8H8",
+   "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N"
+  },
+  "succinic acid": {
+   "cid": 1110,
+   "formula": "C4H6O4",
+   "inchikey": "KDYFGRWQOYBRFD-UHFFFAOYSA-N"
+  },
+  "sucrose": {
+   "cid": 5988,
+   "formula": "C12H22O11",
+   "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N"
+  },
+  "sulfuric acid": {
+   "cid": 1118,
+   "formula": "H2O4S",
+   "inchikey": "QAOWNCQODCNURD-UHFFFAOYSA-N"
+  },
+  "testosterone": {
+   "cid": 6013,
+   "formula": "C19H28O2",
+   "inchikey": "MUMGGOZAMZWBJJ-DYKIIFRCSA-N"
+  },
+  "tetracycline": {
+   "cid": 54675776,
+   "formula": "C22H24N2O8",
+   "inchikey": "NWXMGUDVXFXRIG-WESIUVDSSA-N"
+  },
+  "tetrahydrofuran": {
+   "cid": 8028,
+   "formula": "C4H8O",
+   "inchikey": "WYURNTSHIVDZCO-UHFFFAOYSA-N"
+  },
+  "theobromine": {
+   "cid": 5429,
+   "formula": "C7H8N4O2",
+   "inchikey": "YAPQBXQYLJRXSA-UHFFFAOYSA-N"
+  },
+  "thiamine": {
+   "cid": 1130,
+   "formula": "C12H17N4OS+",
+   "inchikey": "JZRWCGZRTZMZEH-UHFFFAOYSA-N"
+  },
+  "thymidine": {
+   "cid": 5789,
+   "formula": "C10H14N2O5",
+   "inchikey": "IQFYYKKMVGJFEH-XLPZGREQSA-N"
+  },
+  "thymine": {
+   "cid": 1135,
+   "formula": "C5H6N2O2",
+   "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N"
+  },
+  "thyroxine": {
+   "cid": 5819,
+   "formula": "C15H11I4NO4",
+   "inchikey": "XUIIKFGFIJCVMT-LBPRGKRZSA-N"
+  },
+  "tocopherol": {
+   "cid": 14986,
+   "formula": "C28H48O2",
+   "inchikey": "QUEDXNHFTDJVIY-UHFFFAOYSA-N"
+  },
+  "toluene": {
+   "cid": 1140,
+   "formula": "C7H8",
+   "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N"
+  },
+  "tryptophan": {
+   "cid": 6305,
+   "formula": "C11H12N2O2",
+   "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N"
+  },
+  "tyrosine": {
+   "cid": 6057,
+   "formula": "C9H11NO3",
+   "inchikey": "OUYCCCASQSFEME-QMMMGPOBSA-N"
+  },
+  "uracil": {
+   "cid": 1174,
+   "formula": "C4H4N2O2",
+   "inchikey": "ISAKRJDGNUQOIC-UHFFFAOYSA-N"
+  },
+  "urea": {
+   "cid": 1176,
+   "formula": "CH4N2O",
+   "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N"
+  },
+  "valine": {
+   "cid": 6287,
+   "formula": "C5H11NO2",
+   "inchikey": "KZSNJWFQEVHDMF-BYPYZUCNSA-N"
+  },
+  "vancomycin": {
+   "cid": 14969,
+   "formula": "C66H75Cl2N9O24",
+   "inchikey": "MYPYJXKWCTUITO-LYRMYLQWSA-N"
+  },
+  "vanillin": {
+   "cid": 1183,
+   "formula": "C8H8O3",
+   "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N"
+  },
+  "warfarin": {
+   "cid": 54678486,
+   "formula": "C19H16O4",
+   "inchikey": "PJVWKTKQMONHTI-UHFFFAOYSA-N"
+  },
+  "water": {
+   "cid": 962,
+   "formula": "H2O",
+   "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N"
+  }
+ },
+ "generated": "2026-09-09T04:30:53+00:00",
+ "note": "PubChem 응답을 그대로 받아 적은 것. 여기서 구조를 추론하지 않는다.",
+ "source": "PubChem PUG REST /compound/name/{}/property/InChIKey,MolecularFormula"
+}
