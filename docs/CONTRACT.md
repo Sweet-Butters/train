@@ -131,3 +131,26 @@ def segment_page(page_image: Path, out_dir: Path) -> list[Path]: ...
 `Sweet-Butters/chemcheck` 워크트리에서는 코디네이터 문서와 머지만 커밋한다.
 A 는 `Sweet-Butters/track-a-ocsr` 에서 작업한다. 통합 지점이 동시에 작업대이면
 통합이 그 트랙의 진행에 인질로 잡힌다.
+
+## 무거운 환경에서 스크립트를 돌릴 때 — `__main__` 가드는 선택이 아니다
+
+사고 기록 (2026-09-09): 시스템 메모리가 94% 까지 찼다. python 프로세스 24 개,
+6GB. 원인은 `main` 가드 없이 실행한 임시 MolScribe 검증 스크립트다.
+
+`molscribe/chemistry.py:564` 의 `convert_graph_to_smiles` 는 **이미지 한 장마다**
+`multiprocessing.Pool(16)` 을 연다(`num_workers=16` 이 기본값). 윈도우에는 fork 가
+없어 자식이 `__main__` 을 다시 import 하는데, 가드가 없으면 스크립트가 통째로
+재실행되어 자식마다 1.13GB 체크포인트를 또 읽고 또 Pool 을 연다. 재귀한다.
+
+- 저장소의 워커 둘(`scripts/ocsr_worker.py`, `scripts/segment_worker.py`)은 가드가
+  있다. **운영 경로는 안전하다.**
+- 사고는 스크래치패드의 임시 스크립트에서 났다. 규칙은 임시 스크립트에도 적용된다.
+- 무거운 import 는 `main()` 안에 둔다. 자식이 이 모듈을 import 하므로, 최상단에
+  `import torch` 가 있으면 자식 16 개가 각자 torch 를 올린다.
+
+### A 에게 남는 것 — 가드가 있어도 Pool(16) 은 그대로다
+
+이미지 한 장에 프로세스 16 개는 운영 경로에서도 그대로다. D 가 398 장 덱을 돌면
+그 수가 그대로 곱해진다. 게다가 16GB 기계에서 분할기(TF)와 MolScribe(torch)가
+동시에 살아 있어야 한다. `predict` 경로의 `num_workers` 를 낮출지는 A 의 판단이다
+(`ocsr.py` 소유). 판단의 근거는 D 의 실측 시간과 이 기계의 메모리다.
