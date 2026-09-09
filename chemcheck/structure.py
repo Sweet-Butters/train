@@ -23,7 +23,7 @@ from .inputs import UnreadableImage, prepare_image
 from .keys import skeleton, smiles_to_inchikey
 from .names import PubChemResolver, Reference, korean_name
 from .ocsr import Engine, Prediction
-from .render import draw_pair, draw_png
+from .render import describe, draw_diff, draw_pair, draw_png
 
 
 @dataclass(frozen=True)
@@ -66,12 +66,24 @@ class Candidate:
 
 
 @dataclass
+class DiffImage:
+    """물러났을 때 후보 두 개의 다른 곳을 칠한 한 장. 질문을 바꾸는 그림이다:
+    '둘 중 뭐가 맞나' 가 아니라 '원본의 이 자리에 이 조각이 있었나'."""
+
+    left: int            # 후보 번호 (1부터)
+    right: int
+    image: Path
+    lines: list[str]     # 사람의 말로 적은 차이
+
+
+@dataclass
 class Recognition:
     image: Path
     status: str          # agreed | uncertain | single | no_result | no_engine | unreadable
     reason: str
     results: list[EngineResult] = field(default_factory=list)
     candidates: list[Candidate] = field(default_factory=list)
+    diffs: list[DiffImage] = field(default_factory=list)   # 물러남일 때 후보 쌍별 diff
     prepared: Path | None = None          # 인식기에 실제로 넘긴 그림 (inputs.prepare_image)
     notes: list[str] = field(default_factory=list)      # 입력을 어떻게 다듬었는가
     warnings: list[str] = field(default_factory=list)   # 다듬지 못해 품질이 의심되는 것
@@ -209,10 +221,21 @@ def _render_candidates(rec: Recognition, out_dir: Path) -> None:
             out_dir / f"{stem}.cand1.png", out_dir / f"{stem}.cand2.png",
             (f"cand1 {'+'.join(a.engines)}", f"cand2 {'+'.join(b.engines)}"),
         )
-        return
-    for i, c in enumerate(cands, start=1):
-        c.image = draw_png(c.smiles, out_dir / f"{stem}.cand{i}.png",
-                           legend=f"cand{i} {'+'.join(c.engines)}")
+    else:
+        for i, c in enumerate(cands, start=1):
+            c.image = draw_png(c.smiles, out_dir / f"{stem}.cand{i}.png",
+                               legend=f"cand{i} {'+'.join(c.engines)}")
+
+    # 후보 쌍마다 다른 곳을 칠한 한 장. 후보가 둘이면 한 장, 셋이면 세 장.
+    for i in range(len(cands)):
+        for j in range(i + 1, len(cands)):
+            a, b = cands[i], cands[j]
+            suffix = "diff" if len(cands) == 2 else f"diff{i + 1}v{j + 1}"
+            la, lb = f"cand{i + 1} {'+'.join(a.engines)}", f"cand{j + 1} {'+'.join(b.engines)}"
+            path, d = draw_diff(a.smiles, b.smiles, out_dir / f"{stem}.{suffix}.png", (la, lb))
+            if path is not None and d is not None:
+                rec.diffs.append(DiffImage(i + 1, j + 1, path,
+                                           describe(d, f"후보 {i + 1}", f"후보 {j + 1}")))
 
 
 # ── 이름 -> 구조 ───────────────────────────────────────────────────────────

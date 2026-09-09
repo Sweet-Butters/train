@@ -241,6 +241,10 @@ def recognition_lines(rec) -> list[str]:
             out.append(f"         InChIKey  {c.inchikey}")
             if c.image:
                 out.append(f"         다시 그림  {c.image}")
+        for d in rec.diffs:
+            out.append(f"      다른 곳 (후보 {d.left} vs 후보 {d.right})  {d.image}")
+            for line in d.lines:
+                out.append(f"         {line}")
         out.append("      후보 중 하나를 답으로 고르지 않습니다. 그림을 보고 사람이 정하세요.")
     return out
 

@@ -262,3 +262,87 @@ def test_cli_prints_input_notes(monkeypatch, capsys) -> None:
         out = capsys.readouterr().out
         assert code == 0
         assert "   입력  " in out and "[ 합의 ]" in out
+
+
+# ── diff 렌더: 물러날 때 '어디가 다른가' 를 칠해 보여준다 ─────────────────────
+
+def test_diff_marks_extra_fragment_and_attachment_site() -> None:
+    from chemcheck.render import describe, diff
+
+    d = diff(ASPIRIN, SALICYLIC)
+    assert d is not None and d.found
+    assert len(d.left.extra) == 3                       # 아세틸기 C, C, O
+    assert d.left.fragments == ["CC=O"]
+    assert d.right.extra == []                          # 살리실산은 통째로 공통부
+    assert len(d.right.attach) == 1                     # 그 조각이 붙는 자리(페놀 O)
+    lines = describe(d, "후보 1", "후보 2")
+    assert any("아세틸기" in ln and "후보 1" in ln for ln in lines)
+    assert any("주황 자리" in ln for ln in lines)
+
+
+def test_diff_without_common_substructure_says_so() -> None:
+    from chemcheck.render import describe, diff
+
+    d = diff("CCO", "c1ccncc1")
+    assert d is not None and not d.found
+    assert "공통 부분구조를 찾지 못했다" in describe(d, "a", "b")[0]
+
+
+def test_diff_same_atoms_different_bonds() -> None:
+    from chemcheck.render import describe, diff
+
+    d = diff("c1ccccc1", "C1CCCCC1")
+    assert d is not None and d.found and not d.left.extra and not d.right.extra
+    assert "결합 방식만" in describe(d, "a", "b")[0]
+
+
+def test_draw_diff_writes_one_side_by_side_png() -> None:
+    from PIL import Image
+
+    from chemcheck.render import SIZE, draw_diff
+
+    with tempfile.TemporaryDirectory() as tmp:
+        path, d = draw_diff(ASPIRIN, SALICYLIC, Path(tmp) / "d.png", ("cand1", "cand2"))
+        assert path is not None and path.exists() and d is not None
+        with Image.open(path) as img:
+            assert img.size == (2 * SIZE[0], SIZE[1])   # 두 판이 한 장에
+
+
+def test_uncertain_recognition_leaves_diff_png_and_words() -> None:
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.95), StubEngine("decimer", SALICYLIC)]
+    with tempfile.TemporaryDirectory() as tmp:
+        rec = recognize(_image(tmp), engines, Path(tmp) / "out")
+        assert rec.status == "uncertain"
+        assert len(rec.diffs) == 1
+        d = rec.diffs[0]
+        assert d.image.name == "demo_02.diff.png" and d.image.exists()
+        assert (d.left, d.right) == (1, 2)
+        assert any("아세틸기" in ln for ln in d.lines)
+
+
+def test_three_candidates_get_pairwise_diffs() -> None:
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.95), StubEngine("decimer", SALICYLIC),
+               StubEngine("molnextr", "OC(=O)c1ccccc1")]
+    with tempfile.TemporaryDirectory() as tmp:
+        rec = recognize(_image(tmp), engines, Path(tmp) / "out")
+        assert rec.status == "uncertain" and len(rec.candidates) == 3
+        assert sorted(d.image.name for d in rec.diffs) == [
+            "demo_02.diff1v2.png", "demo_02.diff1v3.png", "demo_02.diff2v3.png"]
+
+
+def test_agreed_recognition_has_no_diff() -> None:
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.9), StubEngine("decimer", ASPIRIN)]
+    with tempfile.TemporaryDirectory() as tmp:
+        rec = recognize(_image(tmp), engines, Path(tmp) / "out")
+        assert rec.status == "agreed" and rec.diffs == []
+
+
+def test_cli_prints_diff_for_uncertain(monkeypatch, capsys) -> None:
+    engines = [StubEngine("molscribe@.venv310", ASPIRIN, 0.91), StubEngine("decimer", SALICYLIC)]
+    monkeypatch.setattr(cli, "load_engines", lambda ckpt: engines)
+    with tempfile.TemporaryDirectory() as tmp:
+        code = cli.main(["recognize", str(_image(tmp)), "--out", tmp])
+        out = capsys.readouterr().out
+        assert code == 1
+        assert "다른 곳 (후보 1 vs 후보 2)" in out and "demo_02.diff.png" in out
+        assert "아세틸기" in out and "주황 자리" in out
