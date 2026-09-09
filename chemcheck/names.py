@@ -16,6 +16,10 @@ import requests
 PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/property/InChIKey,MolecularFormula/JSON"
 CACHE_PATH = Path.home() / ".cache" / "chemcheck" / "pubchem.json"
 
+# PubChem에 못 닿을 때만 쓰는 최소 대체표. scripts/make_offline_names.py 가 만든다.
+# PubChem이 살아 있으면 언제나 PubChem이 우선이다 — 대체표가 권위를 덮지 않는다.
+OFFLINE_PATH = Path(__file__).with_name("offline_names.json")
+
 # 슬라이드에 흔하지만 화합물이 아닌 말들. PubChem이 엉뚱하게 해석하는 것을 막는다.
 STOPWORDS = {
     "the", "and", "for", "with", "from", "this", "that", "what", "how", "why",
@@ -40,12 +44,27 @@ class PubChemResolver:
         self.cache_path = cache_path
         self.min_interval = min_interval
         self._last_call = 0.0
+        self._offline = False
+        self._fallback = self._load_fallback()
         self._cache: dict[str, dict | None] = {}
         if cache_path.exists():
             try:
                 self._cache = json.loads(cache_path.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError):
                 self._cache = {}
+
+    @staticmethod
+    def _load_fallback() -> dict[str, dict]:
+        try:
+            return json.loads(OFFLINE_PATH.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def _from_fallback(self, name: str, key: str) -> Reference | None:
+        hit = self._fallback.get(key)
+        if hit is None:
+            return None
+        return Reference(name, hit["inchikey"], hit.get("formula", ""))
 
     def _save(self) -> None:
         try:
@@ -64,6 +83,9 @@ class PubChemResolver:
             hit = self._cache[key]
             return Reference(name, hit["inchikey"], hit["formula"]) if hit else None
 
+        if self._offline:
+            return self._from_fallback(name, key)
+
         gap = time.monotonic() - self._last_call
         if gap < self.min_interval:
             time.sleep(self.min_interval - gap)
@@ -72,7 +94,9 @@ class PubChemResolver:
         try:
             resp = requests.get(PUBCHEM.format(quote(key, safe="")), timeout=20)
         except requests.RequestException:
-            return None  # 네트워크 실패는 캐시하지 않는다
+            # 한 번 못 닿으면 남은 조회도 못 닿는다. 매번 기다리지 말고 대체표로 넘어간다.
+            self._offline = True
+            return self._from_fallback(name, key)  # 네트워크 실패는 캐시하지 않는다
 
         if resp.status_code == 404:
             self._cache[key] = None
