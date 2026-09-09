@@ -28,3 +28,9 @@ __pycache__/
 venv/
 *.egg-info/
 .pytest_cache/
+
+# 로컬 환경 (커밋하지 않음)
+.venv/
+.wheels/
+models/
+samples/demo_*.png

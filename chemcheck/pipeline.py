@@ -35,8 +35,13 @@ def references_for(slide: Slide, resolver: PubChemResolver) -> list[Reference]:
     return found
 
 
-def run(path: Path, work_dir: Path, engines: list[Engine] | None = None) -> list[SlideResult]:
-    engines = load_engines() if engines is None else engines
+def run(
+    path: Path,
+    work_dir: Path,
+    engines: list[Engine] | None = None,
+    molscribe_checkpoint: Path | None = None,
+) -> list[SlideResult]:
+    engines = load_engines(molscribe_checkpoint) if engines is None else engines
     resolver = PubChemResolver()
     results: list[SlideResult] = []
 
