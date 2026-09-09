@@ -15,23 +15,50 @@ DECKS = Path(__file__).resolve().parent / "decks"
 
 
 class Truth(Enum):
-    """이름과 그림의 실제 관계. 도구의 판정이 아니라 사실이다."""
+    """이름과 그림의 실제 관계. 도구의 판정이 아니라 사실이다.
 
+    라벨 체계 전체의 정본이다. 뜻과 붙이는 규칙은 bench/decks/README.md 에 적는다.
+    """
+
+    # --- 판정했어야 하는 것 ------------------------------------------------
     SAME = "same"                    # 같은 분자 - 여기서 ERROR 가 나오면 오탐
     SKELETON_DIFF = "skeleton_diff"  # 골격이 다름 - 잡아야 할 진짜 오류
     STEREO_DIFF = "stereo_diff"      # 골격은 같고 입체화학만 다름
-    NOT_A_STRUCTURE = "not_structure"  # 애초에 구조식이 아님 - 판정하면 안 된다
-    NO_CLAIM = "no_claim"              # 구조식은 맞지만 슬라이드가 이름을 대지 않았다
+
+    # --- 대조할 짝이 없는 것 -----------------------------------------------
+    NOT_A_STRUCTURE = "not_structure"  # 그림이 구조식이 아님 (클립아트·사진·도해)
+    NO_CLAIM = "no_claim"              # 구조식은 맞으나 슬라이드가 화합물을 지목 안 함
+
+    # --- 화학이지만 chemcheck 의 범위 밖인 것 -------------------------------
+    GENERIC_FORMULA = "generic_formula"  # R 기 일반식 (OCN-R-NCO) - InChIKey 가 없다
+    REACTION_SCHEME = "reaction_scheme"  # 반응 도식 - 단일 화합물이 아니다
 
 
-# 판정했어야 할 케이스. 아래 둘은 여기 들지 않는다.
+# 판정했어야 할 케이스. 판정률의 분모다.
 JUDGEABLE = (Truth.SAME, Truth.SKELETON_DIFF, Truth.STEREO_DIFF)
 
-# 판정하면 안 되는 케이스. 물러나는 것이 정답이다.
+# 대조할 짝이 없다. 자료는 멀쩡한데 우리 쪽에 대볼 것이 없는 경우다.
 #   NOT_A_STRUCTURE - 그림 쪽에 검사 대상이 없다 (클립아트·사진·오비탈 도해)
 #   NO_CLAIM        - 이름 쪽에 검사할 주장이 없다 (슬라이드가 화합물을 지목하지 않음)
-# 둘 다 '대조할 짝이 없다'는 같은 사실의 양쪽이므로 채점에서 같이 다룬다.
-NOT_JUDGEABLE = (Truth.NOT_A_STRUCTURE, Truth.NO_CLAIM)
+NO_TARGET = (Truth.NOT_A_STRUCTURE, Truth.NO_CLAIM)
+
+# 화학은 맞는데 chemcheck 이 다루지 않기로 한 것 (docs/DIRECTION.md 결정 6).
+# InChIKey 로 표현되지 않는 것을 분모에 두면 판정률은 영원히 낮게 나오고 우리는
+# 고칠 수 없는 숫자를 쫓게 된다. 그래서 분모 밖으로 내되, 지워버리지는 않는다 -
+# 실제 자료의 몇 %가 범위 밖인지는 도구의 성적이 아니라 자료의 사실이고,
+# 그 비율이 높으면 고쳐야 할 것은 도구가 아니라 우리가 고른 자료다.
+#
+# 둘을 한 라벨로 합치지 않는 이유: 앞날이 다르다. 일반식은 언젠가 R 기를 뺀
+# 골격만 대조하는 식으로 다룰 수 있고, 반응 도식은 반응물·생성물을 갈라내는
+# 다른 기능이 필요하다. 어느 쪽이 우리를 붙잡고 있는지 세어둬야 그때 고른다.
+OUT_OF_SCOPE = (Truth.GENERIC_FORMULA, Truth.REACTION_SCHEME)
+
+# 판정하면 안 되는 케이스 전부. 물러나는 것이 정답이므로 채점에서 같이 다룬다.
+NOT_JUDGEABLE = NO_TARGET + OUT_OF_SCOPE
+
+# 그림 쪽에 구조가 없어서 그릴 SMILES 도 없는 라벨. 반대로 NO_CLAIM 은 구조식이
+# 맞으므로 SMILES 가 있어야 한다 - validate 가 이 둘을 다 확인한다.
+NO_SMILES = (Truth.NOT_A_STRUCTURE,) + OUT_OF_SCOPE
 
 
 @dataclass(frozen=True)
@@ -40,7 +67,7 @@ class Case:
     smiles: str    # 슬라이드에 실제로 그려지는 구조 (구조식이 아니면 빈 문자열)
     truth: Truth
     note: str = ""
-    art: str = ""    # 구조식이 아닌 그림의 종류. NOT_A_STRUCTURE 에서만 쓴다
+    art: str = ""    # 그릴 것. smiles 가 빈 라벨에서만 쓴다 (draw_art 참고)
     extra: str = ""  # 이름 옆에 함께 적히는 다른 글자. 참조를 흐리는 말들
 
 
@@ -92,6 +119,18 @@ CORPUS: list[Case] = [
     Case("Propane", "CCC", Truth.SAME,
          "장에 Challenge 와 Sol 이 함께 있다. 둘 다 PubChem 이 화합물로 준다",
          extra="Challenge Sol"),
+
+    # --- 범위 밖 (물러남 측정용) -------------------------------------------
+    # 실측 1 의 고분자 덱이 통째로 이랬다. 8장 중 3장이 일반식, 6장이 반응 도식.
+    # 그 덱에서 판정률 0% 가 나온 것은 도구가 못해서가 아니라 잴 것이 없어서다.
+    # 여기 두는 이유는 그 상황에서 도구가 '오류'라 말하지 않는지 재기 위함이다 -
+    # 물러나면 정답이고, 무언가 판정하면 그건 지어낸 것이다.
+    Case("Polyurethane", "", Truth.GENERIC_FORMULA,
+         "다이아이소사이아네이트 일반식 OCN-R-NCO. R 이 정해지지 않아 InChIKey 가 없다",
+         art="O=C=N[*]N=C=O"),
+    Case("Esterification", "", Truth.REACTION_SCHEME,
+         "아세트산 + 에탄올 -> 에틸 아세테이트. 단일 화합물이 아니라 반응이다",
+         art="CC(=O)O.CCO>>CC(=O)OCC"),
 ]
 
 
@@ -155,6 +194,39 @@ def draw_non_structure(kind: str, dest: Path) -> None:
     img.save(dest)
 
 
+# 자리표시로 그리는 '구조식이 아닌 그림'의 종류.
+NON_STRUCTURE_ART = ("shapes", "text", "noise")
+
+
+def draw_reaction(spec: str, dest: Path) -> None:
+    """반응 도식을 그린다. 반응물과 생성물이 화살표를 사이에 두고 늘어선 그림이다.
+
+    OCSR 은 이것을 받아도 SMILES 하나를 낸다 - 어느 분자를 읽었는지도 알 수 없다.
+    범위 밖이라고 정한 것이지 못 그리는 것이 아니므로, 그림은 진짜로 그려서 먹인다.
+    """
+    from rdkit.Chem import AllChem, Draw
+
+    rxn = AllChem.ReactionFromSmarts(spec, useSmiles=True)
+    if rxn is None:
+        raise ValueError(f"반응식 파싱 실패: {spec}")
+    Draw.ReactionToImage(rxn, subImgSize=(250, 200)).save(str(dest))
+
+
+def draw_art(spec: str, dest: Path) -> None:
+    """대조할 구조가 없는 케이스의 그림을 그린다.
+
+    갈래는 셋이다. 도형 종류면 자리표시 그림(진짜 클립아트는 저작물이라 담지
+    않는다), 화살표가 있으면 반응 도식, 그 밖이면 더미 원자가 든 일반식이다.
+    셋 다 '인식기에 먹이면 SMILES 가 나오는데 대볼 것이 없는' 그림이다.
+    """
+    if spec in NON_STRUCTURE_ART:
+        draw_non_structure(spec, dest)
+    elif ">>" in spec:
+        draw_reaction(spec, dest)
+    else:
+        draw(spec, dest)
+
+
 def build_deck(cases: list[Case], dest: Path) -> Path:
     """케이스 하나당 한 장. 장 번호가 곧 케이스 번호가 되도록 한 장에 하나만 둔다."""
     from pptx import Presentation
@@ -168,8 +240,8 @@ def build_deck(cases: list[Case], dest: Path) -> Path:
     blank = deck.slide_layouts[6]
     for i, case in enumerate(cases, start=1):
         png = images / f"{i:02d}.png"
-        if case.truth is Truth.NOT_A_STRUCTURE:
-            draw_non_structure(case.art or "shapes", png)
+        if case.truth in NO_SMILES:
+            draw_art(case.art or "shapes", png)
         else:
             draw(case.smiles, png)
 

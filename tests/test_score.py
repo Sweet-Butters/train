@@ -1,7 +1,9 @@
 """채점기 검증.
 
 측정 장치의 채점기가 검증되지 않은 채로 있으면 그 장치가 내는 숫자도 믿을 수 없다.
-classify() 는 라벨 3 x 판정 4 = 12 칸짜리 진리표라 전수 검증이 가능하다.
+classify() 는 라벨 x 판정 짜리 진리표라 전수 검증이 가능하다. 칸을 손으로
+전부 적어두면 라벨이 늘 때 이 테스트가 먼저 깨진다 - 새 라벨이 채점기에서 조용히
+아무 칸에나 떨어지는 일을 막는다.
 
 여기서 가장 중요한 것은 오탐률의 분모다. 오탐은 '골격이 같은데 다르다고 단정한 것'
 이므로 SAME 뿐 아니라 STEREO_DIFF 에서도 나온다. 분모를 SAME 으로만 잡으면
@@ -48,6 +50,18 @@ TRUTH_TABLE = {
     (Truth.NO_CLAIM, Verdict.ERROR): Outcome.FALSE_ALARM,
     (Truth.NO_CLAIM, Verdict.OK): Outcome.MISGRADED,
     (Truth.NO_CLAIM, Verdict.WARN): Outcome.MISGRADED,
+
+    # R 기 일반식. InChIKey 가 없으므로 무엇과도 대조되지 않는다.
+    (Truth.GENERIC_FORMULA, Verdict.ABSTAIN): Outcome.DECLINED,
+    (Truth.GENERIC_FORMULA, Verdict.ERROR): Outcome.FALSE_ALARM,
+    (Truth.GENERIC_FORMULA, Verdict.OK): Outcome.MISGRADED,
+    (Truth.GENERIC_FORMULA, Verdict.WARN): Outcome.MISGRADED,
+
+    # 반응 도식. 단일 화합물이 아니라 어느 분자를 판정했는지도 말할 수 없다.
+    (Truth.REACTION_SCHEME, Verdict.ABSTAIN): Outcome.DECLINED,
+    (Truth.REACTION_SCHEME, Verdict.ERROR): Outcome.FALSE_ALARM,
+    (Truth.REACTION_SCHEME, Verdict.OK): Outcome.MISGRADED,
+    (Truth.REACTION_SCHEME, Verdict.WARN): Outcome.MISGRADED,
 }
 
 
@@ -61,7 +75,7 @@ def _card(pairs: list[tuple[Truth, Verdict]], arm: str = "test") -> Scorecard:
 def test_truth_table_is_complete() -> None:
     """12 칸 전부. 빠진 칸이 없어야 하고 값이 어긋나서도 안 된다."""
     cells = [(t, v) for t in Truth for v in Verdict]
-    assert len(cells) == 20, f"칸 수가 20 이 아니다: {len(cells)}"
+    assert len(cells) == 28, f"칸 수가 28 이 아니다: {len(cells)}"
     assert set(cells) == set(TRUTH_TABLE), "진리표에 빠진 칸이 있다"
 
     for (truth, verdict), expected in TRUTH_TABLE.items():

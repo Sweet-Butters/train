@@ -76,6 +76,11 @@ def scorecard(card: Scorecard) -> str:
         out.append(f"  물러남   {_pct(card.decline_rate)}   "
                    f"({card.count(Outcome.DECLINED)}/{card.n_not_judgeable} 건, "
                    f"판정 대상이 아닌 그림)")
+    if card.n_out_of_scope:
+        # 도구의 성적이 아니라 자료의 사실이다. 물러남 안에 섞여 보이면
+        # '자료가 우리 범위 밖이었다'는 사실이 성적표에 묻힌다.
+        out.append(f"  범위 밖  {card.n_out_of_scope:5d} 건   "
+                   f"(일반식·반응 도식 - 짝 없는 그림 {card.n_no_target} 건과 별개)")
     out.append("")
     for outcome in Outcome:
         n = card.count(outcome)
