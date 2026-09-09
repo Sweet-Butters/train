@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chemcheck API</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header container">
+  <a class="wordmark" href="index.html">chemcheck</a>
+  <nav class="site-nav"><a href="index.html">도구</a><a href="index.html#pricing">요금제</a><a href="how.html">이 판정은 어떻게? →</a></nav>
+</header>
+
+<main class="container">
+  <div class="page-head">
+    <h1>API</h1>
+    <p>화면이 쓰는 것과 같은 엔드포인트입니다. 키 없이 지금 호출됩니다.</p>
+  </div>
+
+  <!-- 1. 지금 바로 시험 - 브라우저가 실제로 라이브 서버를 부른다 -->
+  <section class="console" id="try">
+    <h2>지금 바로 시험</h2>
+    <p class="lead">서버: <code data-server-url></code></p>
+    <div class="row">
+      <button type="button" class="btn btn-primary" id="tryCheck">POST /api/check · Gemini 카페인 예시</button>
+      <button type="button" class="btn" id="tryHealth">GET /api/health</button>
+      <button type="button" class="btn" id="tryFileBtn">내 이미지로</button>
+      <input type="file" id="tryFile" accept="image/*" hidden>
+      <label class="small muted">name <input id="tryName" value="Caffeine" style="width:9rem" autocomplete="off"></label>
+    </div>
+    <p class="out-meta" id="tryMeta"></p>
+    <pre class="code out" id="tryOut"></pre>
+  </section>
+
+  <!-- 2. 키 발급 -->
+  <section class="console" id="key">
+    <h2>API 키</h2>
+    <p class="lead">키는 이 브라우저에 저장되고, 위 시험 호출과 아래 코드 예시의 <code>X-API-Key</code> 헤더에 들어갑니다.</p>
+    <form class="form" id="keyForm">
+      <label>이메일 <input type="email" id="keyEmail" required placeholder="you@lab.ac.kr" autocomplete="email"></label>
+      <label>용도
+        <select id="keyPurpose">
+          <option value="lecture">강의자료 · 발표</option>
+          <option value="review">출판 · 피어 리뷰</option>
+          <option value="patent">특허 · 지식재산</option>
+          <option value="data">데이터 정제 · 파이프라인</option>
+          <option value="product">LLM 제품 가드레일</option>
+          <option value="other">기타</option>
+        </select>
+      </label>
+      <div class="row wide"><button type="submit" class="btn btn-primary">발급</button><span class="small muted" id="keyNote"></span></div>
+    </form>
+    <div class="keybox" id="keyBox" hidden>
+      <code id="keyValue"></code>
+      <button type="button" class="btn btn-sm" id="keyCopy">복사</button>
+      <button type="button" class="btn btn-sm" id="keyRevoke">지우기</button>
+      <span class="small" id="keyIssued"></span>
+    </div>
+  </section>
+
+  <!-- 3. 코드 예시 - 발급된 키가 그대로 들어간다 -->
+  <section class="console" id="code">
+    <h2>코드</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab is-on" role="tab" data-lang="curl">curl</button>
+      <button type="button" class="tab" role="tab" data-lang="python">Python</button>
+      <button type="button" class="tab" role="tab" data-lang="js">JavaScript</button>
+    </div>
+    <div class="row"><button type="button" class="btn btn-sm" id="codeCopy">복사</button><span class="small muted" id="codeNote"></span></div>
+    <pre class="code out" id="codeOut"></pre>
+  </section>
+
+  <!-- 4. 엔드포인트 -->
+  <section class="console" id="endpoints">
+    <h2>엔드포인트</h2>
+    <div class="table-wrap">
+    <table class="endpoints">
+      <tr><th>POST /api/check</th><td><code>multipart/form-data</code> · <code>image</code> 파일 · <code>name</code> 화합물 이름(비우면 그림만 읽음) · 헤더 <code>X-API-Key</code> 선택</td></tr>
+      <tr><th>응답</th><td>
+        <code>verdict</code> match · mismatch · unreadable<br>
+        <code>grade</code> strong(인식기 둘 합의) · weak(하나) · null<br>
+        <code>reference</code> {name, smiles, inchikey, formula} · 이름이 없으면 null<br>
+        <code>read</code> {smiles, inchikey, heavy_formula, engines[{engine, smiles, inchikey, confidence}]}<br>
+        <code>reasons</code> 문장 배열 · <code>elapsed_ms</code></td></tr>
+      <tr><th>GET /api/health</th><td><code>{ok, engines[], build, ready}</code></td></tr>
+    </table>
+    </div>
+    <pre class="code" id="sampleOut">{
+  "verdict": "mismatch",
+  "grade": "weak",
+  "reference": {"name": "Caffeine", "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N", "formula": "C8H10N4O2"},
+  "read": {"smiles": "CN1C=[N+](C)C2=C1C(=O)N(C)C(=O)N2C.[I-]", "inchikey": "CSXLFNRQOLIQAN-UHFFFAOYSA-N", "heavy_formula": "C9N4O2",
+           "engines": [{"engine": "molscribe", "inchikey": null, "confidence": 0.855}, {"engine": "decimer", "inchikey": "CSXLFNRQOLIQAN-UHFFFAOYSA-N", "confidence": 0.957}]},
+  "reasons": ["골격이 다릅니다 (CSXLFNRQOLIQAN vs RYYVLZVUVIJVGH)", "중원자 조성 C9N4O2 vs C8N4O2"],
+  "elapsed_ms": 6723
+}</pre>
+  </section>
+
+  <!-- 5. 문의 (Enterprise) -->
+  <section class="console" id="contact">
+    <h2>문의</h2>
+    <p class="lead">전용 엔드포인트 · SLA · 온프레미스. 보내면 메일 앱이 열립니다.</p>
+    <form class="form" id="contactForm">
+      <label>이메일 <input type="email" id="contactEmail" required autocomplete="email"></label>
+      <label>조직 <input type="text" id="contactOrg" autocomplete="organization"></label>
+      <label class="wide">내용 <textarea id="contactBody" rows="3" placeholder="월 예상 건수, 배포 형태(클라우드/온프레미스), 필요한 SLA"></textarea></label>
+      <div class="row wide"><button type="submit" class="btn btn-primary">보내기</button></div>
+    </form>
+  </section>
+</main>
+
+<footer class="site-footer container">
+  chemcheck · <a href="index.html">도구</a> · <a href="how.html">이 판정은 어떻게?</a> · <a href="https://github.com/Sweet-Butters/train">소스</a>
+</footer>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+</body>
+</html>
