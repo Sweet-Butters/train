@@ -156,7 +156,7 @@ class Api:
     def web(self):
         import sys, time
         sys.path.insert(0, "/root")
-        from fastapi import FastAPI, File, Form, UploadFile
+        from fastapi import FastAPI, Request
         from fastapi.middleware.cors import CORSMiddleware
         from fastapi.responses import JSONResponse
 
@@ -177,18 +177,32 @@ class Api:
                     "error": self.engine_error}
 
         @api.post("/api/check")
-        async def check(image: UploadFile = File(...), name: str = Form(...)):
+        async def check(request: Request):
+            # 타입 힌트로 UploadFile/Form 을 받지 않는다. 이 라우트가 메서드 안에서
+            # 정의되기 때문에 pydantic 이 어노테이션을 모듈 전역에서 찾다가 실패한다
+            # (PydanticUserError: UploadFile is not fully defined). 폼을 직접 읽으면
+            # 어노테이션 해석이 아예 필요 없다.
             from server.judge import build_result
 
             started = time.monotonic()
-            data = await image.read()
+            form = await request.form()
+            upload = form.get("image")
+            name = form.get("name")
+            if upload is None or name is None:
+                return JSONResponse(
+                    {"verdict": "unreadable", "grade": None, "reference": None,
+                     "read": None, "reasons": ["image 와 name 이 모두 필요합니다"]},
+                    status_code=400,
+                )
+            name = str(name)
+            data = await upload.read() if hasattr(upload, "read") else bytes(upload)
             ref = None
             try:
                 ref = self.resolver.resolve(name)
             except Exception as exc:  # 이름 해석이 죽어도 그림 읽기는 계속한다
                 print("이름 해석 실패:", exc)
 
-            reads, err = self._read(data, image.filename or "")
+            reads, err = self._read(data, getattr(upload, "filename", "") or "")
             result = build_result(name, ref, reads)
             if err and not reads:
                 result["reasons"].append(f"인식기 사유: {err}")
