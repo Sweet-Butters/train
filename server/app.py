@@ -21,7 +21,7 @@ from chemcheck.names import PubChemResolver
 from chemcheck.ocsr import load_engines
 from server.judge import EngineRead, build_result
 
-BUILD = os.environ.get("CHEMCHECK_BUILD", "cloudrun-3-two-engines")
+BUILD = os.environ.get("CHEMCHECK_BUILD", "cloudrun-4-apikey")
 
 _resolver = PubChemResolver(timeout=8.0, max_retries=1)
 
@@ -69,6 +69,7 @@ api.add_middleware(
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
     max_age=86400,
 )
 
@@ -105,6 +106,12 @@ async def check(request):
     if err and not reads:
         result["reasons"].append(f"인식기 사유: {err}")
     result["elapsed_ms"] = int((time.monotonic() - started) * 1000)
+
+    # 개발자 콘솔에서 발급한 키를 되돌려준다. 지금은 쿼터를 걸지 않는다 -
+    # 걸지 않는데 건 것처럼 보이게 하지 않는다. 키는 호출자를 식별하는 데까지다.
+    key = request.headers.get("x-api-key")
+    if key:
+        result["api_key"] = key[:12] + "..." if len(key) > 12 else key
     return JSONResponse(result)
 
 

@@ -131,11 +131,13 @@ pre.code { padding: var(--s-4); background: var(--bg-2); border: var(--hairline)
 .dropzone.drag { border-color: var(--ink); background: var(--bg-2); }
 .dropzone .hint { font-size: var(--fs-caption); color: var(--ink-2); }
 .dropzone.has-cropper { border: 0; padding: 0; display: block; text-align: left; cursor: default; }
+/* crop.js 의 캔버스가 좁은 화면을 밀어내지 않게 가둔다 - 남의 파일 대신 내 영역에서 막는다. */
+.dropzone .cropx-stage { max-width: 100%; overflow: hidden; }
 .image-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); margin-top: var(--s-1); }
 .image-row .status { font-size: var(--fs-caption); color: var(--ink-3); }
 .image-row .status:empty { display: none; }
-.image-preview { margin-top: var(--s-3); display: flex; align-items: flex-end; gap: var(--s-3); }
-.image-preview img { max-height: 8rem; max-width: 60%; border: var(--hairline); border-radius: var(--radius); }
+.image-preview { margin-top: var(--s-3); display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-3); }
+.image-preview img { max-height: 15rem; max-width: 100%; border: var(--hairline); border-radius: var(--radius); }
 .field-note { margin-top: var(--s-2); font-size: var(--fs-caption); color: var(--ink-2); }
 .field-note:empty { display: none; }
 .err { margin-top: var(--s-2); font-size: var(--fs-caption); color: var(--bad); }
