@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>chemcheck draw</title>
+<style>
+  :root { --ink:#1b1b1f; --mute:#6b6f76; --line:#d9dce1; --ok:#1e7f43; --warn:#a15c00; --bad:#b3261e; --bg:#fafafa; --card:#fff; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui, "Malgun Gothic", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--mute); margin: 0 0 20px; }
+  form { display:grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items:end; }
+  label { display:block; font-size: 13px; color: var(--mute); margin-bottom: 4px; }
+  input { width:100%; box-sizing:border-box; padding: 9px 10px; border:1px solid var(--line); border-radius:6px; font: inherit; font-family: ui-monospace, Consolas, monospace; }
+  button { padding: 9px 16px; border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:6px; font:inherit; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  #status { color: var(--mute); font-size: 13px; margin: 10px 0 0; min-height: 1.2em; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 10px; padding: 18px; margin-top: 18px; display:grid; grid-template-columns: 380px 1fr; gap: 18px; }
+  .card[hidden] { display:none; }
+  .draw { border:1px solid var(--line); border-radius: 8px; background:#fff; min-height: 300px; display:flex; align-items:center; justify-content:center; }
+  .draw svg { max-width:100%; height:auto; }
+  .verdict { font-size: 18px; font-weight: 600; margin: 0 0 10px; }
+  .verdict.ok { color: var(--ok); } .verdict.warn { color: var(--warn); } .verdict.bad { color: var(--bad); }
+  dl { display:grid; grid-template-columns: 110px 1fr; gap: 4px 12px; margin:0; font-size: 14px; }
+  dt { color: var(--mute); } dd { margin:0; font-family: ui-monospace, Consolas, monospace; word-break: break-all; }
+  .why { color: var(--mute); font-size: 13px; margin: 12px 0 0; }
+  .err { color: var(--bad); margin-top: 14px; }
+  footer { color: var(--mute); font-size: 12px; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 12px; }
+  @media (max-width: 720px) { form, .card { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>chemcheck draw</h1>
+  <p class="sub">이름이나 SMILES 를 넣으면 정본 구조를 그리고 InChIKey 를 낸다. 둘 다 넣으면 같은 화합물인지 판정한다. 서버 없음 - 그리기와 InChIKey 는 이 브라우저 안에서 RDKit 이 계산한다.</p>
+
+  <form id="f">
+    <div><label for="name">이름 (영문, PubChem 이 아는 이름)</label><input id="name" placeholder="aspirin" autocomplete="off"></div>
+    <div><label for="smiles">SMILES (LLM 이 준 것 등)</label><input id="smiles" placeholder="CC(=O)Oc1ccccc1C(=O)O" autocomplete="off"></div>
+    <button id="go" type="submit" disabled>확인</button>
+  </form>
+  <p id="status">RDKit 을 내려받는 중 (약 2MB, 첫 번째만)…</p>
+
+  <section id="result" class="card" hidden>
+    <div class="draw" id="draw"></div>
+    <div>
+      <p class="verdict" id="verdict"></p>
+      <dl id="facts"></dl>
+      <p class="why" id="why"></p>
+    </div>
+  </section>
+  <p class="err" id="err"></p>
+
+  <footer id="foot"></footer>
+</main>
+
+<script src="compounds.js"></script>
+<script src="https://unpkg.com/@rdkit/rdkit@2025.3.4-1.0.0/dist/RDKit_minimal.js"></script>
+<script>
+(function () {
+  "use strict";
+  const TABLE = window.CHEMCHECK_TABLE || {};
+  const BY_KEY = {};
+  for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
+  const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
+
+  const $ = (id) => document.getElementById(id);
+  const status = (t) => { $("status").textContent = t; };
+  let RDKit = null;
+
+  $("foot").textContent = `내장 표 ${Object.keys(TABLE).length}개 화합물 (chemcheck/data/compounds.json). 표에 없는 이름은 PubChem PUG REST 를 브라우저에서 직접 부른다. 구조 그림·InChIKey: RDKit.js (WASM) - 서버로 나가는 것은 PubChem 조회뿐이다.`;
+
+  // ---------------------------------------------------------- 이름 → 정본
+
+  async function resolveName(name) {
+    const key = name.trim().toLowerCase();
+    if (TABLE[key]) return { ...TABLE[key], source: "내장 표", query: name };
+    const url = `${PUBCHEM}/name/${encodeURIComponent(name.trim())}/property/SMILES,InChIKey,Title/JSON`;
+    const res = await fetch(url);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
+    const p = (await res.json()).PropertyTable.Properties[0];
+    return { smiles: p.SMILES, inchikey: p.InChIKey, cid: p.CID, title: p.Title, source: "PubChem", query: name };
+  }
+
+  async function identifyByKey(inchikey) {
+    if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "내장 표" };
+    const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title/JSON`);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
+    const p = (await res.json()).PropertyTable.Properties[0];
+    return { title: p.Title, cid: p.CID, source: "PubChem" };
+  }
+
+  // ---------------------------------------------------------- RDKit 계산
+
+  function describe(smiles) {
+    const mol = RDKit.get_mol(smiles);
+    if (!mol || !mol.is_valid()) { if (mol) mol.delete(); return null; }
+    try {
+      const inchi = mol.get_inchi();
+      return {
+        smiles: mol.get_smiles(),
+        inchi,
+        inchikey: RDKit.get_inchikey_for_inchi(inchi),
+        svg: mol.get_svg(360, 300),
+      };
+    } finally { mol.delete(); }
+  }
+
+  function compareKeys(a, b) {
+    if (a === b) return { cls: "ok", text: "일치 - 같은 화합물이다" };
+    if (a.slice(0, 14) === b.slice(0, 14)) return { cls: "warn", text: "골격은 같고 입체·전하가 다르다" };
+    return { cls: "bad", text: "불일치 - 다른 화합물이다" };
+  }
+
+  // ---------------------------------------------------------- 화면
+
+  function show({ svg, verdict, facts, why }) {
+    $("draw").innerHTML = svg || "";
+    const v = $("verdict"); v.textContent = verdict.text; v.className = "verdict " + verdict.cls;
+    const dl = $("facts"); dl.innerHTML = "";
+    for (const [k, val] of facts) {
+      if (val === undefined || val === null || val === "") continue;
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd");
+      if (val && val.href) { const a = document.createElement("a"); a.href = val.href; a.textContent = val.text; a.target = "_blank"; a.rel = "noopener"; dd.appendChild(a); }
+      else dd.textContent = val;
+      dl.append(dt, dd);
+    }
+    $("why").textContent = why || "";
+    $("result").hidden = false;
+    $("err").textContent = "";
+  }
+
+  function fail(msg) { $("result").hidden = true; $("err").textContent = msg; }
+  const cidLink = (cid) => cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${cid}`, text: `CID ${cid}` } : null;
+
+  async function run(name, smiles) {
+    name = name.trim(); smiles = smiles.trim();
+    if (!name && !smiles) return fail("이름이나 SMILES 중 하나는 넣어야 한다.");
+    $("go").disabled = true; status("계산 중…");
+    try {
+      const ref = name ? await resolveName(name) : null;
+      if (name && !ref) return fail(`"${name}" - 내장 표에도 PubChem 에도 없는 이름이다. 영문 일반명이나 IUPAC 이름으로 다시 넣어라.`);
+      const refDesc = ref ? describe(ref.smiles) : null;
+      const user = smiles ? describe(smiles) : null;
+      if (smiles && !user) return fail("SMILES 를 읽을 수 없다. RDKit 이 파싱하지 못했다: " + smiles);
+
+      if (ref && user) {
+        const verdict = compareKeys(ref.inchikey, user.inchikey);
+        show({
+          svg: user.svg, verdict,
+          facts: [["이름", `${ref.title || name} (${ref.source})`], ["PubChem", cidLink(ref.cid)],
+                  ["정본 InChIKey", ref.inchikey], ["입력 InChIKey", user.inchikey],
+                  ["정본 SMILES", refDesc ? refDesc.smiles : ref.smiles], ["입력 SMILES", user.smiles]],
+          why: "그림은 입력한 SMILES 를 RDKit 이 다시 그린 것이다. 판정은 InChIKey 비교 - 앞 14자가 골격, 나머지가 입체·이성질체·전하다.",
+        });
+      } else if (ref) {
+        const agree = refDesc && refDesc.inchikey === ref.inchikey;
+        show({
+          svg: refDesc ? refDesc.svg : "", verdict: { cls: "ok", text: `${ref.title || name} - 정본 구조` },
+          facts: [["출처", ref.source], ["PubChem", cidLink(ref.cid)], ["InChIKey", ref.inchikey],
+                  ["SMILES", refDesc ? refDesc.smiles : ref.smiles],
+                  ["자체 검산", agree ? "RDKit 이 SMILES 에서 낸 InChIKey 가 정본과 같다" : `주의: RDKit 계산 ${refDesc && refDesc.inchikey} ≠ 정본`]],
+          why: "추론 없음. 이름은 정본 표나 PubChem 에서 찾고, 그 SMILES 를 RDKit 이 그렸다.",
+        });
+      } else {
+        const who = await identifyByKey(user.inchikey);
+        show({
+          svg: user.svg,
+          verdict: who ? { cls: "ok", text: `${who.title} 로 확인됐다` } : { cls: "warn", text: "PubChem 에 없는 구조다" },
+          facts: [["출처", who ? who.source : "-"], ["PubChem", who ? cidLink(who.cid) : null],
+                  ["InChIKey", user.inchikey], ["정규 SMILES", user.smiles]],
+          why: who ? "InChIKey 로 PubChem 을 역조회했다. 이름이 맞는지는 그 이름을 위 칸에 넣어 다시 확인하면 된다."
+                   : "구조 자체는 유효하지만 PubChem 에 등록된 화합물이 아니다. LLM 이 만들어 낸 구조일 수 있다.",
+        });
+      }
+    } catch (e) {
+      fail("실패: " + (e && e.message ? e.message : e) + " (PubChem 은 네트워크가 필요하다)");
+    } finally {
+      $("go").disabled = false; status(`RDKit ${RDKit.version()} 준비됨`);
+    }
+  }
+
+  $("f").addEventListener("submit", (ev) => { ev.preventDefault(); run($("name").value, $("smiles").value); });
+
+  // ?name=…&smiles=… 로 열면 바로 계산한다 (공유 링크·헤드리스 테스트용).
+  const q = new URLSearchParams(location.search);
+  if (q.get("name")) $("name").value = q.get("name");
+  if (q.get("smiles")) $("smiles").value = q.get("smiles");
+
+  const t0 = performance.now();
+  window.initRDKitModule().then((m) => {
+    RDKit = m;
+    $("go").disabled = false;
+    status(`RDKit ${m.version()} 준비됨 (${Math.round(performance.now() - t0)}ms)`);
+    if (q.get("name") || q.get("smiles")) run($("name").value, $("smiles").value);
+  }).catch((e) => { status(""); fail("RDKit 을 불러오지 못했다: " + e); });
+})();
+</script>
+</body>
+</html>
