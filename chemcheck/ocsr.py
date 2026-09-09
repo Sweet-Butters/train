@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -97,6 +98,43 @@ class MolScribeEngine(Engine):
         return Prediction(smiles, float(out.get("confidence", 0.0)), self.name)
 
 
+# DECIMER 는 import 시점에 인쇄용 모델과 손그림 모델(각 332MB) 을 둘 다 올린다.
+# 우리는 인쇄된 구조식만 읽으므로 손그림 쪽은 쓰지 않는다. 그 적재를 건너뛰면
+# 콜드 스타트가 절반 가까이 준다. 끄고 싶으면 False.
+DECIMER_SKIP_HANDDRAWN = True
+
+
+@contextlib.contextmanager
+def _skip_handdrawn_model():
+    """DECIMER 를 import 하는 동안 손그림 모델 적재만 건너뛴다.
+
+    tf.saved_model.load 를 잠깐 가로채 경로에 HandDrawn 이 든 것만 None 으로
+    돌려준다. predict_SMILES(hand_drawn=False) 는 그 값을 만지지 않는다.
+    DECIMER 가 적재 방식을 바꾸면 가로채기가 빗나가고 전처럼 둘 다 올라온다 -
+    느려질 뿐 깨지지는 않는다.
+    """
+    if not DECIMER_SKIP_HANDDRAWN:
+        yield
+        return
+    try:
+        import tensorflow as tf
+        real_load = tf.saved_model.load
+    except Exception:
+        yield  # TF 가 없으면 DECIMER import 가 알아서 실패하고 available 이 접는다
+        return
+
+    def load(path, *args, **kwargs):
+        if "HandDrawn" in str(path):
+            return None
+        return real_load(path, *args, **kwargs)
+
+    tf.saved_model.load = load
+    try:
+        yield
+    finally:
+        tf.saved_model.load = real_load
+
+
 class DecimerEngine(Engine):
     name = "decimer"
 
@@ -110,7 +148,8 @@ class DecimerEngine(Engine):
         if self.unavailable_reason is not None:
             return False
         try:
-            from DECIMER import predict_SMILES
+            with _skip_handdrawn_model():
+                from DECIMER import predict_SMILES
         except Exception as exc:
             # DECIMER 는 import 시점에 가중치를 내려받는다. 배포처가 죽어 있거나
             # 받다 만 zip 이 남아 있으면 ImportError 가 아닌 예외로 죽는다.
@@ -143,6 +182,13 @@ class SubprocessEngine(Engine):
 
     WORKER = Path(__file__).resolve().parents[1] / "scripts" / "ocsr_worker.py"
 
+    # 타임아웃의 근거 (2026-09-09, 16GB 기계, CPU, 게이트 아래 실측):
+    #   MolScribe 워커 적재(콜드)   17~33s   피크 1.7GB
+    #   MolScribe 한 장            14~22s   (첫 장이 가장 길다)
+    #   DECIMER  같은 프로세스 적재  140s    (손그림 모델 건너뛰고. 둘 다 올리면 254s)
+    #   DECIMER  한 장             20~44s   (첫 장은 TF 추적 때문에 길다)
+    # 적재 600s, 호출 180s 는 그 몇 배다. 메모리가 눌리면 시간이 두 배까지 늘어나므로
+    # 더 줄이지 않는다.
     def __init__(
         self,
         python: Path,
