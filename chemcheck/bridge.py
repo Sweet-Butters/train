@@ -32,8 +32,19 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def venv_python(name: str) -> Path:
-    """워크트리 안의 가상환경 파이썬 경로. 없어도 예외를 내지 않는다."""
-    return ROOT / name / "Scripts" / "python.exe"
+    """워크트리 안의 가상환경 파이썬 경로. 없어도 예외를 내지 않는다.
+
+    윈도우는 Scripts/python.exe, 리눅스는 bin/python 이다. 컨테이너 배포가
+    생기면서 둘 다 필요해졌다 - 있는 쪽을 돌려주고, 둘 다 없으면 이 OS 의
+    관례대로 돌려준다(없다는 사실은 부르는 쪽이 available() 로 안다).
+    """
+    windows = ROOT / name / "Scripts" / "python.exe"
+    posix = ROOT / name / "bin" / "python"
+    if windows.exists():
+        return windows
+    if posix.exists():
+        return posix
+    return windows if os.name == "nt" else posix
 
 
 class Worker:
