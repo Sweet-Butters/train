@@ -13,7 +13,7 @@ from enum import Enum
 
 from chemcheck.verdict import Finding, Verdict
 
-from .cases import JUDGEABLE, Case, Truth
+from .cases import JUDGEABLE, NOT_JUDGEABLE, Case, Truth
 
 # 각 라벨에서 나와야 할 판정.
 IDEAL = {
@@ -21,12 +21,13 @@ IDEAL = {
     Truth.SKELETON_DIFF: Verdict.ERROR,
     Truth.STEREO_DIFF: Verdict.WARN,
     Truth.NOT_A_STRUCTURE: Verdict.ABSTAIN,  # 구조식이 아니면 물러나는 것이 정답
+    Truth.NO_CLAIM: Verdict.ABSTAIN,         # 주장이 없으면 검사할 것이 없다
 }
 
 WRONG_TRUTHS = (Truth.SKELETON_DIFF, Truth.STEREO_DIFF)
 
 # ERROR 가 나오면 안 되는 라벨. 골격이 같거나, 애초에 구조식이 아니거나.
-NO_ERROR_TRUTHS = (Truth.SAME, Truth.STEREO_DIFF, Truth.NOT_A_STRUCTURE)
+NO_ERROR_TRUTHS = (Truth.SAME, Truth.STEREO_DIFF) + NOT_JUDGEABLE
 
 
 class Outcome(Enum):
@@ -36,12 +37,12 @@ class Outcome(Enum):
     MISSED = "missed"            # 틀린 것을 맞다고 함
     MISGRADED = "misgraded"      # 판정은 했으나 등급이 어긋남
     SILENT = "silent"            # 판정했어야 하는데 하지 않음
-    DECLINED = "declined"        # 구조식이 아닌 것에 옳게 물러남 = 정답
+    DECLINED = "declined"        # 판정 대상이 아닌 것에 옳게 물러남 = 정답
 
 
 def classify(truth: Truth, verdict: Verdict) -> Outcome:
-    if truth is Truth.NOT_A_STRUCTURE:
-        # 구조식이 아닌 그림이다. 물러나는 것이 정답이고, 오류라 단정하면 멀쩡한
+    if truth in NOT_JUDGEABLE:
+        # 대조할 짝이 없다. 물러나는 것이 정답이고, 오류라 단정하면 멀쩡한
         # 자료를 틀렸다고 말하는 것이다 - 실제 자료에서 가장 흔할 오탐 경로다.
         if verdict is Verdict.ABSTAIN:
             return Outcome.DECLINED
@@ -105,8 +106,8 @@ class Scorecard:
         return self.n_truth(*JUDGEABLE)
 
     @property
-    def n_not_structure(self) -> int:
-        return self.n_truth(Truth.NOT_A_STRUCTURE)
+    def n_not_judgeable(self) -> int:
+        return self.n_truth(*NOT_JUDGEABLE)
 
     @property
     def n_skeleton_same(self) -> int:
@@ -132,8 +133,8 @@ class Scorecard:
 
     @property
     def decline_rate(self) -> float | None:
-        """구조식이 아닌 그림에 옳게 물러난 비율."""
-        n = self.n_not_structure
+        """판정 대상이 아닌 그림에 옳게 물러난 비율."""
+        n = self.n_not_judgeable
         return None if not n else self.count(Outcome.DECLINED) / n
 
     @property

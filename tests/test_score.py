@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from bench.cases import JUDGEABLE, Case, Truth  # noqa: E402
+from bench.cases import JUDGEABLE, NOT_JUDGEABLE, Case, Truth  # noqa: E402
 from bench.score import Outcome, Scorecard, classify  # noqa: E402
 from chemcheck.verdict import Finding, Verdict  # noqa: E402
 
@@ -42,6 +42,12 @@ TRUTH_TABLE = {
     (Truth.NOT_A_STRUCTURE, Verdict.ERROR): Outcome.FALSE_ALARM,
     (Truth.NOT_A_STRUCTURE, Verdict.OK): Outcome.MISGRADED,
     (Truth.NOT_A_STRUCTURE, Verdict.WARN): Outcome.MISGRADED,
+
+    # 구조식은 맞지만 슬라이드가 화합물을 지목하지 않았다. 검사할 주장이 없다.
+    (Truth.NO_CLAIM, Verdict.ABSTAIN): Outcome.DECLINED,
+    (Truth.NO_CLAIM, Verdict.ERROR): Outcome.FALSE_ALARM,
+    (Truth.NO_CLAIM, Verdict.OK): Outcome.MISGRADED,
+    (Truth.NO_CLAIM, Verdict.WARN): Outcome.MISGRADED,
 }
 
 
@@ -55,7 +61,7 @@ def _card(pairs: list[tuple[Truth, Verdict]], arm: str = "test") -> Scorecard:
 def test_truth_table_is_complete() -> None:
     """12 칸 전부. 빠진 칸이 없어야 하고 값이 어긋나서도 안 된다."""
     cells = [(t, v) for t in Truth for v in Verdict]
-    assert len(cells) == 16, f"칸 수가 16 이 아니다: {len(cells)}"
+    assert len(cells) == 20, f"칸 수가 20 이 아니다: {len(cells)}"
     assert set(cells) == set(TRUTH_TABLE), "진리표에 빠진 칸이 있다"
 
     for (truth, verdict), expected in TRUTH_TABLE.items():
@@ -69,7 +75,8 @@ def test_abstain_is_silent_except_when_it_is_the_right_answer() -> None:
     """판정할 대상에서 침묵하면 못 본 것이고, 구조식이 아닌 것에서는 잘한 것이다."""
     for truth in JUDGEABLE:
         assert classify(truth, Verdict.ABSTAIN) is Outcome.SILENT, truth
-    assert classify(Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN) is Outcome.DECLINED
+    for truth in NOT_JUDGEABLE:
+        assert classify(truth, Verdict.ABSTAIN) is Outcome.DECLINED, truth
     print("통과: 옳게 물러난 것을 못 본 것으로 세지 않는다.")
 
 
@@ -77,7 +84,7 @@ def test_declining_is_not_counted_against_coverage() -> None:
     """구조식이 아닌 그림에 물러난 것이 판정률을 깎으면, 잘한 일에 벌점을 매기는 것이다."""
     card = _card([(Truth.SAME, Verdict.OK),
                   (Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN),
-                  (Truth.NOT_A_STRUCTURE, Verdict.ABSTAIN)])
+                  (Truth.NO_CLAIM, Verdict.ABSTAIN)])
     assert card.n_judgeable == 1, card.n_judgeable
     assert card.coverage == 1.0, f"물러남이 판정률을 깎았다: {card.coverage}"
     assert card.decline_rate == 1.0, card.decline_rate

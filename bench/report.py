@@ -15,7 +15,7 @@ LABEL = {
     Outcome.MISSED: "놓침 (틀린 것을 맞다고 함)",
     Outcome.MISGRADED: "등급 어긋남",
     Outcome.SILENT: "판정 안 함",
-    Outcome.DECLINED: "구조식이 아닌 것에 옳게 물러남",
+    Outcome.DECLINED: "판정 대상이 아닌 것에 옳게 물러남",
 }
 
 
@@ -72,10 +72,10 @@ def scorecard(card: Scorecard) -> str:
         f"  검출률   {_pct(card.detection_rate)}   "
         f"({card.count(Outcome.CAUGHT)}/{card.n_wrong} 건, 분모는 '틀린' 케이스)",
     ]
-    if card.n_not_structure:
+    if card.n_not_judgeable:
         out.append(f"  물러남   {_pct(card.decline_rate)}   "
-                   f"({card.count(Outcome.DECLINED)}/{card.n_not_structure} 건, "
-                   f"구조식이 아닌 그림)")
+                   f"({card.count(Outcome.DECLINED)}/{card.n_not_judgeable} 건, "
+                   f"판정 대상이 아닌 그림)")
     out.append("")
     for outcome in Outcome:
         n = card.count(outcome)

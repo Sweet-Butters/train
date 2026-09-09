@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from chemcheck.keys import Match, compare, smiles_to_inchikey
 from chemcheck.names import PubChemResolver
 
-from .cases import Case, Truth
+from .cases import NOT_JUDGEABLE, Case, Truth
 
 # InChIKey 비교 결과 -> 참 라벨
 FROM_MATCH = {
@@ -37,12 +37,12 @@ class LabelCheck:
 
 
 def check(case: Case, resolver: PubChemResolver) -> LabelCheck:
-    if case.truth is Truth.NOT_A_STRUCTURE:
+    if case.truth in NOT_JUDGEABLE:
         # 그림이 구조식인지 아닌지는 계산으로 판별할 수 없다. 사람이 눈으로 붙인
         # 라벨이고, 그래서 근거(note)를 반드시 남기게 한다 - 분모를 우리가 정하는
         # 라벨이므로 조작 여지가 있다.
         if not case.note:
-            return LabelCheck(case, None, "구조식이 아니라고 선언했으면 근거를 남길 것")
+            return LabelCheck(case, None, "판정 대상이 아니라고 선언했으면 근거를 남길 것")
         return LabelCheck(case, case.truth, None)
 
     ref = resolver.resolve(case.name)

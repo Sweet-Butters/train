@@ -21,10 +21,17 @@ class Truth(Enum):
     SKELETON_DIFF = "skeleton_diff"  # 골격이 다름 - 잡아야 할 진짜 오류
     STEREO_DIFF = "stereo_diff"      # 골격은 같고 입체화학만 다름
     NOT_A_STRUCTURE = "not_structure"  # 애초에 구조식이 아님 - 판정하면 안 된다
+    NO_CLAIM = "no_claim"              # 구조식은 맞지만 슬라이드가 이름을 대지 않았다
 
 
-# 판정했어야 할 케이스. NOT_A_STRUCTURE 는 여기 들지 않는다.
+# 판정했어야 할 케이스. 아래 둘은 여기 들지 않는다.
 JUDGEABLE = (Truth.SAME, Truth.SKELETON_DIFF, Truth.STEREO_DIFF)
+
+# 판정하면 안 되는 케이스. 물러나는 것이 정답이다.
+#   NOT_A_STRUCTURE - 그림 쪽에 검사 대상이 없다 (클립아트·사진·오비탈 도해)
+#   NO_CLAIM        - 이름 쪽에 검사할 주장이 없다 (슬라이드가 화합물을 지목하지 않음)
+# 둘 다 '대조할 짝이 없다'는 같은 사실의 양쪽이므로 채점에서 같이 다룬다.
+NOT_JUDGEABLE = (Truth.NOT_A_STRUCTURE, Truth.NO_CLAIM)
 
 
 @dataclass(frozen=True)

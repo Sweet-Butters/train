@@ -29,6 +29,7 @@ from chemcheck.verdict import judge                     # noqa: E402
 from . import cases as corpus                           # noqa: E402
 from . import report                                    # noqa: E402
 from .baseline import naive_judge                       # noqa: E402
+from .labeled import LabeledOracle, load_manifest        # noqa: E402
 from .score import Scorecard                            # noqa: E402
 from .validate import check_all                         # noqa: E402
 
@@ -85,6 +86,58 @@ def engines_for(kind: str, checkpoint: Path | None,
     return load_engines(checkpoint if checkpoint and checkpoint.exists() else None)
 
 
+def run_labeled(args, resolver) -> int:
+    """실제 자료 + 사람이 붙인 라벨로 잰다.
+
+    인식기는 라벨에서 답을 읽는 오라클이다. 그러므로 여기 나오는 오탐은 인식기
+    탓이 아니라 나머지 파이프라인 탓이다 - 추출, 이름 해석, 참조 예산, 판정 규칙.
+    """
+    from .score import Outcome
+
+    manifest = load_manifest(args.manifest)
+    if not args.deck:
+        print("--manifest 는 --deck 과 함께 써야 합니다 (자료는 저장소에 없습니다).",
+              file=sys.stderr)
+        return 2
+    if not args.deck.exists():
+        print(f"덱을 찾을 수 없습니다: {args.deck}", file=sys.stderr)
+        return 2
+
+    src = manifest.source
+    print(f"자료 {src.get('file','?')} · 라벨 {manifest.size}건 · 인식기 labeled-oracle")
+    print(f"  {manifest.labeling.get('scope','')}")
+    print("  인식기는 라벨에서 답을 읽는다. 여기 나오는 오탐은 인식기 탓이 아니다.\n")
+
+    engines = [LabeledOracle(manifest)]
+    mine = Scorecard("chemcheck")
+    base = Scorecard("baseline (보류 규칙 없음)")
+    seen = 0
+
+    with tempfile.TemporaryDirectory() as tmp:
+        for slide in load(args.deck, Path(tmp)):
+            labeled = [i for i in slide.images if i.name in manifest.by_image]
+            if not labeled:
+                continue
+            refs = references_for(slide, resolver)
+            for image in labeled:
+                case = manifest.by_image[image.name]
+                preds = [p for e in engines for p in e.recognize_all(image)]
+                mine.add(case, judge(refs, preds))
+                base.add(case, naive_judge(refs, preds))
+                seen += 1
+
+    print(f"라벨 {manifest.size}건 중 덱에서 {seen}건을 찾았다.\n")
+    print(report.scorecard(mine))
+    print()
+    print(report.scorecard(base))
+    print()
+    print(report.contrast(mine, base))
+    if args.detail:
+        print()
+        print(report.detail(mine))
+    return 1 if mine.count(Outcome.FALSE_ALARM) else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="bench.run", description="chemcheck 평가 실행")
     parser.add_argument("--engine", choices=("oracle", "hallucinating", "real", "none"),
@@ -95,9 +148,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-validate", action="store_true",
                         help="PubChem 을 못 쓰는 자리에서 라벨 검증을 건너뛴다")
     parser.add_argument("--detail", action="store_true", help="케이스별 줄까지 출력")
+    parser.add_argument("--manifest", type=Path, default=None,
+                        help="실제 자료에 붙인 라벨 (bench/decks/*.json). --deck 과 함께 쓴다")
     args = parser.parse_args(argv)
 
     resolver = PubChemResolver()
+
+    if args.manifest:
+        return run_labeled(args, resolver)
 
     # 1) 코퍼스가 스스로 옳은가. 여기가 깨지면 아래 숫자는 의미가 없다.
     checks = None
