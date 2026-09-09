@@ -31,13 +31,14 @@ def draw(smiles: str, dest: Path) -> None:
     Draw.MolToFile(mol, str(dest), size=(500, 400))
 
 
-def build() -> Path:
-    OUT.mkdir(parents=True, exist_ok=True)
+def build(out_dir: Path = OUT) -> Path:
+    """데모 덱을 만든다. 테스트는 임시 폴더를 넘겨 samples/ 를 건드리지 않는다."""
+    out_dir.mkdir(parents=True, exist_ok=True)
     deck = Presentation()
     blank = deck.slide_layouts[6]
 
     for i, (name, smiles, correct) in enumerate(CASES, start=1):
-        png = OUT / f"demo_{i:02d}.png"
+        png = out_dir / f"demo_{i:02d}.png"
         draw(smiles, png)
 
         slide = deck.slides.add_slide(blank)
@@ -49,7 +50,7 @@ def build() -> Path:
 
         slide.shapes.add_picture(str(png), Inches(2.6), Inches(1.6), height=Inches(4.2))
 
-    dest = OUT / "demo_slides.pptx"
+    dest = out_dir / "demo_slides.pptx"
     deck.save(str(dest))
     return dest
 
