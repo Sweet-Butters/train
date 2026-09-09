@@ -18,6 +18,10 @@
       <button type="button" id="fileBtn">파일 선택</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
     </div>
+    <div class="examples-row">
+      <span class="examples-label">예제로 바로 해보기 (실제 AI 가 그린 그림 - 구조 영역만 잘라낸 것):</span>
+      <span id="examples"></span>
+    </div>
     <div class="image-preview" id="imagePreview" hidden></div>
     <p class="field-note" id="imageNote"></p>
   </section>
@@ -88,7 +92,7 @@
 </main>
 
 <script src="compounds.js"></script>
-<script src="https://unpkg.com/@rdkit/rdkit@2025.3.4-1.0.0/dist/RDKit_minimal.js"></script>
+<script src="vendor/RDKit_minimal.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
