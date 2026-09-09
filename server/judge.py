@@ -46,11 +46,55 @@ def _conf(value: float) -> float | None:
     return None if math.isnan(f) or math.isinf(f) else round(f, 4)
 
 
+
+def _lenient_formula(smiles: str | None) -> str | None:
+    """원자가 검사 없이 파싱해 **가장 큰 조각**의 중원자 조성을 센다.
+
+    chemcheck.keys.heavy_atom_formula 는 조각을 sanitize=True 로 가르는데,
+    주 조각의 원자가가 깨져 있으면 조각 분리를 포기하고 전체를 센다. 그래서
+    Gemini 카페인에서 MolScribe 가 낸 'CC.CN1C=N(C)C2=C1...' 이 C11N4O2 로
+    나온다 - 앞의 CC 는 인식기가 지어낸 부스러기다.
+
+    여기서는 조각도 sanitize=False 로 갈라 가장 큰 것만 센다. '가장 큰 조각'
+    은 규칙이지 판단이 아니다. 그래야 파싱에 실패한 인식기도 자기가 무엇을
+    봤는지 말할 수 있다 - 오늘 그 한 건이 '탄소 하나 많음' 의 두 번째 증인이었다.
+    """
+    if not smiles or not smiles.strip():
+        return None
+    from collections import Counter
+
+    from rdkit import Chem
+
+    best = None
+    for part in smiles.strip().split("."):
+        mol = Chem.MolFromSmiles(part, sanitize=False)
+        if mol is None:
+            continue
+        n = mol.GetNumAtoms()
+        if best is None or n > best[0]:
+            best = (n, mol)
+    if best is None:
+        return None
+    counts = Counter(a.GetSymbol() for a in best[1].GetAtoms())
+    if not counts:
+        return None
+
+    def part_of(sym: str) -> str:
+        k = counts[sym]
+        return "" if not k else (sym if k == 1 else f"{sym}{k}")
+
+    head = part_of("C")
+    rest = "".join(part_of(sym) for sym in sorted(counts) if sym != "C")
+    return (head + rest) or None
+
+
 def _engine_entry(read: EngineRead) -> dict:
     return {
         "engine": read.engine,
         "smiles": read.smiles,
         "inchikey": smiles_to_inchikey(read.smiles),
+        # 파싱에 실패한 인식기도 자기가 센 원자는 말할 수 있어야 한다.
+        "heavy_formula": _lenient_formula(read.smiles),
         "confidence": _conf(read.confidence),
     }
 
