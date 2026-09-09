@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -56,6 +57,76 @@ EXTRA = [
     "nitrobenzene", "benzaldehyde", "acetophenone", "ethyl acetate",
     "methyl salicylate", "dichloromethane", "carbon tetrachloride", "hexane",
 ]
+
+
+# 브라우저(web/)는 이 표를 그대로 실어서 문자열 그대로 대조한다 - names.py 의
+# korean_name()/variants()/_ko_key() 를 못 부른다(파이썬 없음). 그 규칙을 JS 로
+# 다시 짜면 코드가 두 언어에 흩어져 한쪽만 고치는 일이 생긴다. 대신 정규화가
+# 지웠을 표기 차이를 여기서 표에 미리 다 구워 넣는다 - 소비자는 그대로 정확
+# 일치만 하면 된다 (브라우저는 trim()+toLowerCase(), 아래서 그 결과를 미리 낸다).
+_FULLWIDTH = str.maketrans({
+    **{chr(c): chr(c - 0x41 + 0xFF21) for c in range(0x41, 0x5B)},  # A-Z
+    **{chr(c): chr(c - 0x61 + 0xFF41) for c in range(0x61, 0x7B)},  # a-z
+    **{chr(c): chr(c - 0x30 + 0xFF10) for c in range(0x30, 0x3A)},  # 0-9
+})
+# "비스페놀A" 처럼 한글 뒤에 라틴 접미사가 바로 붙는 표기. 공백 유무 둘 다 나온다.
+_TRAILING_LATIN = re.compile(r"^(.*[가-힣])([A-Za-z0-9]+)$")
+
+
+def ko_key_variants(alias: str) -> set[str]:
+    """한 한글 표기에서 나올 수 있는 다른 표기. 새 이름을 짓지 않고 표기만 넓힌다.
+
+    1. 원래 표기
+    2. 내부 공백·하이픈을 뗀 것 ('tert-부탄올' <-> 'tert부탄올')
+    3. 한글 뒤 라틴 접미사에 공백을 끼운 것 ('비스페놀A' <-> '비스페놀 A')
+    4. 위 표기들의 전각 라틴 문자 버전 ('비타민C' -> '비타민Ｃ') - 학생 자판·IME 가
+       가끔 전각으로 낸다. Python str.lower() 와 JS toLowerCase() 둘 다 전각
+       대문자를 전각 소문자로 접는다(확인됨) - 대소문자는 소비자가 그대로 접는다.
+    """
+    out = {alias}
+    compact = re.sub(r"[\s\-]+", "", alias)
+    out.add(compact)
+    m = _TRAILING_LATIN.match(compact)
+    if m:
+        out.add(f"{m.group(1)} {m.group(2)}")
+    for base in list(out):
+        if re.search(r"[A-Za-z0-9]", base):
+            out.add(base.translate(_FULLWIDTH))
+    return out
+
+
+def add_korean_keys(entries: dict[str, dict], compounds: list[dict]) -> tuple[int, list[str]]:
+    """entries 에 한글 표기를 키로 더한다. 새 화합물을 추가하지 않는다 - 이미 영문으로
+    풀린 레코드를 한글 키로도 찾게 할 뿐이다.
+
+    원천은 둘이다: KO_ALIASES/KO_WHOLE_ONLY(영문 대상이 이미 entries 에 있어야 한다)와
+    lecture_compounds.json 의 ko 배열(그 화합물의 answer 가 정답). 겹치면 answer 를
+    믿는다 - 실제로 PubChem 에 그 이름으로 물어 받은 레코드이기 때문이다.
+    """
+    sources: dict[str, dict] = {}
+    for c in compounds:
+        answer = c.get("answer")
+        if not answer:
+            continue
+        for ko in c.get("ko", []):
+            sources[ko] = answer
+    for ko, en in {**KO_ALIASES, **KO_WHOLE_ONLY}.items():
+        record = entries.get(en.strip().lower())
+        if record is not None:
+            sources.setdefault(ko, record)
+
+    added = 0
+    conflicts: list[str] = []
+    for ko, record in sources.items():
+        for variant in ko_key_variants(ko):
+            key = variant.lower()
+            existing = entries.get(key)
+            if existing is None:
+                entries[key] = record
+                added += 1
+            elif existing.get("inchikey") != record.get("inchikey"):
+                conflicts.append(f"{key!r}: 기존 {existing.get('inchikey')} vs {ko!r} -> {record.get('inchikey')}")
+    return added, conflicts
 
 
 def fetch(session: requests.Session, name: str) -> dict | None:
@@ -154,6 +225,14 @@ def main() -> int:
             print(f"  {i:3}/{len(names)}  {record['inchikey']}  {name}")
         time.sleep(0.25)  # PubChem 은 초당 5건까지 허용한다
 
+    ko_added, ko_conflicts = add_korean_keys(entries, compounds)
+    print(f"\n한글 키 {ko_added}건 추가 (KO_ALIASES/KO_WHOLE_ONLY + 교과서 목록 ko 배열의 "
+          f"표기 확장 - 공백·하이픈·전각 차이)")
+    if ko_conflicts:
+        print(f"경고: 한글 표기가 이미 있는 다른 화합물 키와 겹친다 (넣지 않음):")
+        for line in ko_conflicts:
+            print(f"      {line}")
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(
         json.dumps(
@@ -185,7 +264,7 @@ def main() -> int:
             print(f"      {line}")
     if missing:
         print(f"\n해석 안 된 이름 {len(missing)}건: {', '.join(missing)}")
-    return 1 if bad else 0
+    return 1 if bad or ko_conflicts else 0
 
 
 if __name__ == "__main__":
