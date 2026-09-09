@@ -656,6 +656,7 @@ function renderImageVerdict(json) {
       card.appendChild(note);
       appendReadStructure(card, read0);
       appendReasons(card, json.reasons);
+      appendEngineRows(card, read0);
       return;
     }
     const pill = document.createElement("p"); pill.className = "verdict-pill unreadable"; pill.textContent = "⚪ 읽지 못함";
@@ -691,6 +692,10 @@ function renderImageVerdict(json) {
   appendReadStructure(card, read);
   appendReasons(card, json.reasons);
 
+  appendEngineRows(card, read);
+}
+
+function appendEngineRows(card, read) {
   if (read && read.engines && read.engines.length) {
     const box = document.createElement("div"); box.className = "evidence";
     const title = document.createElement("div"); title.className = "k"; title.textContent = "인식기별 결과";
@@ -699,7 +704,11 @@ function renderImageVerdict(json) {
       const row = document.createElement("div"); row.className = "row";
       const k = document.createElement("div"); k.className = "k"; k.textContent = e.engine || "-";
       const v = document.createElement("div");
-      v.textContent = `${e.inchikey || "(파싱 실패)"}${typeof e.confidence === "number" ? "  신뢰도 " + e.confidence.toFixed(3) : ""}`;
+      // 파싱에 실패한 인식기도 자기가 센 원자는 말한다 - 그것이 두 번째 증인이 된다.
+      const head = e.inchikey || "(RDKit 이 분자로 못 받음)";
+      const formula = e.heavy_formula ? `  원자 ${e.heavy_formula}` : "";
+      const conf = typeof e.confidence === "number" ? `  신뢰도 ${e.confidence.toFixed(3)}` : "";
+      v.textContent = head + formula + conf;
       row.append(k, v); box.appendChild(row);
     }
     card.appendChild(box);
