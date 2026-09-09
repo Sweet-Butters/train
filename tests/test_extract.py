@@ -3,9 +3,10 @@
 인식기 없이 돌아간다. 강의자료가 구조를 담는 두 방식(래스터/벡터)을
 실제 파일로 만들어서, 뽑히는 것과 뽑히지 말아야 할 것을 나눈다.
 
-가장 중요한 두 가지:
+가장 중요한 세 가지:
   - 벡터로 그린 구조가 "그림 0개"로 조용히 사라지지 않는다
   - 그룹 안에 든 그림이 누락되지 않는다
+  - 같은 그림을 여러 번 인식기에 먹이지 않는다 (그러면서 장은 잃지 않는다)
 """
 from __future__ import annotations
 
@@ -115,7 +116,12 @@ def test_pdf_vector_structures_are_extracted() -> None:
     """
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
-        deck = _pdf(work / "vector.pdf", [_title("Aspirin") + _ring(200, 500) + _ring(450, 300)])
+        # 크기를 달리한다. 똑같이 그리면 내용이 같아 한 그림으로 모인다
+        # (그 동작은 test_identical_figures_on_a_page_become_one 이 본다).
+        deck = _pdf(
+            work / "vector.pdf",
+            [_title("Aspirin") + _ring(200, 500) + _ring(450, 300, 55)],
+        )
 
         slides = from_pdf(deck, work / "out")
 
@@ -395,7 +401,7 @@ def test_vector_region_crop_targets_the_right_place() -> None:
                 VectorRegion(1, 6, True, empty),
             ])
         ]
-        extract._fill_vector_images(deck, slides, out)
+        extract._fill_vector_images(deck, slides, extract._FigureStore(out))
 
         hit, miss = slides[0].vector_regions
         assert hit.image is not None, "구조 자리를 오려내지 못했다"
@@ -525,3 +531,183 @@ def test_load_rejects_unknown_suffix() -> None:
             assert "지원하지 않는 형식" in str(err)
         else:
             raise AssertionError("ValueError 를 기대했다")
+
+
+# ------------------------------------------- 같은 그림은 한 번만 다룬다
+
+# 실측한 398장 덱은 그림 371건 중 고유한 것이 109개였고, 배경 클립아트 하나가
+# 46번 나왔다. 장 단위로 넘기면 그 하나가 인식기를 46번 탄다 - 비용도 오탐도
+# 46배다. 아래 테스트들이 지키는 것은 "내용이 같으면 한 번"과 "그래도 어느
+# 장에 나왔는지는 잃지 않는다" 둘이다.
+
+
+def _multi_deck(dest: Path, builds) -> Path:
+    from pptx import Presentation
+
+    deck = Presentation()
+    for build in builds:
+        slide = deck.slides.add_slide(deck.slide_layouts[6])
+        build(slide)
+    deck.save(str(dest))
+    return dest
+
+
+def _place(png: Path):
+    from pptx.util import Inches
+
+    def build(slide):
+        slide.shapes.add_picture(str(png), Inches(1), Inches(1), Inches(3), Inches(3))
+
+    return build
+
+
+def test_same_picture_on_many_slides_is_one_file() -> None:
+    """네 장에 같은 클립아트가 있으면 파일은 하나다."""
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        png = _png(work / "clip.png", 240)
+        deck = _multi_deck(work / "repeat.pptx", [_place(png)] * 4)
+        out = work / "out"
+
+        slides = from_pptx(deck, out, render_vectors=False)
+
+        assert len(slides) == 4
+        paths = {image for slide in slides for image in slide.images}
+        assert len(paths) == 1, f"파일 1개를 기대했는데 {len(paths)}개"
+        assert len([p for p in out.iterdir() if p.is_file()]) == 1, "쓸데없이 더 썼다"
+        # 이름은 처음 나온 자리로 짓는다 - 손으로 붙인 라벨이 안 끊긴다.
+        assert paths.pop().name == "s001_01.png"
+
+
+def test_repeated_slides_still_each_carry_the_figure() -> None:
+    """파일이 하나로 모여도 '어느 장에 있었나'는 그대로다.
+
+    판정 결과는 그 장들에 각각 붙어야 하므로, 여기서 장을 잃으면
+    인식기를 아껴 놓고 리포트를 잃는다.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        png = _png(work / "clip.png", 240)
+        deck = _multi_deck(work / "repeat.pptx", [_place(png)] * 4)
+
+        slides = from_pptx(deck, work / "out", render_vectors=False)
+
+        assert [len(s.images) for s in slides] == [1, 1, 1, 1], "장에서 그림이 사라졌다"
+
+
+def test_figures_turns_slides_inside_out() -> None:
+    """figures() 는 그림 하나와 그것이 나온 장들을 준다."""
+    from chemcheck.extract import figures
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        png = _png(work / "clip.png", 240)
+        deck = _multi_deck(work / "repeat.pptx", [_place(png)] * 4)
+
+        slides = from_pptx(deck, work / "out", render_vectors=False)
+        found = figures(slides)
+
+        assert len(found) == 1
+        assert found[0].slides == (1, 2, 3, 4)
+        assert found[0].path == slides[0].images[0]
+
+
+def test_figures_is_the_number_of_recognizer_calls() -> None:
+    """장 단위로 돌면 6번, 그림 단위로 돌면 2번이다.
+
+    이 차이가 곧 인식기 비용의 차이다. 실측 덱에서는 371 대 109 였다.
+    """
+    from chemcheck.extract import figures
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        one = _png(work / "one.png", 240)
+        two = _png(work / "two.png", 200)
+        deck = _multi_deck(
+            work / "mixed.pptx",
+            [_place(one), _place(one), _place(two), _place(one), _place(two), _place(one)],
+        )
+
+        slides = from_pptx(deck, work / "out", render_vectors=False)
+
+        per_slide = sum(len(s.images) for s in slides)
+        found = figures(slides)
+        assert per_slide == 6
+        assert len(found) == 2, f"고유 그림 2개를 기대했는데 {len(found)}개"
+        assert {f.slides for f in found} == {(1, 2, 4, 6), (3, 5)}
+
+
+def test_repeated_picture_on_one_slide_is_counted_once() -> None:
+    """한 장 안에서 같은 그림이 두 번이면 한 번만 낸다.
+
+    판정이 같은데 두 번 세어질 뿐이다. 실측 덱에서 371건 중 120건이 이 경우였다.
+    """
+    from pptx.util import Inches
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        png = _png(work / "clip.png", 240)
+
+        def build(slide):
+            slide.shapes.add_picture(str(png), Inches(1), Inches(1), Inches(3), Inches(3))
+            slide.shapes.add_picture(str(png), Inches(5), Inches(1), Inches(3), Inches(3))
+
+        deck = _deck(work / "twice.pptx", build)
+        slides = from_pptx(deck, work / "out", render_vectors=False)
+
+        assert len(slides[0].images) == 1, "같은 그림을 두 번 냈다"
+
+
+def test_new_files_keep_their_own_slide_name() -> None:
+    """중복이 앞에 있어도 새 그림의 이름은 제 자리 그대로다.
+
+    이름 규칙이 중복 여부에 따라 흔들리면, 파일명으로 손라벨을 붙여둔 쪽이
+    조용히 어긋난다. 번호는 중복이어도 올린다.
+    """
+    from pptx.util import Inches
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        old = _png(work / "old.png", 240)
+        fresh = _png(work / "fresh.png", 200)
+
+        def second(slide):
+            slide.shapes.add_picture(str(old), Inches(1), Inches(1), Inches(3), Inches(3))
+            slide.shapes.add_picture(str(fresh), Inches(5), Inches(1), Inches(3), Inches(3))
+
+        deck = _multi_deck(work / "shift.pptx", [_place(old), second])
+        slides = from_pptx(deck, work / "out", render_vectors=False)
+
+        assert [i.name for i in slides[0].images] == ["s001_01.png"]
+        assert [i.name for i in slides[1].images] == ["s001_01.png", "s002_02.png"]
+
+
+def test_different_pictures_are_not_merged() -> None:
+    """내용이 다르면 크기가 비슷해도 따로 둔다."""
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        one = _png(work / "one.png", 240)
+        two = _png(work / "two.png", 200)
+        deck = _multi_deck(work / "two.pptx", [_place(one), _place(two)])
+        out = work / "out"
+
+        from_pptx(deck, out, render_vectors=False)
+
+        assert len([p for p in out.iterdir() if p.is_file()]) == 2
+
+
+def test_identical_figures_on_a_page_become_one() -> None:
+    """PDF 도 마찬가지다. 같은 고리를 두 자리에 그리면 그림은 하나다."""
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        deck = _pdf(work / "twin.pdf", [_ring(200, 500) + _ring(450, 300)])
+
+        slides = from_pdf(deck, work / "out")
+
+        assert len(slides[0].images) == 1, "같은 구조를 두 번 냈다"
+
+
+def test_figures_of_an_empty_deck_is_empty() -> None:
+    from chemcheck.extract import Slide, figures
+
+    assert figures([Slide(1, "Aspirin"), Slide(2, "")]) == []
