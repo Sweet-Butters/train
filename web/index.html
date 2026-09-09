@@ -14,7 +14,7 @@
 
   <section class="image-drop">
     <div class="dropzone" id="dropzone" tabindex="0">
-      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 있으면 이름·SMILES 를 자동으로 채웁니다</p>
+      <p class="hint">이미지를 붙여넣거나(Ctrl+V) 여기로 끌어오세요 - 있으면 이름을 자동으로 채웁니다</p>
       <button type="button" id="fileBtn">파일 선택</button>
       <input type="file" id="fileInput" accept="image/*" hidden>
     </div>
@@ -45,16 +45,11 @@
   </section>
   <p class="err" id="err"></p>
 
-  <section class="result-section" id="resultSection" hidden>
-    <h2>대조 결과</h2>
-    <div class="result-card" id="resultCard"></div>
-  </section>
-
   <section class="wildcatch">
     <h2>야생에서 잡은 오류</h2>
     <p class="sub2">오늘 실측(2026-09-09). 로컬 CLI(OCSR, 인식기 둘)로 실제로 읽어서 잡았다 - 웹 버전은 이미지를 읽지 못하므로 이 판정을 재현하지 못한다. 기록만 남긴다.</p>
     <div class="wildcatch-body">
-      <img class="wildcatch-img" src="assets/caffeine_generated_gemini_pro.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
+      <img class="wildcatch-img" src="evidence/caffeine_gemini.jpeg" alt="Gemini Pro 가 그린 '카페인' 이미지 - 제목·화학식·IUPAC명·2D 구조·3D 렌더 3개가 담긴 슬라이드">
       <div class="wildcatch-facts">
         <p class="verdict-pill mismatch">🔴 오류 (로컬 CLI 실측)</p>
         <div class="evidence">
