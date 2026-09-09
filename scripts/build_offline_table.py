@@ -72,6 +72,7 @@ def fetch(session: requests.Session, name: str) -> dict | None:
             return {
                 "inchikey": props["InChIKey"],
                 "formula": props.get("MolecularFormula", ""),
+                "smiles": props.get("SMILES") or props.get("ConnectivitySMILES") or "",
                 "cid": props.get("CID"),
             }
         time.sleep(min(0.5 * 2**attempt, 8.0))

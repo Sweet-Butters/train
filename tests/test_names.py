@@ -207,6 +207,63 @@ def test_network_failure_is_not_cached_as_missing() -> None:
     print("통과: 회선이 돌아오면 다시 조회한다.")
 
 
+def test_greek_prefix_is_not_dropped() -> None:
+    """그리스 문자를 버리면 다른 화합물이 된다.
+
+    PubChem 에서 'beta-carotene' 은 OENHQHLEOONYIE, 'carotene' 은 ANVAOWXLWRTKGA 다.
+    접두사를 잃은 채 조회하면 멀쩡한 그림이 '오류'로 보고된다.
+    """
+    found = [c.lower() for c in candidates("베타카로틴: β-carotene 은 비타민 A 의 전구체다")]
+    assert "beta-carotene" in found, f"그리스 접두사를 살리지 못했다: {found}"
+    assert "carotene" not in found, f"접두사를 잃은 이름이 후보에 들어왔다: {found}"
+    print("  'β-carotene' -> 'beta-carotene' (PubChem 이 해석하는 형태)")
+    print("통과: 그리스 접두사를 잃고 다른 화합물이 되지 않는다.")
+
+
+def test_stereo_prefix_survives() -> None:
+    """'(S)-ibuprofen' 처럼 괄호로 시작하는 이름이 통째로 탈락하고 있었다."""
+    for text, want in [
+        ("(S)-ibuprofen 이 활성 이성질체다", "(s)-ibuprofen"),
+        ("trans-cinnamic acid 를 가열한다", "trans-cinnamic acid"),
+        ("L-alanine 과 D-alanine", "l-alanine"),
+    ]:
+        found = [c.lower() for c in candidates(text)]
+        assert want in found, f"{want!r} 를 못 뽑았다: {found}"
+    print("  (S)-/trans-/L- 접두사 모두 후보로 남음")
+    print("통과: 입체·기하 접두사가 붙어도 이름을 잃지 않는다.")
+
+
+def test_vitamin_names_are_found() -> None:
+    """'C' 는 한 글자라 일반 토큰 경로에서 버려진다. 줄에서 직접 집어야 한다."""
+    assert "vitamin C" in candidates("vitamin C 결핍은 괴혈병을 유발한다")
+    assert "vitamin B12" in candidates("비타민 B12 는 코발트를 포함한다")
+    print("  'vitamin C', '비타민 B12' 모두 후보로 나옴")
+    print("통과: 비타민 표기를 영문·한글 모두 잡는다.")
+
+
+def test_longer_name_outranks_its_own_prefix() -> None:
+    """더 짧은 접두부가 먼저 조회되면 다른 화합물이 참조로 박힌다."""
+    found = [c.lower() for c in candidates("N-acetyl-p-benzoquinone imine (NAPQI) 축적")]
+    full, prefix = "n-acetyl-p-benzoquinone imine", "n-acetyl-p-benzoquinone"
+    assert full in found and prefix in found
+    assert found.index(full) < found.index(prefix), f"짧은 접두부가 먼저다: {found[:4]}"
+    print(f"  {full!r} 가 {prefix!r} 보다 먼저")
+    print("통과: 더 구체적인 이름을 먼저 조회한다.")
+
+
+def test_fragment_name_does_not_masquerade() -> None:
+    """'CoA' 단독은 coenzyme A 로 해석된다. acetyl-CoA 와 다른 화합물이다.
+
+    부분 이름이 전체 이름 행세를 하면 잘못된 참조가 되고, 그림은 '오류'가 된다.
+    이름을 못 찾아 판정불가로 빠지는 쪽이 낫다.
+    """
+    found = [c.lower() for c in candidates("아세틸-CoA 가 회로로 들어간다")]
+    assert "coa" not in found, f"조각 이름이 후보에 들어왔다: {found}"
+    assert score("DMSO") > 0, "정상 약어까지 같이 막혔다"
+    print("  'CoA' -> 후보에서 제외,  'DMSO' -> 유지")
+    print("통과: 조각 이름이 전체 이름 행세를 하지 않는다.")
+
+
 if __name__ == "__main__":
     for test in [
         test_trailing_paren_does_not_kill_the_name,
@@ -218,6 +275,11 @@ if __name__ == "__main__":
         test_offline_table_agrees_with_rdkit,
         test_backs_off_and_retries_on_throttling,
         test_network_failure_is_not_cached_as_missing,
+        test_greek_prefix_is_not_dropped,
+        test_stereo_prefix_survives,
+        test_vitamin_names_are_found,
+        test_longer_name_outranks_its_own_prefix,
+        test_fragment_name_does_not_masquerade,
     ]:
         test()
         print()

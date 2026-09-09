@@ -18,7 +18,9 @@ from urllib.parse import quote
 
 import requests
 
-PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/property/InChIKey,MolecularFormula/JSON"
+from .keys import principal_smiles, smiles_to_inchikey
+
+PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{}/property/InChIKey,MolecularFormula,SMILES/JSON"
 CACHE_PATH = Path.home() / ".cache" / "chemcheck" / "pubchem.json"
 # 망이 없을 때 쓰는 표. scripts/build_offline_table.py 가 PubChem 응답으로 만든다.
 OFFLINE_PATH = Path(__file__).resolve().parent / "data" / "compounds.json"
@@ -40,6 +42,9 @@ NOISE = {
     # DNA·RNA 는 고분자라 단일 구조가 없고, 나머지는 기기·효소·지표다.
     "nmr", "ir", "uv", "vis", "hplc", "gc", "ms", "tlc", "dna", "rna",
     "cox", "sar", "qsar", "api", "pdf", "ppt", "abs", "obs", "calc",
+    # 'CoA' 는 acetyl-CoA 의 조각인데 단독으로는 coenzyme A 로 해석된다.
+    # 부분 이름이 전체 이름 행세를 하면 잘못된 참조가 만들어진다.
+    "coa",
 }
 
 # 홀로 쓰이면 화합물이 아니라 분류어다. 이름 안에서는 정상이다("benzoic acid").
@@ -60,10 +65,24 @@ FRAGMENTS = (
 _LOCANT = re.compile(r"\b\d+(?:,\d+)*-")
 # 분자식(C9H8O4). 숫자가 하나라도 있어야 한다 - 없으면 DMSO 같은 정상 이름이 걸린다.
 _FORMULA = re.compile(r"^(?=.*\d)(?:[A-Z][a-z]?\d{0,3})+$")
-# 대문자 약어(DMSO, THF, ASA). PubChem 이 흔한 약어는 직접 해석해 준다.
-_ABBREV = re.compile(r"^[A-Z]{2,6}$")
+# 약어(DMSO, THF, CoA). 대문자가 둘 이상이어야 한다 - 그래야 "The" 가 안 걸린다.
+_ABBREV = re.compile(r"^[A-Za-z]{2,6}$")
+# 입체·기하 접두사. IUPAC 이름의 강한 신호다.
+_STEREO = re.compile(
+    r"^(\(\d*[RSEZ](?:,\d*[RSEZ])*\)|cis|trans|[DLRSEZ]|alpha|beta|gamma|delta|omega|[onmp])-",
+    re.IGNORECASE,
+)
+# "vitamin C", "vitamin B12". PubChem 이 그대로 해석한다.
+_VITAMIN = re.compile(r"^vitamins?\s+[a-k]\d{0,2}$", re.IGNORECASE)
+# 줄에서 직접 집는다. "C" 는 한 글자라 일반 토큰 경로에서 버려지기 때문에
+# "vitamin C" 라는 구절 자체가 만들어지지 않는다. 한글 표기도 함께 받는다.
+_VITAMIN_LINE = re.compile(r"(?:vitamins?|비타민)\s*([A-Ka-k]\d{0,2})\b")
 
-_LATIN = re.compile(r"[A-Za-z0-9(\[][A-Za-z0-9\-,'()\[\]+]*")
+_LATIN = re.compile(r"[A-Za-z0-9(\[α-ω][A-Za-z0-9\-,'()\[\]+α-ω]*")
+# PubChem 은 'β-carotene' 을 404 로 돌려주지만 'beta-carotene' 은 해석한다.
+# 그리스 문자를 그냥 버리면 'carotene' 이 되는데 이건 다른 화합물이다.
+_GREEK = {"α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta",
+          "ε": "epsilon", "ω": "omega", "μ": "mu"}
 _HANGUL = re.compile(r"[가-힣]+")
 
 _TRIM = ".,;:!?'”’·\""
@@ -78,6 +97,9 @@ def _clean(token: str) -> str | None:
     PubChem 404 가 되고, 슬라이드에서 가장 중요한 이름이 통째로 버려진다.
     """
     t = token.strip(_TRIM)
+    for greek, ascii_name in _GREEK.items():
+        if greek in t:
+            t = t.replace(greek, ascii_name)
     # 통째로 괄호에 싸인 경우 벗긴다: "(Aspirin)" -> "Aspirin"
     while len(t) > 2 and t[0] in _OPENER and t[-1] == _OPENER[t[0]]:
         inner = t[1:-1]
@@ -110,22 +132,30 @@ def score(phrase: str) -> float:
         return -1.0  # 분자식은 이름 조회 대상이 아니다
 
     value = 0.0
-    last = lows[-1].strip("()[]")
+    if _VITAMIN.match(low):
+        return 3.0 + len(words) * 0.5  # "vitamin C" -> PubChem 이 그대로 해석한다
+    last = _STEREO.sub("", lows[-1].strip("()[]"))
     if last == "acid" or last.endswith(SUFFIXES):
         value += 3.0
+    if _STEREO.match(words[-1]) or _STEREO.match(words[0]):
+        value += 2.0  # "(S)-ibuprofen", "trans-cinnamic acid", "beta-carotene"
     if _LOCANT.search(low):
         value += 2.0
     if any(f in low for f in FRAGMENTS):
         value += 2.0
-    if len(words) == 1 and len(phrase) >= 5 and phrase[:1].isupper():
+    if (len(words) == 1 and len(phrase) >= 5 and phrase[:1].isupper()
+            and "-" not in phrase):
+        # 하이픈이 든 이름에는 주지 않는다. "N-acetyl-p-benzoquinone" 이 이 보너스로
+        # 더 긴 정답 "N-acetyl-p-benzoquinone imine" 을 눌러 이겼다.
         value += 1.0  # "Aspirin", "Caffeine"
-    if len(words) == 1 and _ABBREV.match(words[0]):
+    if (len(words) == 1 and _ABBREV.match(words[0])
+            and sum(c.isupper() for c in words[0]) >= 2):
         # 낮게 준다. 진짜 이름이 있으면 그쪽이 먼저 조회돼야 하고, 약어만 있는
         # 슬라이드에서만 예산을 쓴다. 못 풀리면 404 로 싸게 끝난다.
         value += 0.5
     if value == 0.0:
         return -1.0  # 화합물 신호가 하나도 없으면 예산을 쓰지 않는다
-    return value + min(len(words), 4) * 0.25  # 같은 점수면 더 구체적인 쪽 먼저
+    return value + min(len(words), 4) * 0.5  # 같은 점수면 더 구체적인(긴) 이름 먼저
 
 
 # 한국어 화합물 이름 -> PubChem 이 아는 영문 이름.
@@ -213,6 +243,11 @@ def candidates(text: str, max_words: int = 4) -> list[str]:
             best[key] = (value, phrase)
 
     for line in text.splitlines():
+        for hit in _VITAMIN_LINE.finditer(line):
+            # 스쳐 지나가는 비타민 언급이 그 장의 실제 화합물 이름을
+            # 누르면 안 된다. score() 의 비타민 경로와 같은 값을 준다.
+            offer(f"vitamin {hit.group(1).upper()}", 4.0)
+
         for run in _HANGUL.findall(line):
             name = korean_name(run)
             if name:
@@ -238,6 +273,7 @@ class Reference:
     inchikey: str
     formula: str
     source: str = "pubchem"  # pubchem | cache | offline
+    smiles: str = ""        # PubChem 이 준 구조. 염 정규화의 근거
 
 
 def _load_offline(path: Path = OFFLINE_PATH) -> dict[str, dict]:
@@ -339,11 +375,11 @@ class PubChemResolver:
 
         if key in self._cache:
             hit = self._cache[key]
-            return Reference(name, hit["inchikey"], hit["formula"], "cache") if hit else None
+            return self._reference(name, hit, "cache") if hit else None
 
         shipped = self.offline.get(key)
         if shipped:
-            return Reference(name, shipped["inchikey"], shipped["formula"], "offline")
+            return self._reference(name, shipped, "offline")
 
         resp = self._fetch(key)
         if resp is None:
@@ -357,10 +393,32 @@ class PubChemResolver:
 
         try:
             props = resp.json()["PropertyTable"]["Properties"][0]
-            record = {"inchikey": props["InChIKey"], "formula": props.get("MolecularFormula", "")}
+            record = {
+                "inchikey": props["InChIKey"],
+                "formula": props.get("MolecularFormula", ""),
+                "smiles": props.get("SMILES") or props.get("ConnectivitySMILES") or "",
+            }
         except (KeyError, IndexError, ValueError):
             return None
 
         self._cache[key] = record
         self._touch()
-        return Reference(name, record["inchikey"], record["formula"])
+        return self._reference(name, record, "pubchem")
+
+    @staticmethod
+    def _reference(name: str, record: dict, source: str) -> Reference:
+        """염·수화물이면 주성분의 키로 바꾼다.
+
+        'morphine sulfate' 의 InChIKey 는 morphine 과 골격부터 다르다. 그대로
+        두면 morphine 을 정확히 그린 그림이 '오류'로 보고된다. 단일 성분일 때는
+        PubChem 이 준 키를 그대로 쓴다 - 우리가 다시 계산할 이유가 없다.
+        """
+        key = record["inchikey"]
+        smiles = record.get("smiles") or ""
+        if "." in smiles:
+            principal = principal_smiles(smiles)
+            if principal != smiles:
+                recomputed = smiles_to_inchikey(principal)
+                if recomputed:
+                    key = recomputed
+        return Reference(name, key, record.get("formula", ""), source, smiles)
