@@ -9,8 +9,10 @@ const ALIASES = window.CHEMCHECK_ALIASES || {};
 const BY_KEY = {};
 for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
 const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
-const CHECK_URL = "https://pxh7yp--chemcheck.modal.run/api/check";
-const HEALTH_URL = "https://pxh7yp--chemcheck.modal.run/api/health";
+// 서버 주소는 web/config.js 한 곳에만 있다. 경로(/api/check, /api/health)만 여기서 붙인다.
+const SERVER = window.CHEMCHECK_SERVER || "";
+const CHECK_URL = SERVER + "/api/check";
+const HEALTH_URL = SERVER + "/api/health";
 const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
 
 const $ = (id) => document.getElementById(id);

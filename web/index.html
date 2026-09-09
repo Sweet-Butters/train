@@ -67,7 +67,7 @@
     <h2>API</h2>
     <div class="api-block">
       <p>화면이 쓰는 것과 같은 엔드포인트입니다. 그대로 붙여 코드에서 검사할 수 있습니다.</p>
-      <pre><code>POST https://pxh7yp--chemcheck.modal.run/api/check
+      <pre><code>POST <span data-server-url></span>/api/check
 Content-Type: multipart/form-data
 
   image: &lt;file&gt;
@@ -116,7 +116,9 @@ Content-Type: multipart/form-data
 </main>
 
 <footer class="site-footer">
-  chemcheck - LLM 이 그린 화학구조를 이름의 정본과 대조합니다. 서버: Modal · 인식기: DECIMER.
+  chemcheck - LLM 이 그린 화학구조를 이름의 정본과 대조합니다. 서버: Cloud Run · 인식기: DECIMER.
 </footer>
+<script src="config.js"></script>
+<script>for (const el of document.querySelectorAll("[data-server-url]")) el.textContent = window.CHEMCHECK_SERVER;</script>
 </body>
 </html>
