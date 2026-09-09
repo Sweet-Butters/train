@@ -1,101 +1,100 @@
-// web/app.js (U 소유) - index.html 의 도구 로직.
+// web/app.js (U 소유) - try.html 의 도구 로직. index.html 은 정적 페이지라 이 파일을 쓰지 않는다.
+// web/crop.js(C)·web/ocr.js(O)는 아직 없을 수 있다 - 있으면 쓰고 없으면 조용히 건너뛴다.
 //
-// 입력은 칸 둘(텍스트·이미지). 모드 선택 UI 는 없다 - 채움 여부로 갈린다.
-//   텍스트만        → 정본 카드 (RDKit 이 파싱하면 SMILES, 못 하면 이름. 규칙이지 추론이 아니다)
-//   이미지만        → 그림에서 읽은 구조 (서버에 name="" 로 보낸다)
-//   텍스트 + 이미지 → 대조 (정본 카드 + 같은 카드 안의 판정)
-// 정직함은 문장이 아니라 동작으로: 못 읽으면 크롭 UI 를 띄우고, 엔진이 갈리면 둘을 나란히 놓는다.
-// web/crop.js(C)·web/ocr.js(O) 는 있으면 쓰고 없으면(file://) 조용히 건너뛴다. 계약은 docs/WEB_CONTRACT.md.
+// 결과 영역은 하나다: 정본 카드가 0.5초 안에 뜨고(이름/SMILES, 서버 없이 완결),
+// 이미지를 주면 같은 카드 안의 판정 슬롯이 서버 응답으로 나중에 채워진다.
 
 const TABLE = window.CHEMCHECK_TABLE || {};
 const ALIASES = window.CHEMCHECK_ALIASES || {};
 const BY_KEY = {};
 for (const [name, row] of Object.entries(TABLE)) if (row.inchikey) BY_KEY[row.inchikey] = { name, ...row };
 const PUBCHEM = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound";
-const SERVER = window.CHEMCHECK_SERVER || ""; // web/config.js 한 곳에만 있다
+// 서버 주소는 web/config.js 한 곳에만 있다. 경로(/api/check, /api/health)만 여기서 붙인다.
+const SERVER = window.CHEMCHECK_SERVER || "";
 const CHECK_URL = SERVER + "/api/check";
 const HEALTH_URL = SERVER + "/api/health";
-const CHECK_TIMEOUT_MS = 120000; // 콜드스타트 최대 60초 + 큰 이미지에 두 엔진
+const CHECK_TIMEOUT_MS = 65000; // 첫 요청은 콜드스타트로 최대 60초 - 넉넉히 잡는다
 
 const $ = (id) => document.getElementById(id);
 let RDKit = null;
-
-// 바로 해보기 - web/evidence/crops 의 실측 7장. 살아 있는 서버가 매번 새로 계산한다.
-const EXAMPLES = [
-  { group: "AI 가 그린 그림", items: [
-    { key: "caffeine_gemini", label: "Gemini 카페인", path: "evidence/crops/caffeine_gemini_crop.png", name: "Caffeine" },
-    { key: "caffeine_gpt", label: "GPT 카페인", path: "evidence/crops/caffeine_gpt_crop.png", name: "Caffeine" },
-    { key: "alanine_gemini", label: "Gemini 알라닌", path: "evidence/crops/alanine_gemini_crop.png", name: "Alanine" },
-    { key: "alanine_gpt", label: "GPT 알라닌", path: "evidence/crops/alanine_gpt_crop.png", name: "Alanine" },
-  ] },
-  { group: "처음 보는 분자", items: [ // 이름칸을 비워 보낸다 - 그림에서 구조만 읽는다
-    { key: "novel_a", label: "신규 A", path: "evidence/crops/novel_a.png", name: "" },
-    { key: "novel_b", label: "신규 B", path: "evidence/crops/novel_b.png", name: "" },
-    { key: "novel_c", label: "신규 C", path: "evidence/crops/novel_c.png", name: "" },
-  ] },
-];
-
-// ============================================================ 상태 - 화면은 이 하나에서 그려진다
-const state = {
-  text: "",          // 입력칸 원문
-  forceName: false,  // "SMILES 로 읽었습니다 → 이름으로 찾기" 를 눌렀다
-  mol: null,         // 텍스트에서 만든 정본 { svg, smiles, inchikey, formula, cid, title }
-  molFrom: null,     // "smiles" | "name"
-  image: null,       // Blob
-  imageVia: null,    // "cropper" | "basic" | "example" | "camera"
-  pending: false,    // 서버 호출 중
-  server: null,      // 마지막 /api/check 응답
-  serverError: null, // 연결 실패 문장
-  readMol: null,     // 이미지만 넣었을 때 그림에서 읽은 구조(정본과 같은 꼴)
-  checkedName: null, // 마지막으로 서버에 보낸 이름
-};
+let currentMol = null;
 
 function status(t) { $("rdkitStatus").textContent = t; }
 function fail(msg) { $("err").textContent = msg; }
 function clearErr() { $("err").textContent = ""; }
-function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
-// ============================================================ 이름 정규화 - web/build_table.py 의 normalize_exact 와 같은 규칙
+// ============================================================ 이름 정규화
+// web/build_table.py 의 normalize_exact 와 규칙을 맞춘다 - 갈라지면 표와 안 맞는다.
+
 const DASH_RE = /[‐‑‒–—−]/g;
-function normalizeExact(s) { return s.normalize("NFKC").trim().replace(DASH_RE, "-").split(/\s+/).join(" ").toLowerCase(); }
-function normalizeLoose(s) { return normalizeExact(s).replace(/[\s-]+/g, ""); }
 
-// ============================================================ 이름 → 정본 / InChIKey → 이름
+function normalizeExact(s) {
+  s = s.normalize("NFKC").trim().replace(DASH_RE, "-");
+  return s.split(/\s+/).join(" ").toLowerCase();
+}
+function normalizeLoose(s) {
+  return normalizeExact(s).replace(/[\s-]+/g, "");
+}
+
+// ============================================================ 이름 -> 정본 / InChIKey -> 이름
+
 async function resolveName(name) {
   const exact = normalizeExact(name);
-  if (TABLE[exact]) return { ...TABLE[exact] };
+  if (TABLE[exact]) return { ...TABLE[exact], source: "내장 표", query: name };
   const aliasKey = ALIASES[normalizeLoose(name)];
-  if (aliasKey && BY_KEY[aliasKey]) { const { name: _n, ...row } = BY_KEY[aliasKey]; return row; }
-  const res = await fetch(`${PUBCHEM}/name/${encodeURIComponent(name.trim())}/property/SMILES,InChIKey,Title/JSON`);
+  if (aliasKey && BY_KEY[aliasKey]) {
+    const { name: _drop, ...row } = BY_KEY[aliasKey];
+    return { ...row, source: "내장 표(한글/약칭)", query: name };
+  }
+  const url = `${PUBCHEM}/name/${encodeURIComponent(name.trim())}/property/SMILES,InChIKey,Title/JSON`;
+  const res = await fetch(url);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
   const p = (await res.json()).PropertyTable.Properties[0];
-  return { smiles: p.SMILES, inchikey: p.InChIKey, cid: p.CID, title: p.Title };
+  return { smiles: p.SMILES, inchikey: p.InChIKey, cid: p.CID, title: p.Title, source: "PubChem", query: name };
 }
+
 async function identifyByKey(inchikey) {
-  if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey] };
-  try {
-    const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title/JSON`);
-    if (!res.ok) return null;
-    const p = (await res.json()).PropertyTable.Properties[0];
-    return { title: p.Title, cid: p.CID };
-  } catch (e) { return null; }
+  if (BY_KEY[inchikey]) return { ...BY_KEY[inchikey], source: "내장 표" };
+  const res = await fetch(`${PUBCHEM}/inchikey/${inchikey}/property/Title/JSON`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`PubChem 응답 ${res.status}`);
+  const p = (await res.json()).PropertyTable.Properties[0];
+  return { title: p.Title, cid: p.CID, source: "PubChem" };
 }
 
 // ============================================================ RDKit 계산 (그림·InChIKey·화학식)
-const ELEMENTS = { 1: "H", 5: "B", 6: "C", 7: "N", 8: "O", 9: "F", 11: "Na", 12: "Mg", 14: "Si", 15: "P", 16: "S", 17: "Cl", 19: "K", 20: "Ca", 26: "Fe", 29: "Cu", 30: "Zn", 35: "Br", 53: "I", 78: "Pt" };
-function hillString(c) {
-  const order = c["C"] ? ["C"].concat(c["H"] ? ["H"] : [], Object.keys(c).filter((s) => s !== "C" && s !== "H").sort()) : Object.keys(c).sort();
-  return order.map((s) => s + (c[s] > 1 ? c[s] : "")).join("");
+
+const ELEMENTS = {
+  1: "H", 2: "He", 3: "Li", 4: "Be", 5: "B", 6: "C", 7: "N", 8: "O", 9: "F", 10: "Ne",
+  11: "Na", 12: "Mg", 13: "Al", 14: "Si", 15: "P", 16: "S", 17: "Cl", 18: "Ar", 19: "K", 20: "Ca",
+  24: "Cr", 25: "Mn", 26: "Fe", 27: "Co", 28: "Ni", 29: "Cu", 30: "Zn", 35: "Br", 47: "Ag", 50: "Sn",
+  53: "I", 56: "Ba", 78: "Pt", 79: "Au", 80: "Hg", 82: "Pb",
+};
+
+// 중원자만이 아니라 암시적 수소까지 센다(add_hs_in_place) - Hill 표기(C, H, 나머지 알파벳순).
+function hillString(bySymbolCounts) {
+  const hasC = !!bySymbolCounts["C"];
+  let order;
+  if (hasC) {
+    order = ["C"];
+    if (bySymbolCounts["H"]) order.push("H");
+    order = order.concat(Object.keys(bySymbolCounts).filter((s) => s !== "C" && s !== "H").sort());
+  } else {
+    order = Object.keys(bySymbolCounts).sort();
+  }
+  return order.map((s) => s + (bySymbolCounts[s] > 1 ? bySymbolCounts[s] : "")).join("");
 }
 function molecularFormula(smiles) {
   const mol = RDKit.get_mol(smiles);
   if (!mol || !mol.is_valid()) { if (mol) mol.delete(); return null; }
   try {
     mol.add_hs_in_place();
+    const j = JSON.parse(mol.get_json());
     const bySymbol = {};
-    for (const m of JSON.parse(mol.get_json()).molecules) for (const a of m.atoms) {
-      const sym = ELEMENTS[a.z === undefined ? 6 : a.z] || `#${a.z}`; // commonchem 은 탄소(z=6)를 생략한다
+    for (const m of j.molecules) for (const a of m.atoms) {
+      const z = a.z === undefined ? 6 : a.z; // commonchem 은 탄소(z=6)를 생략한다
+      const sym = ELEMENTS[z] || `#${z}`;
       bySymbol[sym] = (bySymbol[sym] || 0) + 1;
     }
     return hillString(bySymbol);
@@ -105,397 +104,434 @@ function describeFull(smiles) {
   const mol = RDKit.get_mol(smiles);
   if (!mol || !mol.is_valid()) { if (mol) mol.delete(); return null; }
   let base;
-  try { base = { smiles: mol.get_smiles(), inchikey: RDKit.get_inchikey_for_inchi(mol.get_inchi()), svg: mol.get_svg(420, 360) }; }
-  finally { mol.delete(); }
+  try {
+    const inchi = mol.get_inchi();
+    base = { smiles: mol.get_smiles(), inchikey: RDKit.get_inchikey_for_inchi(inchi), svg: mol.get_svg(420, 360) };
+  } finally { mol.delete(); }
   base.formula = molecularFormula(base.smiles);
   return base;
 }
-function isSmiles(raw) {
-  const probe = RDKit.get_mol(raw);
-  const ok = !!(probe && probe.is_valid());
-  if (probe) probe.delete();
-  return ok;
-}
 
-// 규칙: RDKit 이 파싱하면 SMILES, 못 하면 이름. forceName 이면 이름으로만.
-async function resolveText(raw, forceName) {
-  if (!forceName && isSmiles(raw)) {
+// 판별 규칙: RDKit 이 파싱하면 SMILES, 못 하면 이름 - 추론이 아니라 규칙이다.
+async function resolveSingle(raw) {
+  const probe = RDKit.get_mol(raw);
+  const validSmiles = !!(probe && probe.is_valid());
+  if (probe) probe.delete();
+  if (validSmiles) {
     const desc = describeFull(raw);
     const who = await identifyByKey(desc.inchikey);
-    return { from: "smiles", mol: { ...desc, cid: who ? who.cid : null, title: who ? who.title : null } };
+    return {
+      svg: desc.svg, smiles: desc.smiles, inchikey: desc.inchikey, formula: desc.formula,
+      cid: who ? who.cid : null, title: who ? who.title : null,
+      source: who ? who.source : "SMILES 입력 (PubChem 미등록)",
+    };
   }
   const byName = await resolveName(raw);
   if (!byName) return null;
   const desc = describeFull(byName.smiles);
   if (!desc) return null;
-  return { from: "name", mol: { ...desc, cid: byName.cid, title: byName.title || raw } };
+  return { svg: desc.svg, smiles: desc.smiles, inchikey: desc.inchikey, formula: desc.formula, cid: byName.cid, title: byName.title || raw, source: byName.source };
 }
 
-// ============================================================ 이름 근접 제안 (편집거리). 자동 선택은 하지 않는다.
-const TITLE_LIST = [...new Set(Object.values(TABLE).map((r) => r.title).filter(Boolean))];
-function levenshtein(a, b) {
-  const dp = Array.from({ length: b.length + 1 }, (_, j) => j);
-  for (let i = 1; i <= a.length; i++) {
-    let prev = dp[0]; dp[0] = i;
-    for (let j = 1; j <= b.length; j++) { const t = dp[j]; dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]); prev = t; }
+// ============================================================ 이름 근접 제안 (편집거리)
+
+const TITLE_LIST = (() => {
+  const seen = new Set(); const list = [];
+  for (const row of Object.values(TABLE)) {
+    if (row.title && !seen.has(row.title)) { seen.add(row.title); list.push(row.title); }
   }
-  return dp[b.length];
+  return list;
+})();
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = new Array(n + 1);
+  for (let j = 0; j <= n; j++) dp[j] = j;
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0]; dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = tmp;
+    }
+  }
+  return dp[n];
 }
 function showSuggestions(raw) {
-  const q = normalizeLoose(raw); if (!q) return;
-  const top = TITLE_LIST.map((t) => ({ t, d: levenshtein(q, normalizeLoose(t)) })).sort((a, b) => a.d - b.d)
-    .filter((s) => s.d > 0 && s.d <= Math.max(3, Math.ceil(q.length * 0.5))).slice(0, 5);
+  const q = normalizeLoose(raw);
+  if (!q) return;
+  const scored = TITLE_LIST.map((t) => ({ t, d: levenshtein(q, normalizeLoose(t)) })).sort((a, b) => a.d - b.d);
+  const top = scored.filter((s) => s.d > 0 && s.d <= Math.max(3, Math.ceil(q.length * 0.5))).slice(0, 5);
   if (!top.length) return;
   const box = $("suggestions"); box.hidden = false; box.innerHTML = "";
-  const pills = el("div", "pills");
-  for (const { t } of top) { const b = el("button", null, t); b.type = "button"; b.addEventListener("click", () => { $("queryInput").value = t; onText(t); }); pills.appendChild(b); }
-  box.append(el("p", null, "이 이름을 찾으시나요?"), pills);
+  const p = document.createElement("p"); p.textContent = "이 이름을 찾으시나요?";
+  const pills = document.createElement("div"); pills.className = "pills";
+  for (const { t } of top) {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = t;
+    b.addEventListener("click", () => { $("queryInput").value = t; attemptResolve(t); });
+    pills.appendChild(b);
+  }
+  box.append(p, pills);
 }
 function hideSuggestions() { const box = $("suggestions"); box.hidden = true; box.innerHTML = ""; }
 
-// ============================================================ 텍스트 입력
-async function onText(raw) {
-  state.text = raw.trim(); state.forceName = false;
-  await resolveAndRender();
+// ============================================================ 결과 카드 - 하나. 정본이 먼저, 판정은 같은 카드 안에서 나중에.
+
+// 카드(#result)는 정본(#canon)이나 판정(#verdict) 중 하나라도 있을 때만 보인다.
+// 이름 없이 이미지만 넣으면 정본 없이 판정 슬롯만 뜬다 - 그래도 카드는 하나다.
+function syncResult() {
+  const hasMol = !!currentMol, hasVerdict = !$("verdict").hidden;
+  $("canon").hidden = !hasMol;
+  $("result").hidden = !(hasMol || hasVerdict);
 }
-// PubChem 조회가 섞이면 늦게 온 옛 응답이 새 결과를 덮어쓴다 - 순번으로 막는다.
-let resolveSeq = 0;
-async function resolveAndRender() {
-  const seq = ++resolveSeq;
-  hideSuggestions(); clearErr();
-  if (!state.text) { state.mol = null; state.molFrom = null; render(); }
-  else if (!RDKit) { status("구조 엔진을 불러오는 중…"); return; }
-  else {
-    try {
-      const r = await resolveText(state.text, state.forceName);
-      if (seq !== resolveSeq) return; // 그 사이 입력이 바뀌었다
-      if (!r) { state.mol = null; state.molFrom = null; render(); showSuggestions(state.text); fail(`"${state.text}" 을(를) 찾지 못했습니다.`); }
-      else { state.mol = r.mol; state.molFrom = r.from; render(); }
-    } catch (e) {
-      if (seq !== resolveSeq) return;
-      state.mol = null; render(); fail("조회에 실패했습니다: " + (e && e.message ? e.message : e));
-    }
+function renderMol(data) {
+  currentMol = data;
+  $("molDraw").innerHTML = data.svg || "";
+  $("molSource").textContent = "정본 · " + (data.source || "");
+  $("molTitle").textContent = data.title || "(PubChem 에 이름 없음)";
+  const dl = $("molFacts"); dl.innerHTML = "";
+  const cidLink = data.cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${data.cid}`, text: `CID ${data.cid}` } : null;
+  const rows = [["PubChem", cidLink], ["화학식", data.formula], ["SMILES", data.smiles], ["InChIKey", data.inchikey]];
+  for (const [k, val] of rows) {
+    if (val === undefined || val === null || val === "") continue;
+    const dt = document.createElement("dt"); dt.textContent = k;
+    const dd = document.createElement("dd");
+    if (val && val.href) { const a = document.createElement("a"); a.href = val.href; a.textContent = val.text; a.target = "_blank"; a.rel = "noopener"; dd.appendChild(a); }
+    else dd.textContent = val;
+    dl.append(dt, dd);
   }
-  // 이미지가 있고 보낼 이름이 바뀌었으면 대조를 다시 돈다
-  if (state.image && !state.pending && nameForServer() !== state.checkedName) checkServer();
+  $("copyNote").textContent = "";
+  syncResult();
 }
-function nameForServer() { return state.mol ? (state.mol.title || "") : state.text; }
+function hideMol() { currentMol = null; syncResult(); }
+function hideVerdict() { const v = $("verdict"); v.hidden = true; v.innerHTML = ""; v.className = "verdict"; syncResult(); }
+// 판정 슬롯을 비우고 연다. state 는 match / mismatch / unreadable / "" (대기·안내).
+function openVerdict(state) {
+  const v = $("verdict"); v.hidden = false; v.innerHTML = ""; v.className = "verdict" + (state ? " " + state : "");
+  syncResult();
+  return v;
+}
 
-let debounceTimer = null;
-$("queryInput").addEventListener("input", () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(() => onText($("queryInput").value), 400); });
-$("queryInput").addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(debounceTimer); onText($("queryInput").value); } });
-
-// ============================================================ 이미지 입력 - crop.js 가 있으면 그것이 드롭 영역을 맡는다
-let usingCropper = false;
-let cropper = null; // crop.js 가 돌려주는 { recrop, reset }
-async function setupImageInput() {
-  const dropzone = $("dropzone");
+async function attemptResolve(raw) {
+  raw = raw.trim();
+  hideSuggestions();
+  hideVerdict(); // 새 조회는 이전 판정과 무관하다
+  if (!raw) { hideMol(); clearErr(); return; }
+  if (!RDKit) { status("RDKit 로딩 중… 준비되면 자동으로 확인한다."); return; }
+  status("확인 중…");
+  clearErr();
   try {
-    const mod = await import("./crop.js?v=202609100428");
-    if (mod && typeof mod.mountCropper === "function") {
-      cropper = mod.mountCropper(dropzone, { onCrop: (blob) => handleImage(blob, "cropper") }) || null;
-      dropzone.classList.add("has-cropper");
-      usingCropper = true;
+    const res = await resolveSingle(raw);
+    if (!res) {
+      hideMol();
+      showSuggestions(raw);
+      fail(`"${raw}" - 내장 표 423개에도, PubChem 에도, 유효한 SMILES 로도 못 찾았다.`);
+      status(`RDKit ${RDKit.version()} 준비됨`);
       return;
     }
-  } catch (e) { /* file:// 등에서는 crop.js 를 못 불러온다 - 기본 입력으로 */ }
-  const fileInput = $("fileInput");
-  $("fileBtn").addEventListener("click", () => fileInput.click());
-  fileInput.addEventListener("change", () => { const f = fileInput.files && fileInput.files[0]; if (f) handleImage(f, "basic"); fileInput.value = ""; });
-  dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
-  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
-  dropzone.addEventListener("drop", (e) => { e.preventDefault(); dropzone.classList.remove("drag"); const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; if (f) handleImage(f, "basic"); });
-  document.addEventListener("paste", (e) => {
-    for (const item of (e.clipboardData && e.clipboardData.items) || []) {
-      if (item.type && item.type.startsWith("image/")) { const f = item.getAsFile(); if (f) { handleImage(f, "basic"); break; } }
-    }
-  });
-}
-// 카메라(폰) - 찍은 사진은 크롭 UI 로 넘긴다. crop.js 가 없으면 바로 읽는다.
-$("cameraBtn").addEventListener("click", () => $("cameraInput").click());
-$("cameraInput").addEventListener("change", () => {
-  const f = $("cameraInput").files && $("cameraInput").files[0];
-  if (f && !feedCropper(f)) handleImage(f, "camera");
-  $("cameraInput").value = "";
-});
-// crop.js 의 파일 입력에 넣어 정상 경로로 태운다(계약 밖 내부 함수를 부르지 않는다).
-// 이걸로 예제 버튼도 원본을 드롭 영역에 그대로 띄운다 - 무엇을 보고 판정했는지 보여야 한다.
-// crop.js 의 크롭 캔버스는 폭이 800px 고정이라 좁은 화면을 밀어낸다(C 소유 파일이라 손대지 않는다).
-// 그래서 폰에서는 크롭 UI 대신 큰 미리보기로 원본을 보여준다.
-function canFeedCropper() { return usingCropper && window.innerWidth >= 640; }
-function feedCropper(file, scroll) {
-  const input = $("dropzone").querySelector(".cropx-input-file");
-  if (!canFeedCropper() || !input) return false;
-  try {
-    const dt = new DataTransfer();
-    dt.items.add(file instanceof File ? file : new File([file], "image.png", { type: file.type || "image/png" }));
-    input.files = dt.files;
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-    if (scroll) $("dropzone").scrollIntoView({ behavior: "smooth", block: "nearest" });
-    return true;
-  } catch (e) { return false; }
-}
-// 못 읽었을 때: 판정하지 않고 크롭 UI 를 띄운다
-function openCropper() {
-  if (cropper && typeof cropper.recrop === "function" && cropper.recrop()) return true;
-  return state.image ? feedCropper(state.image, true) : false;
-}
-function canRecrop() { return usingCropper && (state.imageVia === "cropper" || canFeedCropper()); }
-
-function showPreview(blob) { $("imagePreviewImg").src = URL.createObjectURL(blob); $("imagePreview").hidden = false; }
-function hidePreview() { $("imagePreview").hidden = true; }
-$("imageClear").addEventListener("click", () => {
-  Object.assign(state, { image: null, imageVia: null, server: null, serverError: null, readMol: null, checkedName: null });
-  hidePreview(); imageNote(""); render();
-});
-
-async function handleImage(blob, via) {
-  Object.assign(state, { image: blob, imageVia: via, server: null, serverError: null, readMol: null });
-  if (via === "cropper") hidePreview(); else showPreview(blob); // crop.js 는 자기 미리보기를 보여준다
-  imageNote("");
-  if (!$("queryInput").value.trim()) {
-    imageNote("이미지에서 이름을 읽는 중…");
-    let hints = null;
-    try { const mod = await import("./ocr.js?v=202609100428"); if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob); } catch (e) { /* 임계 경로 아님 */ }
-    const name = hints && hints.names && hints.names[0];
-    if (name && !$("queryInput").value.trim()) {
-      imageNote(`이미지에서 이름 "${name}" 을(를) 읽었습니다.`);
-      $("queryInput").value = name; state.text = name; state.forceName = false;
-      if (RDKit) { try { const r = await resolveText(name, false); if (r) { state.mol = r.mol; state.molFrom = r.from; } } catch (e) { /* 정본 없이도 대조는 간다 */ } }
-    } else imageNote("");
-  }
-  render();
-  checkServer();
-}
-
-// ============================================================ 서버 대조
-async function checkServer() {
-  if (!state.image) return;
-  const blob = state.image, name = nameForServer();
-  Object.assign(state, { pending: true, server: null, serverError: null, readMol: null, checkedName: name });
-  render();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
-  try {
-    const fd = new FormData(); fd.append("image", blob, "image.png"); fd.append("name", name || "");
-    const res = await fetch(CHECK_URL, { method: "POST", body: fd, signal: controller.signal });
-    if (!res.ok) throw new Error(`서버 응답 ${res.status}`);
-    const json = await res.json();
-    if (blob !== state.image || name !== state.checkedName) return; // 그 사이 입력이 바뀌었다
-    state.server = json;
-    if (!json.reference && !state.mol && json.read && json.read.smiles && RDKit) state.readMol = await buildReadMol(json.read.smiles);
+    renderMol(res);
+    status(`RDKit ${RDKit.version()} 준비됨`);
   } catch (e) {
-    if (blob !== state.image) return;
-    state.serverError = (e && e.name === "AbortError") ? "서버가 응답하지 않습니다." : "서버에 연결하지 못했습니다.";
-  } finally { clearTimeout(timer); if (blob === state.image) { state.pending = false; render(); } }
-}
-async function buildReadMol(smiles) {
-  const desc = describeFull(smiles); if (!desc) return null;
-  const who = await identifyByKey(desc.inchikey);
-  return { ...desc, cid: who ? who.cid : null, title: who ? who.title : null };
-}
-
-// ============================================================ 결과 카드 - 하나. 상태에서 통째로 그린다.
-function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
-function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-const skel = (k) => (k || "").slice(0, 14);
-function linkButton(text, fn) { const b = el("button", "link", text); b.type = "button"; b.addEventListener("click", fn); return b; }
-
-function render() {
-  const card = $("result"); card.innerHTML = "";
-  const has = state.mol || state.image;
-  card.hidden = !has; if (!has) return;
-
-  // 자동 판별이 틀렸을 때 - 한 줄로 뒤집는다
-  if (state.mol && state.text) {
-    if (state.molFrom === "smiles") { const f = el("p", "flip"); f.append("SMILES 로 읽었습니다 · ", linkButton("이름으로 찾기 →", () => { state.forceName = true; resolveAndRender(); })); card.appendChild(f); }
-    else if (state.forceName) { const f = el("p", "flip"); f.append("이름으로 찾았습니다 · ", linkButton("SMILES 로 읽기 →", () => { state.forceName = false; resolveAndRender(); })); card.appendChild(f); }
+    hideMol();
+    fail("실패: " + (e && e.message ? e.message : e) + " (PubChem 조회는 네트워크가 필요하다)");
+    status(RDKit ? `RDKit ${RDKit.version()} 준비됨` : "");
   }
-
-  if (state.mol) card.appendChild(molBlock(state.mol, { eyebrow: "정본" }));
-
-  if (!state.image) return;
-  if (state.pending) { card.appendChild(noteBlock("그림을 읽는 중… 처음이면 최대 1분 걸립니다.")); return; }
-  if (state.serverError) { card.appendChild(noteBlock(state.serverError + (state.mol ? " 정본을 나란히 놓고 비교해 보세요." : ""))); return; }
-  if (!state.server) return;
-  const json = state.server;
-  const reference = json.reference || (state.mol ? { inchikey: state.mol.inchikey, formula: state.mol.formula, name: state.mol.title } : null);
-  card.appendChild(reference ? verdictBlock(json, reference) : readBlock(json));
 }
-function noteBlock(text) { const d = el("div", "verdict"); d.appendChild(el("p", "verdict-note", text)); return d; }
 
-// 구조 카드 - 정본이든 그림에서 읽은 것이든 같은 꼴. 복사 버튼은 여기서만.
-function molBlock(mol, opt) {
-  const wrap = el("div", "canon");
-  const draw = el("div", "mol-draw"); draw.innerHTML = mol.svg || ""; wrap.appendChild(draw);
-  const side = el("div");
-  const eyebrow = el("p", "eyebrow"); eyebrow.append(opt.eyebrow);
-  if (opt.badge) eyebrow.append(" ", opt.badge);
-  side.appendChild(eyebrow);
-  side.appendChild(el("h2", "mol-name", mol.title || "PubChem 미등재"));
-  const dl = el("dl", "facts");
-  const rows = [["PubChem", mol.cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${mol.cid}`, text: `CID ${mol.cid}` } : null], ["화학식", mol.formula], ["SMILES", mol.smiles], ["InChIKey", mol.inchikey]];
-  for (const [k, v] of rows) {
-    if (!v) continue;
-    dl.appendChild(el("dt", null, k)); const dd = el("dd");
-    if (v.href) { const a = el("a", null, v.text); a.href = v.href; a.target = "_blank"; a.rel = "noopener"; dd.appendChild(a); } else dd.textContent = v;
-    dl.appendChild(dd);
-  }
-  side.appendChild(dl);
-  side.appendChild(copyRow(mol, opt));
-  wrap.appendChild(side);
-  return wrap;
-}
-function badge(text, cls) { return el("span", "badge " + (cls || ""), text); }
+let debounceTimer = null;
+$("queryInput").addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => attemptResolve($("queryInput").value), 400);
+});
+$("queryInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { clearTimeout(debounceTimer); attemptResolve($("queryInput").value); }
+});
 
-// ---- 복사 (PNG·SVG·SMILES·InChIKey)
-function copyRow(mol, opt) {
-  const row = el("div", "copy-row"); const note = el("p", "copy-note");
-  const say = (msg) => { note.textContent = msg; setTimeout(() => { if (note.textContent === msg) note.textContent = ""; }, 3000); };
-  const mk = (label, fn) => { const b = el("button", "btn btn-sm", label); b.type = "button"; b.addEventListener("click", fn); row.appendChild(b); };
-  mk("PNG 복사", async () => {
-    let blob; try { blob = await svgToPngBlob(mol.svg, 420, 360); } catch (e) { say("PNG 생성 실패: " + e.message); return; }
-    try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); say("PNG 를 복사했습니다."); }
-    catch (e) { downloadBlob(blob, safeFileName(mol) + ".png"); say("파일로 내려받았습니다."); }
-  });
-  mk("SVG 다운로드", () => { downloadBlob(new Blob([mol.svg], { type: "image/svg+xml" }), safeFileName(mol) + ".svg"); say("SVG 를 내려받았습니다."); });
-  mk("SMILES 복사", () => copyText(mol.smiles, "SMILES", say));
-  mk("InChIKey 복사", () => copyText(mol.inchikey, "InChIKey", say));
-  if (opt && opt.copyBadge) row.appendChild(badge(opt.copyBadge, "badge-na"));
-  const wrap = el("div"); wrap.append(row, note); return wrap;
-}
+// ============================================================ 정본 복사 (넷) - 이 카드에만 둔다. 서버가 읽은 그림 쪽엔 두지 않는다.
+
 function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob); const a = el("a"); a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 function safeFileName(c) { return (c.title || c.inchikey || "structure").replace(/[^\w.-]+/g, "_").slice(0, 60); }
-async function copyTextImpl(text) {
-  try { await navigator.clipboard.writeText(text); return; } catch (e) { /* 아래 대체 경로 */ }
-  const ta = el("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-  document.body.appendChild(ta); ta.focus(); ta.select(); const ok = document.execCommand("copy"); ta.remove();
-  if (!ok) throw new Error("복사 실패");
+
+let copyNoteTimer = null;
+function copyNote(msg) {
+  const el = $("copyNote"); el.textContent = msg;
+  clearTimeout(copyNoteTimer);
+  copyNoteTimer = setTimeout(() => { el.textContent = ""; }, 3000);
 }
-function copyText(text, label, say) { if (!text) return; copyTextImpl(text).then(() => say(`${label} 를 복사했습니다.`)).catch((e) => say(`${label} 복사 실패: ` + e.message)); }
+async function copyTextImpl(text) {
+  try { await navigator.clipboard.writeText(text); return; } catch (e) { /* 아래 대체 경로로 */ }
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  const ok = document.execCommand("copy");
+  document.body.removeChild(ta);
+  if (!ok) throw new Error("execCommand 복사 실패");
+}
+function copyText(text, label) {
+  if (!text) return;
+  copyTextImpl(text).then(() => copyNote(`${label} 를 클립보드에 복사했다.`))
+    .catch((e) => copyNote(`${label} 복사 실패: ` + (e && e.message ? e.message : e)));
+}
 function svgToPngBlob(svg, w, h) {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+    const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.onload = () => {
-      const canvas = el("canvas"); canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url); canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG 변환 실패"))), "image/png");
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("PNG 변환 실패"))), "image/png");
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("SVG 로드 실패")); };
     img.src = url;
   });
 }
 
-// ---- 판정 (텍스트 + 이미지)
-function gradeBadge(grade) {
-  if (!grade) return null;
-  return badge(grade === "strong" ? "확신: 강함 (인식기 둘 합의)" : "확신: 약함 (인식기 하나)", grade === "strong" ? "badge-ok" : "badge-na");
-}
-function validEngines(json) { return ((json.read && json.read.engines) || []).filter((e) => e.inchikey); }
-function enginesDisagree(json) { return new Set(validEngines(json).map((e) => skel(e.inchikey))).size >= 2; }
-
-function verdictBlock(json, ref) {
-  let verdict = json.verdict;
-  if (!json.reference && json.read && json.read.inchikey) verdict = skel(json.read.inchikey) === skel(ref.inchikey) ? "match" : "mismatch"; // 서버가 이름을 몰라도 여기서 대조한다
-  if (verdict === "unreadable") return unreadableBlock(json);
-
-  const box = el("div", "verdict " + verdict);
-  const label = el("p", "verdict-label"); label.append(el("span", "dot " + verdict), verdict === "match" ? "일치" : "다름");
-  const g = gradeBadge(json.grade); if (g) label.append(g);
-  box.appendChild(label);
-
-  const read = json.read || {};
-  if (verdict === "mismatch") {
-    const rows = [[`"${ref.name || ""}" 의 정본`, escapeHtml(ref.inchikey || "-")], ["그림에서 읽은 것", markDiff(ref.inchikey, read.inchikey)]];
-    const note = formulaDiffNote(ref.formula, read.heavy_formula);
-    if (note) rows.push(["조성", `${escapeHtml(read.heavy_formula)} <span class="note">${escapeHtml(note)}</span>`]);
-    box.appendChild(evidenceRows(rows));
+$("copyPng").addEventListener("click", async () => {
+  if (!currentMol) return;
+  let blob;
+  try { blob = await svgToPngBlob(currentMol.svg, 420, 360); }
+  catch (e) { copyNote("PNG 생성 실패: " + (e && e.message ? e.message : e)); return; }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    copyNote("PNG 를 클립보드에 복사했다.");
+  } catch (e) {
+    downloadBlob(blob, safeFileName(currentMol) + ".png");
+    copyNote("클립보드 복사가 막혀 파일로 내려받았다.");
   }
-  const reasons = json.reasons || [];
-  if (reasons.length) box.appendChild(el("p", "verdict-note", reasons[0]));
-  const fold = foldBlock("근거 보기", reasons.slice(1), json);
-  if (fold) box.appendChild(fold);
-  return box;
-}
-function unreadableBlock(json) {
-  const box = el("div", "verdict unreadable");
-  const label = el("p", "verdict-label");
-  if (enginesDisagree(json)) {
-    label.append(el("span", "dot unreadable"), "인식기 둘이 다르게 읽었습니다"); box.appendChild(label);
-    box.appendChild(pairBlock(validEngines(json)));
-    return box;
+});
+$("copySvg").addEventListener("click", () => {
+  if (!currentMol) return;
+  downloadBlob(new Blob([currentMol.svg], { type: "image/svg+xml" }), safeFileName(currentMol) + ".svg");
+  copyNote("SVG 를 내려받았다.");
+});
+$("copySmiles").addEventListener("click", () => copyText(currentMol && currentMol.smiles, "SMILES"));
+$("copyKey").addEventListener("click", () => copyText(currentMol && currentMol.inchikey, "InChIKey"));
+
+// ============================================================ 이미지 입력 - crop.js(C)·ocr.js(O) 있으면 쓰고 없으면 대체. 임계 경로 아님.
+
+let usingCropper = false; // crop.js 가 붙으면 미리보기·크롭 UI 는 crop.js 가 맡는다
+// ── 예제 - 심사위원이 아무것도 준비하지 않고 바로 확인할 수 있게 ────────────
+// evidence/crops 의 실제 그림을 사용자가 올린 것과 **같은 경로**로 통과시킨다.
+// 미리 채우는 것은 입력(그림·이름)뿐이고 판정은 서버가 그때 낸다.
+const EXAMPLE_GROUPS = [
+  { label: "AI 가 그린 그림 - 이름과 대조합니다", items: [
+      { file: "caffeine_gemini_crop.png", name: "Caffeine",  label: "Gemini 카페인" },
+      { file: "caffeine_gpt_crop.png",    name: "Caffeine",  label: "GPT 카페인" },
+      { file: "alanine_gemini_crop.png",  name: "L-alanine", label: "Gemini 알라닌" },
+      { file: "alanine_gpt_crop.png",     name: "L-alanine", label: "GPT 알라닌" },
+  ] },
+  { label: "처음 보는 분자 - PubChem 에도 내장 표에도 없습니다. 그림에서만 읽습니다", items: [
+      { file: "novel_a.png", name: "", label: "신규 A" },
+      { file: "novel_b.png", name: "", label: "신규 B" },
+      { file: "novel_c.png", name: "", label: "신규 C" },
+  ] },
+];
+
+async function runExample(ex) {
+  const btns = document.querySelectorAll("#examples button");
+  btns.forEach((b) => { b.disabled = true; });
+  try {
+    const res = await fetch("evidence/crops/" + ex.file);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const blob = await res.blob();
+    const q = $("queryInput");
+    if (q) { q.value = ex.name || ""; }
+    await handleImage(blob);
+  } catch (e) {
+    const n = $("imageNote");
+    if (n) n.textContent = "예제를 불러오지 못했다: " + (e && e.message ? e.message : e);
+  } finally {
+    btns.forEach((b) => { b.disabled = false; });
   }
-  label.append(el("span", "dot unreadable"), "그림에서 구조를 읽지 못했습니다"); box.appendChild(label);
-  const row = el("div", "action-row");
-  if (canRecrop()) { const b = el("button", "btn btn-sm", "구조 부분만 잘라서 다시 시도"); b.type = "button"; b.addEventListener("click", openCropper); row.appendChild(b); }
-  else row.appendChild(el("span", "verdict-note", "구조 부분만 잘라서 다시 넣어 보세요."));
-  box.appendChild(row);
-  return box;
-}
-// 두 인식기가 읽은 것을 나란히 - 각각 그려서 보여준다
-function pairBlock(engines) {
-  const pair = el("div", "pair");
-  for (const e of engines.slice(0, 2)) {
-    const col = el("div", "pair-col");
-    col.appendChild(el("p", "eyebrow", e.engine || "-"));
-    const draw = el("div", "mol-draw");
-    if (RDKit && e.smiles) { const m = RDKit.get_mol(e.smiles); if (m && m.is_valid()) draw.innerHTML = m.get_svg(300, 240); if (m) m.delete(); }
-    col.appendChild(draw);
-    col.appendChild(el("p", "mono small", e.inchikey || ""));
-    pair.appendChild(col);
-  }
-  return pair;
-}
-function foldBlock(title, rest, json) {
-  const engines = (json.read && json.read.engines) || [];
-  if (!rest.length && !engines.length) return null;
-  const d = el("details", "fold"); d.appendChild(el("summary", null, title));
-  if (rest.length) { const ul = el("ul", "reasons"); for (const r of rest) ul.appendChild(el("li", null, r)); d.appendChild(ul); }
-  if (engines.length) d.appendChild(evidenceRows(engines.map((e) => [e.engine || "-", escapeHtml(e.inchikey || "(파싱 실패)") + (typeof e.confidence === "number" ? ` <span class="note">신뢰도 ${e.confidence.toFixed(3)}</span>` : "")])));
-  return d;
-}
-function evidenceRows(rows) {
-  const box = el("div", "evidence");
-  for (const [k, html] of rows) { const row = el("div", "row"); row.appendChild(el("div", "k", k)); const v = el("div", "v"); v.innerHTML = html; row.appendChild(v); box.appendChild(row); }
-  return box;
 }
 
-// ---- 이미지만: 그림에서 읽은 구조. 정본이 없으므로 이 경로에서만 읽은 SMILES 를 복사할 수 있다(확인되지 않음 배지).
-function readBlock(json) {
-  if (!state.readMol) return unreadableBlock(json);
-  const wrap = el("div");
-  wrap.appendChild(molBlock(state.readMol, { eyebrow: "그림에서 읽은 구조", badge: gradeBadge(json.grade), copyBadge: "확인되지 않음" }));
-  const fold = foldBlock("인식기별 결과", [], json);
-  if (fold) { fold.classList.add("fold-pad"); wrap.appendChild(fold); }
-  return wrap;
+function setupExamples() {
+  const box = $("examples");
+  if (!box) return;
+  for (const g of EXAMPLE_GROUPS) {
+    const row = document.createElement("div");
+    row.style.cssText = "margin:.4rem 0";
+    const lab = document.createElement("div");
+    lab.style.cssText = "font-size:.8rem;opacity:.7;margin-bottom:.25rem";
+    lab.textContent = g.label;
+    row.appendChild(lab);
+    for (const ex of g.items) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn btn-sm";
+      b.textContent = ex.label;
+      b.style.cssText = "margin:.15rem .3rem .15rem 0";
+      b.addEventListener("click", () => runExample(ex));
+      row.appendChild(b);
+    }
+    box.appendChild(row);
+  }
 }
 
-// ---- 차이 표시
+let CROPPER = null;   // crop.js 가 준 { recrop, reset } - 크기 게이트에 걸리면 다시 연다
+
+async function setupImageInput() {
+  const dropzone = $("dropzone");
+  try {
+    const mod = await import("./crop.js?v=202609100432");
+    if (mod && typeof mod.mountCropper === "function") {
+      CROPPER = mod.mountCropper(dropzone, { onCrop: handleImage }) || null;
+      usingCropper = true;
+      return;
+    }
+  } catch (e) { /* web/crop.js 아직 없다 - 조용히 건너뛴다 */ }
+  setupBasicImageInput(dropzone);
+}
+function setupBasicImageInput(dropzone) {
+  const fileInput = $("fileInput");
+  $("fileBtn").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => {
+    const f = fileInput.files && fileInput.files[0];
+    if (f) handleImage(f, { full: f });
+  });
+  dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("drag"); });
+  dropzone.addEventListener("dragleave", () => dropzone.classList.remove("drag"));
+  dropzone.addEventListener("drop", (e) => {
+    e.preventDefault(); dropzone.classList.remove("drag");
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleImage(f, { full: f });
+  });
+  document.addEventListener("paste", (e) => {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type && item.type.startsWith("image/")) {
+        const f = item.getAsFile();
+        if (f) { handleImage(f, { full: f }); break; }
+      }
+    }
+  });
+}
+function showImagePreview(blob) {
+  const box = $("imagePreview");
+  box.innerHTML = ""; box.hidden = false;
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(blob);
+  img.alt = "붙여넣은 이미지";
+  box.appendChild(img);
+}
+function imageNote(msg) { $("imageNote").textContent = msg || ""; }
+
+async function handleImage(blob) {
+  if (!usingCropper) showImagePreview(blob);
+  imageNote("OCR 로 이름을 읽는 중…");
+
+  let hints = null;
+  try {
+    const mod = await import("./ocr.js?v=202609100432");
+    if (mod && typeof mod.readLabels === "function") hints = await mod.readLabels(blob);
+  } catch (e) { /* web/ocr.js 아직 없다 - 임계 경로가 아니므로 조용히 건너뛴다 */ }
+
+  const name = hints && hints.names && hints.names[0];
+  if (name) {
+    imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
+    $("queryInput").value = name;
+    await attemptResolve(name);
+  } else if ($("queryInput").value.trim()) {
+    imageNote("이미지에서 이름을 읽지 못했지만 입력칸에 이미 값이 있다 - 그대로 서버 대조에 쓴다.");
+  } else {
+    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 칸에 직접 입력하면 서버 대조에도 쓰인다.");
+  }
+
+  await checkServerImage(blob, $("queryInput").value.trim());
+}
+
+// ============================================================ 이미지 자체 대조 - 서버(S). 정본 카드 안의 같은 자리에 채운다.
+
+// 스피너로 덮지 않는다 - 정본은 그대로 두고, 판정 슬롯에 한 줄만 적는다.
+function showVerdictLoading() {
+  showVerdictNote("서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다. 따뜻하면 2~3초.");
+}
+function showVerdictNote(msg) {
+  const card = openVerdict("");
+  const p = document.createElement("p"); p.className = "verdict-note"; p.textContent = msg;
+  card.appendChild(p);
+}
+
+async function checkServerImage(blob, name) {
+  showVerdictLoading();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CHECK_TIMEOUT_MS);
+  try {
+    const fd = new FormData();
+    fd.append("image", blob, "image.png");
+    fd.append("name", name || "");
+    const res = await fetch(CHECK_URL, { method: "POST", body: fd, signal: controller.signal });
+    if (!res.ok) throw new Error(`서버 응답 ${res.status}`);
+    renderVerdict(await res.json());
+  } catch (e) {
+    const timedOut = e && e.name === "AbortError";
+    showVerdictNote(
+      (timedOut ? "서버가 시간 안에 응답하지 않았다(최대 1분 대기했다). " : "서버에 연결하지 못했다. ") +
+      "그림 자체는 확인하지 못했다 - 위 정본과 나란히 놓고 비교해 보라."
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
 function markDiff(ref, read) {
   if (!read) return "";
   if (!ref) return escapeHtml(read);
   let out = "";
-  for (let i = 0; i < read.length; i++) { const c = read[i]; out += (i < ref.length && ref[i] === c) ? escapeHtml(c) : `<mark>${escapeHtml(c)}</mark>`; }
+  for (let i = 0; i < read.length; i++) {
+    const c = read[i];
+    out += (i < ref.length && ref[i] === c) ? escapeHtml(c) : `<mark>${escapeHtml(c)}</mark>`;
+  }
   return out;
 }
-const KO_ELEM = { C: "탄소", N: "질소", O: "산소", S: "황", P: "인", F: "불소", Cl: "염소", Br: "브롬", I: "아이오딘" };
+const KO_ELEM = { C: "탄소", H: "수소", N: "질소", O: "산소", S: "황", P: "인", F: "불소", Cl: "염소", Br: "브롬", I: "아이오딘" };
 function formulaDiffNote(refF, readF) {
   if (!refF || !readF) return null;
-  const parseF = (f) => { const out = {}; for (const m of f.matchAll(/([A-Z][a-z]?)(\d*)/g)) out[m[1]] = (out[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1); return out; };
-  const a = parseF(refF), b = parseF(readF), parts = [];
-  for (const e of new Set([...Object.keys(a), ...Object.keys(b)])) {
-    if (e === "H") continue; // heavy_formula 는 중원자만 센다
-    const d = (b[e] || 0) - (a[e] || 0); if (!d) continue;
-    parts.push(`${KO_ELEM[e] || e} ${Math.abs(d) === 1 ? "하나" : Math.abs(d) + "개"} ${d > 0 ? "많음" : "적음"}`);
+  const re = /([A-Z][a-z]?)(\d*)/g;
+  const parseF = (f) => { const out = {}; let m; while ((m = re.exec(f))) out[m[1]] = (out[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1); re.lastIndex = 0; return out; };
+  const a = parseF(refF), b = parseF(readF);
+  const elems = [...new Set([...Object.keys(a), ...Object.keys(b)])];
+  const parts = [];
+  for (const el of elems) {
+    if (el === "H") continue; // heavy_formula 는 중원자만 센다 - 수소 차이는 비교 대상이 아니다
+    const d = (b[el] || 0) - (a[el] || 0);
+    if (!d) continue;
+    const ko = KO_ELEM[el] || el;
+    const word = d > 0 ? (d === 1 ? "하나 많음" : `${d}개 많음`) : (d === -1 ? "하나 적음" : `${Math.abs(d)}개 적음`);
+    parts.push(`${ko} ${word}`);
   }
   return parts.length ? parts.join(", ") : null;
 }
+function buildEvidenceBox(rows) {
+  const box = document.createElement("div"); box.className = "evidence";
+  for (const [k, html] of rows) {
+    const row = document.createElement("div"); row.className = "row";
+    const kd = document.createElement("div"); kd.className = "k"; kd.textContent = k;
+    const vd = document.createElement("div"); vd.className = "v"; vd.innerHTML = html;
+    row.append(kd, vd); box.appendChild(row);
+  }
+  return box;
+}
+function appendReasons(card, reasons) {
+  if (!reasons || !reasons.length) return;
+  const ul = document.createElement("ul"); ul.className = "reasons";
+  for (const r of reasons) { const li = document.createElement("li"); li.textContent = r; ul.appendChild(li); }
+  card.appendChild(ul);
+}
 
-<<<<<<< HEAD
 function verdictLabel(state, text) {
   const h = document.createElement("p"); h.className = "verdict-label";
   const dot = document.createElement("span"); dot.className = "dot " + state;
@@ -744,76 +780,57 @@ function renderVerdict(json) {
       e.engine || "-",
       escapeHtml(e.inchikey || "(파싱 실패)") + (typeof e.confidence === "number" ? ` <span class="note">신뢰도 ${e.confidence.toFixed(3)}</span>` : ""),
     ])));
-=======
-// ============================================================ 바로 해보기
-function buildExamples() {
-  const box = $("examples");
-  for (const g of EXAMPLES) {
-    const row = el("div", "example-row"); row.appendChild(el("span", "example-group", g.group));
-    for (const it of g.items) { const b = el("button", "chip", it.label); b.type = "button"; b.addEventListener("click", () => runExample(it)); row.appendChild(b); }
-    box.appendChild(row);
->>>>>>> Sweet-Butters/web-ui
   }
-}
-async function runExample(it) {
-  $("queryInput").value = it.name;
-  Object.assign(state, { text: it.name, forceName: false, mol: null, molFrom: null, image: null, imageVia: null, server: null, serverError: null, readMol: null, checkedName: null });
-  hidePreview(); imageNote(""); clearErr(); hideSuggestions();
-  if (it.name && RDKit) { try { const r = await resolveText(it.name, false); if (r) { state.mol = r.mol; state.molFrom = r.from; } } catch (e) { /* 정본 없이도 간다 */ } }
-  render();
-  let blob;
-  try { const res = await fetch(it.path); if (!res.ok) throw new Error(res.status); blob = await res.blob(); }
-  catch (e) { imageNote("예시 이미지를 불러오지 못했습니다. 이미지를 직접 붙여넣으세요."); return; }
-  // 드롭 영역에 원본을 띄운다 - 검사한 그림을 눈으로 보고, 필요하면 거기서 다시 자를 수 있다.
-  const inCropper = feedCropper(new File([blob], it.key + ".png", { type: blob.type || "image/png" }));
-  await handleImage(blob, inCropper ? "cropper" : "example");
 }
 
-// ============================================================ 요금제 - 눌린다. 월/연 토글, 선택 카드, 요약 한 줄.
-(function pricing() {
-  const plans = [...document.querySelectorAll("#plans .plan")]; if (!plans.length) return;
-  let cycle = "monthly";
-  const priceOf = (p) => { const a = p.querySelector(".amount"), per = p.querySelector(".per"); return (a.dataset[cycle] || a.textContent) + (per ? (per.dataset[cycle] || per.textContent).replace(" ", "") : ""); };
-  function select(p, focus) {
-    for (const q of plans) { const on = q === p; q.setAttribute("aria-checked", on); q.tabIndex = on ? 0 : -1; q.classList.toggle("is-selected", on); }
-    $("planSummary").textContent = p.dataset.summary.replace("{price}", priceOf(p));
-    if (focus) p.focus();
+// 콜드스타트가 55초(따뜻하면 2.3초) - 페이지가 열리자마자 조용히 한 번 깨워 둔다.
+// 응답은 상태 표시에만 쓴다. 실패해도 무시한다 - 크레딧 안 쓰는 공짜 최적화다.
+function warmupServer() {
+  const el = $("serverStatus");
+  fetch(HEALTH_URL).then((res) => {
+    el.textContent = res.ok ? "그림 검사 준비됨" : "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+  }).catch(() => {
+    el.textContent = "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+  });
+}
+
+// index.html 의 "야생에서 잡은 오류" 이야기에서 "직접 해보기" 로 넘어오면(?sample=caffeine_gemini)
+// 이름칸을 채우고 그 이미지를 실제로 불러와 이 페이지의 정상 경로(handleImage)를 그대로 태운다.
+// 미리 적어둔 값은 없다 - 매번 서버가 새로 계산한다.
+async function loadSample(key) {
+  const samples = { caffeine_gemini: { name: "Caffeine", path: "evidence/caffeine_gemini_crop.png" } };
+  // 통째 슬라이드가 아니라 **구조 영역만 오려낸 것**을 보낸다. 이야기에 적힌 CSXLFNRQOLIQAN
+  // 이 그 기준이고, 통째로 보내면 서버가 "판정 불가 - 구조 부분만 잘라서" 로 물러난다.
+  const s = samples[key];
+  if (!s) return;
+  $("queryInput").value = s.name;
+  await attemptResolve(s.name);
+  let blob;
+  try {
+    const res = await fetch(s.path);
+    if (!res.ok) throw new Error(`샘플 이미지 응답 ${res.status}`);
+    blob = await res.blob();
+  } catch (e) {
+    imageNote("샘플 이미지를 이 방식으로는 못 불러왔다(" + (e && e.message ? e.message : e) + ") - file:// 로 열었다면 GitHub Pages 배포판에서 해보거나, 이미지를 직접 붙여넣어라.");
+    return;
   }
-  function applyCycle() {
-    for (const s of document.querySelectorAll("#plans [data-monthly]")) s.textContent = s.dataset[cycle];
-    for (const b of document.querySelectorAll(".toggle-btn")) { const on = b.dataset.cycle === cycle; b.classList.toggle("is-on", on); b.setAttribute("aria-pressed", on); }
-    select(plans.find((p) => p.getAttribute("aria-checked") === "true") || plans[1]);
-  }
-  for (const p of plans) {
-    p.addEventListener("click", (e) => { if (!e.target.closest(".plan-cta")) select(p); });
-    p.addEventListener("keydown", (e) => {
-      const i = plans.indexOf(p);
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); select(plans[(i + 1) % plans.length], true); }
-      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); select(plans[(i - 1 + plans.length) % plans.length], true); }
-      else if ((e.key === " " || e.key === "Enter") && e.target === p) { e.preventDefault(); select(p); }
-    });
-  }
-  for (const b of document.querySelectorAll(".toggle-btn")) b.addEventListener("click", () => { cycle = b.dataset.cycle; applyCycle(); });
-  document.querySelector('[data-action="start"]').addEventListener("click", (e) => { e.preventDefault(); $("queryInput").scrollIntoView({ behavior: "smooth", block: "center" }); $("queryInput").focus(); });
-  applyCycle();
-})();
+  await handleImage(blob);
+}
 
 // ============================================================ 시작
-function warmupServer() { // 콜드스타트를 제출 전에 흡수한다. 실패해도 무시.
-  const e = $("serverStatus");
-  fetch(HEALTH_URL).then((r) => { e.textContent = r.ok ? "그림 검사 준비됨" : "그림 검사 서버를 깨우는 중…"; }).catch(() => { e.textContent = "그림 검사 서버를 깨우는 중…"; });
-}
+
 setupImageInput();
-buildExamples();
+setupExamples();
 warmupServer();
 
 const q = new URLSearchParams(location.search);
 if (q.get("name")) $("queryInput").value = q.get("name");
 
+const t0 = performance.now();
 window.initRDKitModule().then((m) => {
-  RDKit = m; status("");
-  const sample = q.get("sample"); // 옛 링크(try.html?sample=…) 호환
-  const it = sample && EXAMPLES.flatMap((g) => g.items).find((x) => x.key === sample);
-  if (it) runExample(it);
-  else if ($("queryInput").value.trim()) onText($("queryInput").value);
-}).catch(() => { status(""); fail("구조 엔진을 불러오지 못했습니다. 새로고침해 보세요."); });
+  RDKit = m;
+  status(`RDKit ${m.version()} 준비됨 (${Math.round(performance.now() - t0)}ms)`);
+  const sample = q.get("sample");
+  if (sample) loadSample(sample);
+  else if ($("queryInput").value.trim()) attemptResolve($("queryInput").value);
+}).catch((e) => { status(""); fail("RDKit 을 불러오지 못했다: " + e); });
