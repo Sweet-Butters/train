@@ -3,7 +3,6 @@
   --mute: #6b6f76;
   --line: #d9dce1;
   --ok: #1e7f43;
-  --warn: #a15c00;
   --bad: #b3261e;
   --gray-bg: #f0f1f3;
   --bg: #fafafa;
@@ -56,29 +55,14 @@ dl.facts dd { margin: 0; font-family: ui-monospace, Consolas, monospace; word-br
 .copy-row button:disabled { opacity: .4; cursor: default; }
 .copy-note { color: var(--mute); font-size: 12px; margin: 8px 0 0; min-height: 1.2em; }
 
-/* ---------- 대조 결과 영역 (이미지 경로에서만 나타난다) ---------- */
-.result-section { margin-top: 18px; }
-.result-card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
-.result-card[hidden] { display: none; }
-.result-placeholder { color: var(--mute); font-size: 14px; padding: 4px; margin: 0; }
-
 .verdict-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; padding: 6px 4px; margin: 0 0 12px; border-radius: 6px; }
 .verdict-pill.match { color: var(--ok); }
 .verdict-pill.mismatch { color: var(--bad); }
 .verdict-pill.unreadable { color: var(--mute); }
 
-.drawbox-inline { max-width: 300px; margin: 4px 0 14px; }
-.drawlabel { color: var(--mute); font-size: 12px; margin: 0 0 4px; text-align: center; }
-.draw { border: 1px solid var(--line); border-radius: 8px; background: #fff; min-height: 180px; display: flex; align-items: center; justify-content: center; }
-.draw svg { max-width: 100%; height: auto; }
-
 .evidence { background: var(--gray-bg); border-radius: 8px; padding: 12px 14px; margin: 10px 0; font-family: ui-monospace, Consolas, monospace; font-size: 13px; }
 .evidence .row { display: grid; grid-template-columns: 170px 1fr; gap: 4px 10px; padding: 3px 0; }
 .evidence .row .k { color: var(--mute); font-family: system-ui, sans-serif; }
-.evidence mark { background: #ffd3d0; color: var(--bad); border-radius: 2px; padding: 0 1px; }
-
-.reasons { margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
-.reasons li { margin: 3px 0; }
 
 .err { color: var(--bad); margin-top: 14px; }
 
