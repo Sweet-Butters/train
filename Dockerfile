@@ -27,7 +27,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir "numpy==1.23.5"
 
 RUN pip install --no-cache-dir \
-        "torch==1.13.1" --index-url https://download.pytorch.org/whl/cpu
+        "torch==1.13.1+cpu" --extra-index-url https://download.pytorch.org/whl/cpu
 
 RUN pip install --no-cache-dir \
         "decimer==2.7.1" \
