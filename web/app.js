@@ -187,8 +187,8 @@ function syncResult() {
 function renderMol(data) {
   currentMol = data;
   $("molDraw").innerHTML = data.svg || "";
-  $("molSource").textContent = "정본 · " + (data.source || "");
-  $("molTitle").textContent = data.title || "(PubChem 에 이름 없음)";
+  $("molSource").textContent = data.cid ? "정본" : "입력한 구조";
+  $("molTitle").textContent = data.title || "이름 없음";
   const dl = $("molFacts"); dl.innerHTML = "";
   const cidLink = data.cid ? { href: `https://pubchem.ncbi.nlm.nih.gov/compound/${data.cid}`, text: `CID ${data.cid}` } : null;
   const rows = [["PubChem", cidLink], ["화학식", data.formula], ["SMILES", data.smiles], ["InChIKey", data.inchikey]];
@@ -217,7 +217,7 @@ async function attemptResolve(raw) {
   hideSuggestions();
   hideVerdict(); // 새 조회는 이전 판정과 무관하다
   if (!raw) { hideMol(); clearErr(); return; }
-  if (!RDKit) { status("RDKit 로딩 중… 준비되면 자동으로 확인한다."); return; }
+  if (!RDKit) { status("구조 엔진을 불러오는 중…"); return; }
   status("확인 중…");
   clearErr();
   try {
@@ -225,16 +225,16 @@ async function attemptResolve(raw) {
     if (!res) {
       hideMol();
       showSuggestions(raw);
-      fail(`"${raw}" - 내장 표 423개에도, PubChem 에도, 유효한 SMILES 로도 못 찾았다.`);
-      status(`RDKit ${RDKit.version()} 준비됨`);
+      fail(`"${raw}" 을(를) 찾지 못했습니다.`);
+      status("");
       return;
     }
     renderMol(res);
-    status(`RDKit ${RDKit.version()} 준비됨`);
+    status("");
   } catch (e) {
     hideMol();
-    fail("실패: " + (e && e.message ? e.message : e) + " (PubChem 조회는 네트워크가 필요하다)");
-    status(RDKit ? `RDKit ${RDKit.version()} 준비됨` : "");
+    fail("조회에 실패했습니다: " + (e && e.message ? e.message : e));
+    status("");
   }
 }
 
@@ -274,7 +274,7 @@ async function copyTextImpl(text) {
 }
 function copyText(text, label) {
   if (!text) return;
-  copyTextImpl(text).then(() => copyNote(`${label} 를 클립보드에 복사했다.`))
+  copyTextImpl(text).then(() => copyNote(`${label} 를 클립보드에 복사했습니다.`))
     .catch((e) => copyNote(`${label} 복사 실패: ` + (e && e.message ? e.message : e)));
 }
 function svgToPngBlob(svg, w, h) {
@@ -303,16 +303,16 @@ $("copyPng").addEventListener("click", async () => {
   catch (e) { copyNote("PNG 생성 실패: " + (e && e.message ? e.message : e)); return; }
   try {
     await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-    copyNote("PNG 를 클립보드에 복사했다.");
+    copyNote("PNG 를 클립보드에 복사했습니다.");
   } catch (e) {
     downloadBlob(blob, safeFileName(currentMol) + ".png");
-    copyNote("클립보드 복사가 막혀 파일로 내려받았다.");
+    copyNote("파일로 내려받았습니다.");
   }
 });
 $("copySvg").addEventListener("click", () => {
   if (!currentMol) return;
   downloadBlob(new Blob([currentMol.svg], { type: "image/svg+xml" }), safeFileName(currentMol) + ".svg");
-  copyNote("SVG 를 내려받았다.");
+  copyNote("SVG 를 내려받았습니다.");
 });
 $("copySmiles").addEventListener("click", () => copyText(currentMol && currentMol.smiles, "SMILES"));
 $("copyKey").addEventListener("click", () => copyText(currentMol && currentMol.inchikey, "InChIKey"));
@@ -326,6 +326,7 @@ async function setupImageInput() {
     const mod = await import("./crop.js");
     if (mod && typeof mod.mountCropper === "function") {
       mod.mountCropper(dropzone, { onCrop: handleImage });
+      dropzone.classList.add("has-cropper");
       usingCropper = true;
       return;
     }
@@ -369,7 +370,7 @@ function imageNote(msg) { $("imageNote").textContent = msg || ""; }
 
 async function handleImage(blob) {
   if (!usingCropper) showImagePreview(blob);
-  imageNote("OCR 로 이름을 읽는 중…");
+  imageNote("이미지에서 이름을 읽는 중…");
 
   let hints = null;
   try {
@@ -379,13 +380,13 @@ async function handleImage(blob) {
 
   const name = hints && hints.names && hints.names[0];
   if (name) {
-    imageNote(`OCR 이 이름 "${name}" 을 읽어 이름칸에 채웠다 - 확인하고 필요하면 고쳐라.`);
+    imageNote(`이미지에서 이름 "${name}" 을(를) 읽었습니다.`);
     $("queryInput").value = name;
     await attemptResolve(name);
   } else if ($("queryInput").value.trim()) {
-    imageNote("이미지에서 이름을 읽지 못했지만 입력칸에 이미 값이 있다 - 그대로 서버 대조에 쓴다.");
+    imageNote("");
   } else {
-    imageNote("이미지에서 이름을 읽지 못했다 - OCR(web/ocr.js)이 아직 없거나 찾지 못했다. 위 칸에 직접 입력하면 서버 대조에도 쓰인다.");
+    imageNote("이미지에서 이름을 읽지 못했습니다. 이름을 입력하세요.");
   }
 
   await checkServerImage(blob, $("queryInput").value.trim());
@@ -395,7 +396,7 @@ async function handleImage(blob) {
 
 // 스피너로 덮지 않는다 - 정본은 그대로 두고, 판정 슬롯에 한 줄만 적는다.
 function showVerdictLoading() {
-  showVerdictNote("서버가 그림을 읽는 중… 처음이면(콜드스타트) 최대 1분 걸릴 수 있다. 따뜻하면 2~3초.");
+  showVerdictNote("그림을 읽는 중… 처음이면 최대 1분 걸립니다.");
 }
 function showVerdictNote(msg) {
   const card = openVerdict("");
@@ -417,8 +418,7 @@ async function checkServerImage(blob, name) {
   } catch (e) {
     const timedOut = e && e.name === "AbortError";
     showVerdictNote(
-      (timedOut ? "서버가 시간 안에 응답하지 않았다(최대 1분 대기했다). " : "서버에 연결하지 못했다. ") +
-      "그림 자체는 확인하지 못했다 - 위 정본과 나란히 놓고 비교해 보라."
+      (timedOut ? "서버가 응답하지 않습니다. " : "서버에 연결하지 못했습니다. ") + "정본을 나란히 놓고 비교해 보세요."
     );
   } finally {
     clearTimeout(timer);
@@ -487,9 +487,8 @@ function renderVerdict(json) {
   if (state === "unreadable") {
     card.appendChild(verdictLabel(state, "판정 불가"));
     const note = document.createElement("p"); note.className = "verdict-note";
-    note.textContent = "서버가 그림을 확실히 읽지 못했다. 요청하신 구조는 위 정본이다. 나란히 놓고 보라.";
+    note.textContent = "그림에서 구조를 읽지 못했습니다. 구조 부분만 잘라서 다시 시도해 보세요.";
     card.appendChild(note);
-    appendReasons(card, json.reasons);
     return;
   }
 
@@ -497,7 +496,7 @@ function renderVerdict(json) {
   if (json.grade) {
     // 확신 등급은 색이 아니라 작은 글씨 한 줄로.
     const g = document.createElement("p"); g.className = "verdict-grade";
-    g.textContent = json.grade === "strong" ? "확신 강함 · 인식기 둘이 같은 골격을 읽었다" : "확신 약함 · 인식기 하나의 답이다";
+    g.textContent = json.grade === "strong" ? "확신 강함 · 인식기 둘이 같은 골격을 읽었습니다" : "확신 약함 · 인식기 하나의 결과입니다";
     card.appendChild(g);
   }
 
@@ -513,15 +512,6 @@ function renderVerdict(json) {
   if (rows.length) card.appendChild(buildEvidenceBox(rows));
 
   appendReasons(card, json.reasons);
-
-  if (read && read.engines && read.engines.length) {
-    const title = document.createElement("p"); title.className = "evidence-title"; title.textContent = "인식기별 결과";
-    card.appendChild(title);
-    card.appendChild(buildEvidenceBox(read.engines.map((e) => [
-      e.engine || "-",
-      escapeHtml(e.inchikey || "(파싱 실패)") + (typeof e.confidence === "number" ? ` <span class="note">신뢰도 ${e.confidence.toFixed(3)}</span>` : ""),
-    ])));
-  }
 }
 
 // 콜드스타트가 55초(따뜻하면 2.3초) - 페이지가 열리자마자 조용히 한 번 깨워 둔다.
@@ -529,9 +519,9 @@ function renderVerdict(json) {
 function warmupServer() {
   const el = $("serverStatus");
   fetch(HEALTH_URL).then((res) => {
-    el.textContent = res.ok ? "그림 검사 준비됨" : "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+    el.textContent = res.ok ? "그림 검사 준비됨" : "그림 검사 서버를 깨우는 중…";
   }).catch(() => {
-    el.textContent = "그림 검사는 준비 중입니다 (이름·SMILES 검사는 지금 됩니다)";
+    el.textContent = "그림 검사 서버를 깨우는 중…";
   });
 }
 
@@ -552,7 +542,7 @@ async function loadSample(key) {
     if (!res.ok) throw new Error(`샘플 이미지 응답 ${res.status}`);
     blob = await res.blob();
   } catch (e) {
-    imageNote("샘플 이미지를 이 방식으로는 못 불러왔다(" + (e && e.message ? e.message : e) + ") - file:// 로 열었다면 GitHub Pages 배포판에서 해보거나, 이미지를 직접 붙여넣어라.");
+    imageNote("예시 이미지를 불러오지 못했습니다. 이미지를 직접 붙여넣으세요.");
     return;
   }
   await handleImage(blob);
@@ -563,14 +553,19 @@ async function loadSample(key) {
 setupImageInput();
 warmupServer();
 
+let pendingSample = null; // 엔진이 뜨기 전에 예시를 누르면 뜬 뒤에 돌린다
+$("exampleLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  if (RDKit) loadSample("caffeine_gemini"); else pendingSample = "caffeine_gemini";
+});
+
 const q = new URLSearchParams(location.search);
 if (q.get("name")) $("queryInput").value = q.get("name");
 
-const t0 = performance.now();
 window.initRDKitModule().then((m) => {
   RDKit = m;
-  status(`RDKit ${m.version()} 준비됨 (${Math.round(performance.now() - t0)}ms)`);
-  const sample = q.get("sample");
+  status("");
+  const sample = q.get("sample") || pendingSample;
   if (sample) loadSample(sample);
   else if ($("queryInput").value.trim()) attemptResolve($("queryInput").value);
-}).catch((e) => { status(""); fail("RDKit 을 불러오지 못했다: " + e); });
+}).catch((e) => { status(""); fail("구조 엔진을 불러오지 못했습니다. 새로고침해 보세요."); });
