@@ -77,10 +77,15 @@ image = (
     # opencv/pillow 가 기대하는 시스템 라이브러리. 없으면 import 가 OSError 로 죽는다.
     .apt_install("libgl1", "libglib2.0-0", "libsm6", "libxext6")
     .env({"PYSTOW_HOME": PYSTOW_HOME, "TF_CPP_MIN_LOG_LEVEL": "3", "KERAS_BACKEND": "tensorflow"})
+    # 핀의 근거 (PyPI 메타데이터 확인, 2026-09-10):
+    #   decimer 2.7.1 은 tensorflow<=2.15.0,>=2.12.0 을 요구한다. 2.15.0 은 Keras 2 계열로
+    #   DECIMER V2 가중치가 검증된 자리다. tensorflow-cpu 로 바꿔 달지 않는다 - decimer 가
+    #   요구하는 배포판 이름은 'tensorflow' 라서, cpu 판을 깔아도 pip 이 tensorflow 를 또 깐다.
+    #   rdkit 2026.3.6 은 server/test_judge.py 를 통과시킨 그 버전이다.
     .pip_install(
         "decimer==2.7.1",
-        "tensorflow-cpu==2.16.2",
-        "rdkit==2024.9.6",
+        "tensorflow==2.15.0",
+        "rdkit==2026.3.6",
         "pillow",
         "requests",
         "fastapi[standard]",
@@ -145,7 +150,9 @@ class Api:
             return [], self.engine.last_error or "예측 없음"
         return [EngineRead("decimer", pred.smiles, pred.confidence)], None
 
-    @modal.asgi_app()
+    # label 을 못 박으면 URL 이 https://<workspace>--chemcheck.modal.run 로 고정된다.
+    # U 트랙이 프런트에 박을 주소이므로, 클래스·메서드 이름을 바꿔도 흔들리면 안 된다.
+    @modal.asgi_app(label="chemcheck")
     def web(self):
         import sys, time
         sys.path.insert(0, "/root")

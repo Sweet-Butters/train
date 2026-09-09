@@ -1,6 +1,6 @@
 """배포된 엔드포인트에 4장을 실제로 던져 본다.
 
-    python server/smoke.py https://<workspace>--chemcheck-web-api-web.modal.run
+    python server/smoke.py https://<workspace>--chemcheck.modal.run
 
 콜드스타트를 재려고 첫 장 시간을 따로 찍는다. 판정은 서버가 하고, 여기서는
 계약대로의 JSON 이 오는지와 시간만 본다.

@@ -38,10 +38,14 @@ TensorFlow 가 스냅샷을 타는지는 확인이 필요하다. 기본은 꺼�
 
 ## 계약
 
+엔드포인트 주소는 `label="chemcheck"` 로 못 박아 두었다. 배포하면 언제나
+
 ```
-POST /api/check   multipart/form-data: image, name
-GET  /api/health  -> {"ok":true,"engine":"decimer","ready":true}
+https://<workspace>--chemcheck.modal.run/api/check    POST  multipart: image, name
+https://<workspace>--chemcheck.modal.run/api/health   GET   -> {"ok":true,...}
 ```
+
+`<workspace>` 는 Modal 계정 이름이다. 클래스·메서드 이름을 바꿔도 이 주소는 흔들리지 않는다.
 
 CORS 는 `Access-Control-Allow-Origin: *` 이고 OPTIONS 프리플라이트는 FastAPI 의
 `CORSMiddleware` 가 받는다.
