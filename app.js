@@ -539,7 +539,9 @@ function warmupServer() {
 // 이름칸을 채우고 그 이미지를 실제로 불러와 이 페이지의 정상 경로(handleImage)를 그대로 태운다.
 // 미리 적어둔 값은 없다 - 매번 서버가 새로 계산한다.
 async function loadSample(key) {
-  const samples = { caffeine_gemini: { name: "Caffeine", path: "evidence/caffeine_gemini.jpeg" } };
+  const samples = { caffeine_gemini: { name: "Caffeine", path: "evidence/caffeine_gemini_crop.png" } };
+  // 통째 슬라이드가 아니라 **구조 영역만 오려낸 것**을 보낸다. 이야기에 적힌 CSXLFNRQOLIQAN
+  // 이 그 기준이고, 통째로 보내면 서버가 "판정 불가 - 구조 부분만 잘라서" 로 물러난다.
   const s = samples[key];
   if (!s) return;
   $("queryInput").value = s.name;
