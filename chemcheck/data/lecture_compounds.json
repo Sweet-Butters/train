@@ -1,0 +1,2505 @@
+{
+ "note": "유기·일반화학 강의에 나오는 화합물 목록. answer 는 PubChem 이 id 이름에 준 응답을 그대로 받아 적은 것이다 (scripts/build_offline_table.py). 손으로 적은 키는 없다.",
+ "count": 119,
+ "compounds": [
+  {
+   "id": "water",
+   "en": [
+    "water"
+   ],
+   "iupac": [
+    "oxidane",
+    "dihydrogen monoxide"
+   ],
+   "ko": [
+    "물"
+   ],
+   "abbr": [
+    "H2O"
+   ],
+   "answer": {
+    "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+    "formula": "H2O",
+    "smiles": "O",
+    "cid": 962
+   }
+  },
+  {
+   "id": "ammonia",
+   "en": [
+    "ammonia"
+   ],
+   "iupac": [
+    "azane"
+   ],
+   "ko": [
+    "암모니아"
+   ],
+   "abbr": [
+    "NH3"
+   ],
+   "answer": {
+    "inchikey": "QGZKDVFQNNGYKY-UHFFFAOYSA-N",
+    "formula": "H3N",
+    "smiles": "N",
+    "cid": 222
+   }
+  },
+  {
+   "id": "carbon dioxide",
+   "en": [
+    "carbon dioxide"
+   ],
+   "iupac": [],
+   "ko": [
+    "이산화탄소"
+   ],
+   "abbr": [
+    "CO2"
+   ],
+   "answer": {
+    "inchikey": "CURLTUGMZLYLDI-UHFFFAOYSA-N",
+    "formula": "CO2",
+    "smiles": "C(=O)=O",
+    "cid": 280
+   }
+  },
+  {
+   "id": "carbon monoxide",
+   "en": [
+    "carbon monoxide"
+   ],
+   "iupac": [],
+   "ko": [
+    "일산화탄소"
+   ],
+   "abbr": [
+    "CO"
+   ],
+   "answer": {
+    "inchikey": "UGFAIRIUMAVXCW-UHFFFAOYSA-N",
+    "formula": "CO",
+    "smiles": "[C-]#[O+]",
+    "cid": 281
+   }
+  },
+  {
+   "id": "hydrogen peroxide",
+   "en": [
+    "hydrogen peroxide"
+   ],
+   "iupac": [],
+   "ko": [
+    "과산화수소"
+   ],
+   "abbr": [
+    "H2O2"
+   ],
+   "answer": {
+    "inchikey": "MHAJPDPJQMAIIY-UHFFFAOYSA-N",
+    "formula": "H2O2",
+    "smiles": "OO",
+    "cid": 784
+   }
+  },
+  {
+   "id": "sulfuric acid",
+   "en": [
+    "sulfuric acid",
+    "oil of vitriol"
+   ],
+   "iupac": [],
+   "ko": [
+    "황산"
+   ],
+   "abbr": [
+    "H2SO4"
+   ],
+   "answer": {
+    "inchikey": "QAOWNCQODCNURD-UHFFFAOYSA-N",
+    "formula": "H2O4S",
+    "smiles": "OS(=O)(=O)O",
+    "cid": 1118
+   }
+  },
+  {
+   "id": "hydrochloric acid",
+   "en": [
+    "hydrochloric acid",
+    "muriatic acid"
+   ],
+   "iupac": [],
+   "ko": [
+    "염산"
+   ],
+   "abbr": [
+    "HCl"
+   ],
+   "answer": {
+    "inchikey": "VEXZGXHMUGYJMC-UHFFFAOYSA-N",
+    "formula": "ClH",
+    "smiles": "Cl",
+    "cid": 313
+   }
+  },
+  {
+   "id": "nitric acid",
+   "en": [
+    "nitric acid"
+   ],
+   "iupac": [],
+   "ko": [
+    "질산"
+   ],
+   "abbr": [
+    "HNO3"
+   ],
+   "answer": {
+    "inchikey": "GRYLNZFGIOXLOG-UHFFFAOYSA-N",
+    "formula": "HNO3",
+    "smiles": "[N+](=O)(O)[O-]",
+    "cid": 944
+   }
+  },
+  {
+   "id": "phosphoric acid",
+   "en": [
+    "phosphoric acid",
+    "orthophosphoric acid"
+   ],
+   "iupac": [],
+   "ko": [
+    "인산"
+   ],
+   "abbr": [
+    "H3PO4"
+   ],
+   "answer": {
+    "inchikey": "NBIIXXVUZAFLBC-UHFFFAOYSA-N",
+    "formula": "H3O4P",
+    "smiles": "OP(=O)(O)O",
+    "cid": 1004
+   }
+  },
+  {
+   "id": "sodium chloride",
+   "en": [
+    "sodium chloride",
+    "table salt",
+    "halite"
+   ],
+   "iupac": [],
+   "ko": [
+    "염화나트륨",
+    "염화소듐",
+    "소금"
+   ],
+   "abbr": [
+    "NaCl"
+   ],
+   "answer": {
+    "inchikey": "FAPWRFPIFSIZLT-UHFFFAOYSA-M",
+    "formula": "ClNa",
+    "smiles": "[Na+].[Cl-]",
+    "cid": 5234
+   }
+  },
+  {
+   "id": "sodium hydroxide",
+   "en": [
+    "sodium hydroxide",
+    "caustic soda",
+    "lye"
+   ],
+   "iupac": [],
+   "ko": [
+    "수산화나트륨",
+    "수산화소듐",
+    "가성소다"
+   ],
+   "abbr": [
+    "NaOH"
+   ],
+   "answer": {
+    "inchikey": "HEMHJVSKTPXQMS-UHFFFAOYSA-M",
+    "formula": "HNaO",
+    "smiles": "[OH-].[Na+]",
+    "cid": 14798
+   }
+  },
+  {
+   "id": "sodium bicarbonate",
+   "en": [
+    "sodium bicarbonate",
+    "baking soda",
+    "sodium hydrogen carbonate"
+   ],
+   "iupac": [],
+   "ko": [
+    "탄산수소나트륨",
+    "탄산수소소듐",
+    "중탄산나트륨"
+   ],
+   "abbr": [
+    "NaHCO3"
+   ],
+   "answer": {
+    "inchikey": "UIIMBOGNXHQVGW-UHFFFAOYSA-M",
+    "formula": "CHNaO3",
+    "smiles": "C(=O)(O)[O-].[Na+]",
+    "cid": 516892
+   }
+  },
+  {
+   "id": "calcium carbonate",
+   "en": [
+    "calcium carbonate",
+    "calcite"
+   ],
+   "iupac": [],
+   "ko": [
+    "탄산칼슘"
+   ],
+   "abbr": [
+    "CaCO3"
+   ],
+   "answer": {
+    "inchikey": "VTYYLEPIZMXCLO-UHFFFAOYSA-L",
+    "formula": "CCaO3",
+    "smiles": "C(=O)([O-])[O-].[Ca+2]",
+    "cid": 10112
+   }
+  },
+  {
+   "id": "potassium permanganate",
+   "en": [
+    "potassium permanganate"
+   ],
+   "iupac": [],
+   "ko": [
+    "과망간산칼륨",
+    "과망가니즈산칼륨",
+    "과망가니즈산포타슘"
+   ],
+   "abbr": [
+    "KMnO4"
+   ],
+   "answer": {
+    "inchikey": "VZJVWSHVAAUDKD-UHFFFAOYSA-N",
+    "formula": "KMnO4",
+    "smiles": "[O-][Mn](=O)(=O)=O.[K+]",
+    "cid": 516875
+   }
+  },
+  {
+   "id": "ozone",
+   "en": [
+    "ozone"
+   ],
+   "iupac": [
+    "trioxygen"
+   ],
+   "ko": [
+    "오존"
+   ],
+   "abbr": [
+    "O3"
+   ],
+   "answer": {
+    "inchikey": "CBENFWSGALASAD-UHFFFAOYSA-N",
+    "formula": "O3",
+    "smiles": "[O-][O+]=O",
+    "cid": 24823
+   }
+  },
+  {
+   "id": "nitrous oxide",
+   "en": [
+    "nitrous oxide",
+    "laughing gas"
+   ],
+   "iupac": [
+    "dinitrogen monoxide"
+   ],
+   "ko": [
+    "아산화질소",
+    "일산화이질소"
+   ],
+   "abbr": [
+    "N2O"
+   ],
+   "answer": {
+    "inchikey": "GQPLMRYTRLFLPF-UHFFFAOYSA-N",
+    "formula": "N2O",
+    "smiles": "[N-]=[N+]=O",
+    "cid": 948
+   }
+  },
+  {
+   "id": "methane",
+   "en": [
+    "methane"
+   ],
+   "iupac": [],
+   "ko": [
+    "메탄",
+    "메테인"
+   ],
+   "abbr": [
+    "CH4"
+   ],
+   "answer": {
+    "inchikey": "VNWKTOKETHGBQD-UHFFFAOYSA-N",
+    "formula": "CH4",
+    "smiles": "C",
+    "cid": 297
+   }
+  },
+  {
+   "id": "ethane",
+   "en": [
+    "ethane"
+   ],
+   "iupac": [],
+   "ko": [
+    "에탄",
+    "에테인"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "OTMSDBZUPAUEDD-UHFFFAOYSA-N",
+    "formula": "C2H6",
+    "smiles": "CC",
+    "cid": 6324
+   }
+  },
+  {
+   "id": "propane",
+   "en": [
+    "propane"
+   ],
+   "iupac": [],
+   "ko": [
+    "프로판",
+    "프로페인"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "ATUOYWHBWRKTHZ-UHFFFAOYSA-N",
+    "formula": "C3H8",
+    "smiles": "CCC",
+    "cid": 6334
+   }
+  },
+  {
+   "id": "butane",
+   "en": [
+    "butane",
+    "n-butane"
+   ],
+   "iupac": [],
+   "ko": [
+    "부탄",
+    "뷰테인",
+    "노말부탄"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "IJDNQMDRQITEOD-UHFFFAOYSA-N",
+    "formula": "C4H10",
+    "smiles": "CCCC",
+    "cid": 7843
+   }
+  },
+  {
+   "id": "isobutane",
+   "en": [
+    "isobutane"
+   ],
+   "iupac": [
+    "2-methylpropane"
+   ],
+   "ko": [
+    "이소부탄",
+    "아이소뷰테인"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "NNPPMTNAJDCUHE-UHFFFAOYSA-N",
+    "formula": "C4H10",
+    "smiles": "CC(C)C",
+    "cid": 6360
+   }
+  },
+  {
+   "id": "ethylene",
+   "en": [
+    "ethylene"
+   ],
+   "iupac": [
+    "ethene"
+   ],
+   "ko": [
+    "에틸렌",
+    "에텐"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "VGGSQFUCUMXWEO-UHFFFAOYSA-N",
+    "formula": "C2H4",
+    "smiles": "C=C",
+    "cid": 6325
+   }
+  },
+  {
+   "id": "acetylene",
+   "en": [
+    "acetylene"
+   ],
+   "iupac": [
+    "ethyne"
+   ],
+   "ko": [
+    "아세틸렌",
+    "에타인"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "HSFWRNGVRCDJHI-UHFFFAOYSA-N",
+    "formula": "C2H2",
+    "smiles": "C#C",
+    "cid": 6326
+   }
+  },
+  {
+   "id": "benzene",
+   "en": [
+    "benzene",
+    "benzol"
+   ],
+   "iupac": [
+    "cyclohexa-1,3,5-triene"
+   ],
+   "ko": [
+    "벤젠"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "UHOVQNZJYSORNB-UHFFFAOYSA-N",
+    "formula": "C6H6",
+    "smiles": "C1=CC=CC=C1",
+    "cid": 241
+   }
+  },
+  {
+   "id": "toluene",
+   "en": [
+    "toluene"
+   ],
+   "iupac": [
+    "methylbenzene"
+   ],
+   "ko": [
+    "톨루엔"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "YXFVVABEGXRONW-UHFFFAOYSA-N",
+    "formula": "C7H8",
+    "smiles": "CC1=CC=CC=C1",
+    "cid": 1140
+   }
+  },
+  {
+   "id": "phenol",
+   "en": [
+    "phenol",
+    "carbolic acid"
+   ],
+   "iupac": [
+    "hydroxybenzene",
+    "benzenol"
+   ],
+   "ko": [
+    "페놀"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "ISWSIDIOOBJBQZ-UHFFFAOYSA-N",
+    "formula": "C6H6O",
+    "smiles": "C1=CC=C(C=C1)O",
+    "cid": 996
+   }
+  },
+  {
+   "id": "aniline",
+   "en": [
+    "aniline"
+   ],
+   "iupac": [
+    "aminobenzene",
+    "benzenamine",
+    "phenylamine"
+   ],
+   "ko": [
+    "아닐린"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "PAYRUJLWNCNPSJ-UHFFFAOYSA-N",
+    "formula": "C6H7N",
+    "smiles": "C1=CC=C(C=C1)N",
+    "cid": 6115
+   }
+  },
+  {
+   "id": "pyridine",
+   "en": [
+    "pyridine"
+   ],
+   "iupac": [
+    "azabenzene",
+    "azine"
+   ],
+   "ko": [
+    "피리딘"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "JUJWROOIHBZHMG-UHFFFAOYSA-N",
+    "formula": "C5H5N",
+    "smiles": "C1=CC=NC=C1",
+    "cid": 1049
+   }
+  },
+  {
+   "id": "naphthalene",
+   "en": [
+    "naphthalene"
+   ],
+   "iupac": [],
+   "ko": [
+    "나프탈렌"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "UFWIBTONFRDIAS-UHFFFAOYSA-N",
+    "formula": "C10H8",
+    "smiles": "C1=CC=C2C=CC=CC2=C1",
+    "cid": 931
+   }
+  },
+  {
+   "id": "cyclohexane",
+   "en": [
+    "cyclohexane"
+   ],
+   "iupac": [],
+   "ko": [
+    "사이클로헥산",
+    "사이클로헥세인",
+    "시클로헥산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "XDTMQSROBMDMFD-UHFFFAOYSA-N",
+    "formula": "C6H12",
+    "smiles": "C1CCCCC1",
+    "cid": 8078
+   }
+  },
+  {
+   "id": "styrene",
+   "en": [
+    "styrene"
+   ],
+   "iupac": [
+    "vinylbenzene",
+    "ethenylbenzene",
+    "phenylethene"
+   ],
+   "ko": [
+    "스티렌",
+    "스타이렌"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "PPBRXRYQALVLMV-UHFFFAOYSA-N",
+    "formula": "C8H8",
+    "smiles": "C=CC1=CC=CC=C1",
+    "cid": 7501
+   }
+  },
+  {
+   "id": "ethanol",
+   "en": [
+    "ethanol",
+    "ethyl alcohol",
+    "grain alcohol"
+   ],
+   "iupac": [],
+   "ko": [
+    "에탄올",
+    "에틸알코올",
+    "주정"
+   ],
+   "abbr": [
+    "EtOH"
+   ],
+   "answer": {
+    "inchikey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+    "formula": "C2H6O",
+    "smiles": "CCO",
+    "cid": 702
+   }
+  },
+  {
+   "id": "methanol",
+   "en": [
+    "methanol",
+    "methyl alcohol",
+    "wood alcohol"
+   ],
+   "iupac": [],
+   "ko": [
+    "메탄올",
+    "메틸알코올"
+   ],
+   "abbr": [
+    "MeOH"
+   ],
+   "answer": {
+    "inchikey": "OKKJLVBELUTLKV-UHFFFAOYSA-N",
+    "formula": "CH4O",
+    "smiles": "CO",
+    "cid": 887
+   }
+  },
+  {
+   "id": "isopropyl alcohol",
+   "en": [
+    "isopropyl alcohol",
+    "isopropanol",
+    "rubbing alcohol"
+   ],
+   "iupac": [
+    "propan-2-ol",
+    "2-propanol"
+   ],
+   "ko": [
+    "이소프로판올",
+    "아이소프로판올",
+    "이소프로필알코올"
+   ],
+   "abbr": [
+    "IPA"
+   ],
+   "answer": {
+    "inchikey": "KFZMGEQAYNKOFK-UHFFFAOYSA-N",
+    "formula": "C3H8O",
+    "smiles": "CC(C)O",
+    "cid": 3776
+   }
+  },
+  {
+   "id": "tert-butanol",
+   "en": [
+    "tert-butanol",
+    "tert-butyl alcohol",
+    "t-butanol"
+   ],
+   "iupac": [
+    "2-methylpropan-2-ol",
+    "2-methyl-2-propanol"
+   ],
+   "ko": [
+    "tert-부탄올",
+    "삼차부탄올"
+   ],
+   "abbr": [
+    "t-BuOH"
+   ],
+   "answer": {
+    "inchikey": "DKGAVHZHDRPRBM-UHFFFAOYSA-N",
+    "formula": "C4H10O",
+    "smiles": "CC(C)(C)O",
+    "cid": 6386
+   }
+  },
+  {
+   "id": "ethylene glycol",
+   "en": [
+    "ethylene glycol"
+   ],
+   "iupac": [
+    "ethane-1,2-diol",
+    "1,2-ethanediol"
+   ],
+   "ko": [
+    "에틸렌글리콜",
+    "에틸렌글라이콜"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "LYCAIKOWRPUZTN-UHFFFAOYSA-N",
+    "formula": "C2H6O2",
+    "smiles": "C(CO)O",
+    "cid": 174
+   }
+  },
+  {
+   "id": "glycerol",
+   "en": [
+    "glycerol",
+    "glycerin",
+    "glycerine"
+   ],
+   "iupac": [
+    "propane-1,2,3-triol",
+    "1,2,3-propanetriol"
+   ],
+   "ko": [
+    "글리세롤",
+    "글리세린"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "PEDCQBHIVMGVHV-UHFFFAOYSA-N",
+    "formula": "C3H8O3",
+    "smiles": "C(C(CO)O)O",
+    "cid": 753
+   }
+  },
+  {
+   "id": "acetone",
+   "en": [
+    "acetone",
+    "dimethyl ketone"
+   ],
+   "iupac": [
+    "propan-2-one",
+    "2-propanone",
+    "propanone"
+   ],
+   "ko": [
+    "아세톤"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "CSCPPACGZOOCGX-UHFFFAOYSA-N",
+    "formula": "C3H6O",
+    "smiles": "CC(=O)C",
+    "cid": 180
+   }
+  },
+  {
+   "id": "formaldehyde",
+   "en": [
+    "formaldehyde",
+    "formalin"
+   ],
+   "iupac": [
+    "methanal"
+   ],
+   "ko": [
+    "포름알데히드",
+    "폼알데하이드",
+    "포름알데하이드"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "WSFSSNUMVMOOMR-UHFFFAOYSA-N",
+    "formula": "CH2O",
+    "smiles": "C=O",
+    "cid": 712
+   }
+  },
+  {
+   "id": "acetaldehyde",
+   "en": [
+    "acetaldehyde"
+   ],
+   "iupac": [
+    "ethanal"
+   ],
+   "ko": [
+    "아세트알데히드",
+    "아세트알데하이드"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "IKHGUXGNUITLKF-UHFFFAOYSA-N",
+    "formula": "C2H4O",
+    "smiles": "CC=O",
+    "cid": 177
+   }
+  },
+  {
+   "id": "benzaldehyde",
+   "en": [
+    "benzaldehyde"
+   ],
+   "iupac": [
+    "benzenecarbaldehyde"
+   ],
+   "ko": [
+    "벤즈알데히드",
+    "벤즈알데하이드"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "HUMNYLRZRPPJDN-UHFFFAOYSA-N",
+    "formula": "C7H6O",
+    "smiles": "C1=CC=C(C=C1)C=O",
+    "cid": 240
+   }
+  },
+  {
+   "id": "acetophenone",
+   "en": [
+    "acetophenone",
+    "methyl phenyl ketone"
+   ],
+   "iupac": [
+    "1-phenylethanone",
+    "1-phenylethan-1-one"
+   ],
+   "ko": [
+    "아세토페논"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "KWOLFJPFCHCOCG-UHFFFAOYSA-N",
+    "formula": "C8H8O",
+    "smiles": "CC(=O)C1=CC=CC=C1",
+    "cid": 7410
+   }
+  },
+  {
+   "id": "diethyl ether",
+   "en": [
+    "diethyl ether",
+    "ethyl ether",
+    "ether"
+   ],
+   "iupac": [
+    "ethoxyethane",
+    "1,1'-oxybisethane"
+   ],
+   "ko": [
+    "디에틸에테르",
+    "다이에틸에터",
+    "에테르"
+   ],
+   "abbr": [
+    "Et2O"
+   ],
+   "answer": {
+    "inchikey": "RTZKZFJDLAIYFH-UHFFFAOYSA-N",
+    "formula": "C4H10O",
+    "smiles": "CCOCC",
+    "cid": 3283
+   }
+  },
+  {
+   "id": "tetrahydrofuran",
+   "en": [
+    "tetrahydrofuran"
+   ],
+   "iupac": [
+    "oxolane"
+   ],
+   "ko": [
+    "테트라히드로푸란",
+    "테트라하이드로퓨란"
+   ],
+   "abbr": [
+    "THF"
+   ],
+   "answer": {
+    "inchikey": "WYURNTSHIVDZCO-UHFFFAOYSA-N",
+    "formula": "C4H8O",
+    "smiles": "C1CCOC1",
+    "cid": 8028
+   }
+  },
+  {
+   "id": "dimethyl sulfoxide",
+   "en": [
+    "dimethyl sulfoxide"
+   ],
+   "iupac": [
+    "methylsulfinylmethane",
+    "(methylsulfinyl)methane"
+   ],
+   "ko": [
+    "디메틸술폭시드",
+    "다이메틸설폭사이드",
+    "디메틸설폭사이드"
+   ],
+   "abbr": [
+    "DMSO"
+   ],
+   "answer": {
+    "inchikey": "IAZDPXIOMUYVGZ-UHFFFAOYSA-N",
+    "formula": "C2H6OS",
+    "smiles": "CS(=O)C",
+    "cid": 679
+   }
+  },
+  {
+   "id": "dimethylformamide",
+   "en": [
+    "dimethylformamide",
+    "N,N-dimethylformamide"
+   ],
+   "iupac": [
+    "N,N-dimethylmethanamide"
+   ],
+   "ko": [
+    "디메틸포름아미드",
+    "다이메틸폼아마이드"
+   ],
+   "abbr": [
+    "DMF"
+   ],
+   "answer": {
+    "inchikey": "ZMXDDKWLCZADIW-UHFFFAOYSA-N",
+    "formula": "C3H7NO",
+    "smiles": "CN(C)C=O",
+    "cid": 6228
+   }
+  },
+  {
+   "id": "acetonitrile",
+   "en": [
+    "acetonitrile",
+    "methyl cyanide"
+   ],
+   "iupac": [
+    "ethanenitrile",
+    "cyanomethane"
+   ],
+   "ko": [
+    "아세토니트릴",
+    "아세토나이트릴"
+   ],
+   "abbr": [
+    "MeCN",
+    "ACN"
+   ],
+   "answer": {
+    "inchikey": "WEVYAHXRMPXWCK-UHFFFAOYSA-N",
+    "formula": "C2H3N",
+    "smiles": "CC#N",
+    "cid": 6342
+   }
+  },
+  {
+   "id": "chloroform",
+   "en": [
+    "chloroform"
+   ],
+   "iupac": [
+    "trichloromethane"
+   ],
+   "ko": [
+    "클로로포름",
+    "클로로폼"
+   ],
+   "abbr": [
+    "CHCl3"
+   ],
+   "answer": {
+    "inchikey": "HEDRZPFGACZZDS-UHFFFAOYSA-N",
+    "formula": "CHCl3",
+    "smiles": "C(Cl)(Cl)Cl",
+    "cid": 6212
+   }
+  },
+  {
+   "id": "dichloromethane",
+   "en": [
+    "dichloromethane",
+    "methylene chloride"
+   ],
+   "iupac": [],
+   "ko": [
+    "디클로로메탄",
+    "다이클로로메테인",
+    "염화메틸렌"
+   ],
+   "abbr": [
+    "DCM"
+   ],
+   "answer": {
+    "inchikey": "YMWUJEATGCHHMB-UHFFFAOYSA-N",
+    "formula": "CH2Cl2",
+    "smiles": "C(Cl)Cl",
+    "cid": 6344
+   }
+  },
+  {
+   "id": "carbon tetrachloride",
+   "en": [
+    "carbon tetrachloride"
+   ],
+   "iupac": [
+    "tetrachloromethane"
+   ],
+   "ko": [
+    "사염화탄소"
+   ],
+   "abbr": [
+    "CCl4"
+   ],
+   "answer": {
+    "inchikey": "VZGDMQKNWNREIO-UHFFFAOYSA-N",
+    "formula": "CCl4",
+    "smiles": "C(Cl)(Cl)(Cl)Cl",
+    "cid": 5943
+   }
+  },
+  {
+   "id": "ethyl acetate",
+   "en": [
+    "ethyl acetate"
+   ],
+   "iupac": [
+    "ethyl ethanoate"
+   ],
+   "ko": [
+    "에틸아세테이트",
+    "아세트산에틸",
+    "초산에틸"
+   ],
+   "abbr": [
+    "EtOAc"
+   ],
+   "answer": {
+    "inchikey": "XEKOWRVHYACXOJ-UHFFFAOYSA-N",
+    "formula": "C4H8O2",
+    "smiles": "CCOC(=O)C",
+    "cid": 8857
+   }
+  },
+  {
+   "id": "hexane",
+   "en": [
+    "hexane",
+    "n-hexane"
+   ],
+   "iupac": [],
+   "ko": [
+    "헥산",
+    "헥세인",
+    "노말헥산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "VLKZOEOYAKHREP-UHFFFAOYSA-N",
+    "formula": "C6H14",
+    "smiles": "CCCCCC",
+    "cid": 8058
+   }
+  },
+  {
+   "id": "nitrobenzene",
+   "en": [
+    "nitrobenzene"
+   ],
+   "iupac": [],
+   "ko": [
+    "니트로벤젠",
+    "나이트로벤젠"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "LQNUZADURLCDLV-UHFFFAOYSA-N",
+    "formula": "C6H5NO2",
+    "smiles": "C1=CC=C(C=C1)[N+](=O)[O-]",
+    "cid": 7416
+   }
+  },
+  {
+   "id": "acetic anhydride",
+   "en": [
+    "acetic anhydride"
+   ],
+   "iupac": [
+    "ethanoic anhydride"
+   ],
+   "ko": [
+    "아세트산무수물",
+    "무수아세트산",
+    "무수초산"
+   ],
+   "abbr": [
+    "Ac2O"
+   ],
+   "answer": {
+    "inchikey": "WFDIJRYMOXRFFG-UHFFFAOYSA-N",
+    "formula": "C4H6O3",
+    "smiles": "CC(=O)OC(=O)C",
+    "cid": 7918
+   }
+  },
+  {
+   "id": "acetic acid",
+   "en": [
+    "acetic acid",
+    "glacial acetic acid"
+   ],
+   "iupac": [
+    "ethanoic acid"
+   ],
+   "ko": [
+    "아세트산",
+    "초산"
+   ],
+   "abbr": [
+    "AcOH",
+    "HOAc"
+   ],
+   "answer": {
+    "inchikey": "QTBSBXVTEAMEQO-UHFFFAOYSA-N",
+    "formula": "C2H4O2",
+    "smiles": "CC(=O)O",
+    "cid": 176
+   }
+  },
+  {
+   "id": "formic acid",
+   "en": [
+    "formic acid"
+   ],
+   "iupac": [
+    "methanoic acid"
+   ],
+   "ko": [
+    "포름산",
+    "폼산",
+    "개미산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "BDAGIHXWWSANSR-UHFFFAOYSA-N",
+    "formula": "CH2O2",
+    "smiles": "C(=O)O",
+    "cid": 284
+   }
+  },
+  {
+   "id": "benzoic acid",
+   "en": [
+    "benzoic acid"
+   ],
+   "iupac": [
+    "benzenecarboxylic acid"
+   ],
+   "ko": [
+    "벤조산",
+    "안식향산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "WPYMKLBDIGXBTP-UHFFFAOYSA-N",
+    "formula": "C7H6O2",
+    "smiles": "C1=CC=C(C=C1)C(=O)O",
+    "cid": 243
+   }
+  },
+  {
+   "id": "oxalic acid",
+   "en": [
+    "oxalic acid"
+   ],
+   "iupac": [
+    "ethanedioic acid"
+   ],
+   "ko": [
+    "옥살산",
+    "수산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "MUBZPKHOEPUJKR-UHFFFAOYSA-N",
+    "formula": "C2H2O4",
+    "smiles": "C(=O)(C(=O)O)O",
+    "cid": 971
+   }
+  },
+  {
+   "id": "citric acid",
+   "en": [
+    "citric acid"
+   ],
+   "iupac": [
+    "2-hydroxypropane-1,2,3-tricarboxylic acid"
+   ],
+   "ko": [
+    "시트르산",
+    "구연산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "KRKNYBCHXYNGOX-UHFFFAOYSA-N",
+    "formula": "C6H8O7",
+    "smiles": "C(C(=O)O)C(CC(=O)O)(C(=O)O)O",
+    "cid": 311
+   }
+  },
+  {
+   "id": "lactic acid",
+   "en": [
+    "lactic acid",
+    "milk acid"
+   ],
+   "iupac": [
+    "2-hydroxypropanoic acid"
+   ],
+   "ko": [
+    "젖산",
+    "락트산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "JVTAAEKCZFNVCJ-UHFFFAOYSA-N",
+    "formula": "C3H6O3",
+    "smiles": "CC(C(=O)O)O",
+    "cid": 612
+   }
+  },
+  {
+   "id": "pyruvic acid",
+   "en": [
+    "pyruvic acid"
+   ],
+   "iupac": [
+    "2-oxopropanoic acid"
+   ],
+   "ko": [
+    "피루브산",
+    "피루빈산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "LCTONWCANYUPML-UHFFFAOYSA-N",
+    "formula": "C3H4O3",
+    "smiles": "CC(=O)C(=O)O",
+    "cid": 1060
+   }
+  },
+  {
+   "id": "succinic acid",
+   "en": [
+    "succinic acid"
+   ],
+   "iupac": [
+    "butanedioic acid"
+   ],
+   "ko": [
+    "숙신산",
+    "석신산",
+    "호박산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "KDYFGRWQOYBRFD-UHFFFAOYSA-N",
+    "formula": "C4H6O4",
+    "smiles": "C(CC(=O)O)C(=O)O",
+    "cid": 1110
+   }
+  },
+  {
+   "id": "fumaric acid",
+   "en": [
+    "fumaric acid"
+   ],
+   "iupac": [
+    "(E)-butenedioic acid",
+    "trans-butenedioic acid"
+   ],
+   "ko": [
+    "푸마르산",
+    "퓨마르산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "VZCYOOQTPOCHFL-OWOJBTEDSA-N",
+    "formula": "C4H4O4",
+    "smiles": "C(=C/C(=O)O)\\C(=O)O",
+    "cid": 444972
+   }
+  },
+  {
+   "id": "maleic acid",
+   "en": [
+    "maleic acid"
+   ],
+   "iupac": [
+    "(Z)-butenedioic acid",
+    "cis-butenedioic acid"
+   ],
+   "ko": [
+    "말레산",
+    "말레익산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "VZCYOOQTPOCHFL-UPHRSURJSA-N",
+    "formula": "C4H4O4",
+    "smiles": "C(=C\\C(=O)O)\\C(=O)O",
+    "cid": 444266
+   }
+  },
+  {
+   "id": "tartaric acid",
+   "en": [
+    "tartaric acid"
+   ],
+   "iupac": [
+    "2,3-dihydroxybutanedioic acid"
+   ],
+   "ko": [
+    "타르타르산",
+    "주석산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "FEWJPZIEWOKRBE-JCYAYHJZSA-N",
+    "formula": "C4H6O6",
+    "smiles": "[C@@H]([C@H](C(=O)O)O)(C(=O)O)O",
+    "cid": 444305
+   }
+  },
+  {
+   "id": "salicylic acid",
+   "en": [
+    "salicylic acid"
+   ],
+   "iupac": [
+    "2-hydroxybenzoic acid"
+   ],
+   "ko": [
+    "살리실산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "YGSDEFSMJLZEOE-UHFFFAOYSA-N",
+    "formula": "C7H6O3",
+    "smiles": "C1=CC=C(C(=C1)C(=O)O)O",
+    "cid": 338
+   }
+  },
+  {
+   "id": "urea",
+   "en": [
+    "urea",
+    "carbamide"
+   ],
+   "iupac": [
+    "carbonyl diamide"
+   ],
+   "ko": [
+    "요소",
+    "우레아"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "XSQUKJJJFZCRTK-UHFFFAOYSA-N",
+    "formula": "CH4N2O",
+    "smiles": "C(=O)(N)N",
+    "cid": 1176
+   }
+  },
+  {
+   "id": "methylamine",
+   "en": [
+    "methylamine"
+   ],
+   "iupac": [
+    "methanamine",
+    "aminomethane"
+   ],
+   "ko": [
+    "메틸아민"
+   ],
+   "abbr": [
+    "MeNH2"
+   ],
+   "answer": {
+    "inchikey": "BAVYZALUXZFZLV-UHFFFAOYSA-N",
+    "formula": "CH5N",
+    "smiles": "CN",
+    "cid": 6329
+   }
+  },
+  {
+   "id": "trinitrotoluene",
+   "en": [
+    "trinitrotoluene",
+    "TNT"
+   ],
+   "iupac": [
+    "2,4,6-trinitrotoluene",
+    "2-methyl-1,3,5-trinitrobenzene"
+   ],
+   "ko": [
+    "트리니트로톨루엔",
+    "트라이나이트로톨루엔"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "SPSSULHKWOKEEL-UHFFFAOYSA-N",
+    "formula": "C7H5N3O6",
+    "smiles": "CC1=C(C=C(C=C1[N+](=O)[O-])[N+](=O)[O-])[N+](=O)[O-]",
+    "cid": 8376
+   }
+  },
+  {
+   "id": "bisphenol A",
+   "en": [
+    "bisphenol A"
+   ],
+   "iupac": [
+    "4,4'-(propane-2,2-diyl)diphenol",
+    "2,2-bis(4-hydroxyphenyl)propane"
+   ],
+   "ko": [
+    "비스페놀 A",
+    "비스페놀A"
+   ],
+   "abbr": [
+    "BPA"
+   ],
+   "answer": {
+    "inchikey": "IISBACLAFKSPIT-UHFFFAOYSA-N",
+    "formula": "C15H16O2",
+    "smiles": "CC(C)(C1=CC=C(C=C1)O)C2=CC=C(C=C2)O",
+    "cid": 6623
+   }
+  },
+  {
+   "id": "ethylenediaminetetraacetic acid",
+   "en": [
+    "ethylenediaminetetraacetic acid",
+    "edetic acid"
+   ],
+   "iupac": [],
+   "ko": [
+    "에틸렌다이아민테트라아세트산",
+    "에틸렌디아민사아세트산"
+   ],
+   "abbr": [
+    "EDTA"
+   ],
+   "answer": {
+    "inchikey": "KCXVZYZYPLLWCC-UHFFFAOYSA-N",
+    "formula": "C10H16N2O8",
+    "smiles": "C(CN(CC(=O)O)CC(=O)O)N(CC(=O)O)CC(=O)O",
+    "cid": 6049
+   }
+  },
+  {
+   "id": "glucose",
+   "en": [
+    "glucose",
+    "D-glucose",
+    "dextrose",
+    "grape sugar"
+   ],
+   "iupac": [],
+   "ko": [
+    "포도당",
+    "글루코스",
+    "글루코오스"
+   ],
+   "abbr": [
+    "Glc"
+   ],
+   "answer": {
+    "inchikey": "WQZGKKKJIJFFOK-GASJEMHNSA-N",
+    "formula": "C6H12O6",
+    "smiles": "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O",
+    "cid": 5793
+   }
+  },
+  {
+   "id": "fructose",
+   "en": [
+    "fructose",
+    "D-fructose",
+    "levulose",
+    "fruit sugar"
+   ],
+   "iupac": [],
+   "ko": [
+    "과당",
+    "프럭토스",
+    "프룩토스"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "LKDRXBCSQODPBY-VRPWFDPXSA-N",
+    "formula": "C6H12O6",
+    "smiles": "C1[C@H]([C@H]([C@@H](C(O1)(CO)O)O)O)O",
+    "cid": 2723872
+   }
+  },
+  {
+   "id": "sucrose",
+   "en": [
+    "sucrose",
+    "table sugar",
+    "saccharose",
+    "cane sugar"
+   ],
+   "iupac": [],
+   "ko": [
+    "설탕",
+    "수크로스",
+    "자당",
+    "수크로오스"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "CZMRCDWAGMRECN-UGDNZRGBSA-N",
+    "formula": "C12H22O11",
+    "smiles": "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O[C@]2([C@H]([C@@H]([C@H](O2)CO)O)O)CO)O)O)O)O",
+    "cid": 5988
+   }
+  },
+  {
+   "id": "lactose",
+   "en": [
+    "lactose",
+    "milk sugar"
+   ],
+   "iupac": [],
+   "ko": [
+    "젖당",
+    "락토스",
+    "유당",
+    "락토오스"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "GUBGYTABKSRVRQ-DCSYEGIMSA-N",
+    "formula": "C12H22O11",
+    "smiles": "C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O[C@@H]2[C@H](O[C@H]([C@@H]([C@H]2O)O)O)CO)O)O)O)O",
+    "cid": 6134
+   }
+  },
+  {
+   "id": "ribose",
+   "en": [
+    "ribose",
+    "D-ribose"
+   ],
+   "iupac": [],
+   "ko": [
+    "리보스",
+    "리보오스"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "SRBFZHDQGSBBOR-SOOFDHNKSA-N",
+    "formula": "C5H10O5",
+    "smiles": "C1[C@H]([C@H]([C@H](C(O1)O)O)O)O",
+    "cid": 10975657
+   }
+  },
+  {
+   "id": "glycine",
+   "en": [
+    "glycine"
+   ],
+   "iupac": [
+    "aminoacetic acid",
+    "2-aminoacetic acid",
+    "aminoethanoic acid"
+   ],
+   "ko": [
+    "글리신"
+   ],
+   "abbr": [
+    "Gly"
+   ],
+   "answer": {
+    "inchikey": "DHMQDGOQFOQNFH-UHFFFAOYSA-N",
+    "formula": "C2H5NO2",
+    "smiles": "C(C(=O)O)N",
+    "cid": 750
+   }
+  },
+  {
+   "id": "alanine",
+   "en": [
+    "alanine",
+    "L-alanine"
+   ],
+   "iupac": [
+    "(S)-2-aminopropanoic acid",
+    "2-aminopropanoic acid"
+   ],
+   "ko": [
+    "알라닌"
+   ],
+   "abbr": [
+    "Ala"
+   ],
+   "answer": {
+    "inchikey": "QNAYBMKLOCPYGJ-REOHCLBHSA-N",
+    "formula": "C3H7NO2",
+    "smiles": "C[C@@H](C(=O)O)N",
+    "cid": 5950
+   }
+  },
+  {
+   "id": "cysteine",
+   "en": [
+    "cysteine",
+    "L-cysteine"
+   ],
+   "iupac": [
+    "(R)-2-amino-3-sulfanylpropanoic acid"
+   ],
+   "ko": [
+    "시스테인"
+   ],
+   "abbr": [
+    "Cys"
+   ],
+   "answer": {
+    "inchikey": "XUJNEKJLAYXESH-REOHCLBHSA-N",
+    "formula": "C3H7NO2S",
+    "smiles": "C([C@@H](C(=O)O)N)S",
+    "cid": 5862
+   }
+  },
+  {
+   "id": "tryptophan",
+   "en": [
+    "tryptophan",
+    "L-tryptophan"
+   ],
+   "iupac": [],
+   "ko": [
+    "트립토판"
+   ],
+   "abbr": [
+    "Trp"
+   ],
+   "answer": {
+    "inchikey": "QIVBCDIJIAJPQS-VIFPVBQESA-N",
+    "formula": "C11H12N2O2",
+    "smiles": "C1=CC=C2C(=C1)C(=CN2)C[C@@H](C(=O)O)N",
+    "cid": 6305
+   }
+  },
+  {
+   "id": "tyrosine",
+   "en": [
+    "tyrosine",
+    "L-tyrosine"
+   ],
+   "iupac": [
+    "4-hydroxyphenylalanine"
+   ],
+   "ko": [
+    "티로신",
+    "타이로신"
+   ],
+   "abbr": [
+    "Tyr"
+   ],
+   "answer": {
+    "inchikey": "OUYCCCASQSFEME-QMMMGPOBSA-N",
+    "formula": "C9H11NO3",
+    "smiles": "C1=CC(=CC=C1C[C@@H](C(=O)O)N)O",
+    "cid": 6057
+   }
+  },
+  {
+   "id": "phenylalanine",
+   "en": [
+    "phenylalanine",
+    "L-phenylalanine"
+   ],
+   "iupac": [
+    "2-amino-3-phenylpropanoic acid"
+   ],
+   "ko": [
+    "페닐알라닌"
+   ],
+   "abbr": [
+    "Phe"
+   ],
+   "answer": {
+    "inchikey": "COLNVLDHVKWLRT-QMMMGPOBSA-N",
+    "formula": "C9H11NO2",
+    "smiles": "C1=CC=C(C=C1)C[C@@H](C(=O)O)N",
+    "cid": 6140
+   }
+  },
+  {
+   "id": "adenine",
+   "en": [
+    "adenine"
+   ],
+   "iupac": [
+    "6-aminopurine",
+    "9H-purin-6-amine"
+   ],
+   "ko": [
+    "아데닌"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "GFFGJBXGBJISGV-UHFFFAOYSA-N",
+    "formula": "C5H5N5",
+    "smiles": "C1=NC2=NC=NC(=C2N1)N",
+    "cid": 190
+   }
+  },
+  {
+   "id": "guanine",
+   "en": [
+    "guanine"
+   ],
+   "iupac": [
+    "2-amino-6-oxopurine",
+    "2-aminohypoxanthine"
+   ],
+   "ko": [
+    "구아닌"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "UYTPUPDQBNUYGX-UHFFFAOYSA-N",
+    "formula": "C5H5N5O",
+    "smiles": "C1=NC2=C(N1)C(=O)NC(=N2)N",
+    "cid": 135398634
+   }
+  },
+  {
+   "id": "cytosine",
+   "en": [
+    "cytosine"
+   ],
+   "iupac": [
+    "4-aminopyrimidin-2(1H)-one",
+    "4-amino-2-hydroxypyrimidine"
+   ],
+   "ko": [
+    "사이토신",
+    "시토신"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "OPTASPLRGRRNAP-UHFFFAOYSA-N",
+    "formula": "C4H5N3O",
+    "smiles": "C1=C(NC(=O)N=C1)N",
+    "cid": 597
+   }
+  },
+  {
+   "id": "thymine",
+   "en": [
+    "thymine"
+   ],
+   "iupac": [
+    "5-methyluracil",
+    "5-methylpyrimidine-2,4-dione"
+   ],
+   "ko": [
+    "티민",
+    "타이민"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "RWQNBRDOKXIBIV-UHFFFAOYSA-N",
+    "formula": "C5H6N2O2",
+    "smiles": "CC1=CNC(=O)NC1=O",
+    "cid": 1135
+   }
+  },
+  {
+   "id": "uracil",
+   "en": [
+    "uracil"
+   ],
+   "iupac": [
+    "pyrimidine-2,4-dione",
+    "2,4-dihydroxypyrimidine"
+   ],
+   "ko": [
+    "우라실"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "ISAKRJDGNUQOIC-UHFFFAOYSA-N",
+    "formula": "C4H4N2O2",
+    "smiles": "C1=CNC(=O)NC1=O",
+    "cid": 1174
+   }
+  },
+  {
+   "id": "adenosine triphosphate",
+   "en": [
+    "adenosine triphosphate",
+    "adenosine 5'-triphosphate"
+   ],
+   "iupac": [],
+   "ko": [
+    "아데노신삼인산",
+    "아데노신 삼인산"
+   ],
+   "abbr": [
+    "ATP"
+   ],
+   "answer": {
+    "inchikey": "ZKHQWZAMYRWXGA-KQYNXXCUSA-N",
+    "formula": "C10H16N5O13P3",
+    "smiles": "C1=NC(=C2C(=N1)N(C=N2)[C@H]3[C@@H]([C@@H]([C@H](O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N",
+    "cid": 5957
+   }
+  },
+  {
+   "id": "cholesterol",
+   "en": [
+    "cholesterol"
+   ],
+   "iupac": [],
+   "ko": [
+    "콜레스테롤"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "HVYWMOMLDIMFJA-DPAQBDIFSA-N",
+    "formula": "C27H46O",
+    "smiles": "C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]3[C@H]2CC=C4[C@@]3(CC[C@@H](C4)O)C)C",
+    "cid": 5997
+   }
+  },
+  {
+   "id": "palmitic acid",
+   "en": [
+    "palmitic acid"
+   ],
+   "iupac": [
+    "hexadecanoic acid"
+   ],
+   "ko": [
+    "팔미트산",
+    "팔미틱산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "IPCSVZSSVZVIGE-UHFFFAOYSA-N",
+    "formula": "C16H32O2",
+    "smiles": "CCCCCCCCCCCCCCCC(=O)O",
+    "cid": 985
+   }
+  },
+  {
+   "id": "stearic acid",
+   "en": [
+    "stearic acid"
+   ],
+   "iupac": [
+    "octadecanoic acid"
+   ],
+   "ko": [
+    "스테아르산",
+    "스테아린산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "QIQXTHQIDYTFRH-UHFFFAOYSA-N",
+    "formula": "C18H36O2",
+    "smiles": "CCCCCCCCCCCCCCCCCC(=O)O",
+    "cid": 5281
+   }
+  },
+  {
+   "id": "oleic acid",
+   "en": [
+    "oleic acid"
+   ],
+   "iupac": [
+    "(9Z)-octadec-9-enoic acid",
+    "cis-9-octadecenoic acid"
+   ],
+   "ko": [
+    "올레산",
+    "올레인산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "ZQPPMHVWECSIRJ-KTKRTIGZSA-N",
+    "formula": "C18H34O2",
+    "smiles": "CCCCCCCC/C=C\\CCCCCCCC(=O)O",
+    "cid": 445639
+   }
+  },
+  {
+   "id": "linoleic acid",
+   "en": [
+    "linoleic acid"
+   ],
+   "iupac": [
+    "(9Z,12Z)-octadeca-9,12-dienoic acid"
+   ],
+   "ko": [
+    "리놀레산",
+    "리놀레인산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "OYHQOLUKZRVURQ-HZJYTTRNSA-N",
+    "formula": "C18H32O2",
+    "smiles": "CCCCC/C=C\\C/C=C\\CCCCCCCC(=O)O",
+    "cid": 5280450
+   }
+  },
+  {
+   "id": "acetylcholine",
+   "en": [
+    "acetylcholine"
+   ],
+   "iupac": [],
+   "ko": [
+    "아세틸콜린"
+   ],
+   "abbr": [
+    "ACh"
+   ],
+   "answer": {
+    "inchikey": "OIPILFWXSMYKGL-UHFFFAOYSA-N",
+    "formula": "C7H16NO2+",
+    "smiles": "CC(=O)OCC[N+](C)(C)C",
+    "cid": 187
+   }
+  },
+  {
+   "id": "dopamine",
+   "en": [
+    "dopamine"
+   ],
+   "iupac": [
+    "4-(2-aminoethyl)benzene-1,2-diol",
+    "3,4-dihydroxyphenethylamine"
+   ],
+   "ko": [
+    "도파민"
+   ],
+   "abbr": [
+    "DA"
+   ],
+   "answer": {
+    "inchikey": "VYFYYTLLBUKUHU-UHFFFAOYSA-N",
+    "formula": "C8H11NO2",
+    "smiles": "C1=CC(=C(C=C1CCN)O)O",
+    "cid": 681
+   }
+  },
+  {
+   "id": "serotonin",
+   "en": [
+    "serotonin",
+    "5-hydroxytryptamine"
+   ],
+   "iupac": [
+    "3-(2-aminoethyl)-1H-indol-5-ol"
+   ],
+   "ko": [
+    "세로토닌"
+   ],
+   "abbr": [
+    "5-HT"
+   ],
+   "answer": {
+    "inchikey": "QZAYGJVTTNCVMB-UHFFFAOYSA-N",
+    "formula": "C10H12N2O",
+    "smiles": "C1=CC2=C(C=C1O)C(=CN2)CCN",
+    "cid": 5202
+   }
+  },
+  {
+   "id": "epinephrine",
+   "en": [
+    "epinephrine",
+    "adrenaline"
+   ],
+   "iupac": [],
+   "ko": [
+    "에피네프린",
+    "아드레날린"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "UCTWMZQNUQWSLP-VIFPVBQESA-N",
+    "formula": "C9H13NO3",
+    "smiles": "CNC[C@@H](C1=CC(=C(C=C1)O)O)O",
+    "cid": 5816
+   }
+  },
+  {
+   "id": "histamine",
+   "en": [
+    "histamine"
+   ],
+   "iupac": [
+    "2-(1H-imidazol-4-yl)ethanamine",
+    "2-(1H-imidazol-5-yl)ethanamine"
+   ],
+   "ko": [
+    "히스타민"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "NTYJJOPFIAHURM-UHFFFAOYSA-N",
+    "formula": "C5H9N3",
+    "smiles": "C1=C(NC=N1)CCN",
+    "cid": 774
+   }
+  },
+  {
+   "id": "aspirin",
+   "en": [
+    "aspirin",
+    "acetylsalicylic acid"
+   ],
+   "iupac": [
+    "2-acetoxybenzoic acid",
+    "2-(acetyloxy)benzoic acid",
+    "2-acetyloxybenzoic acid"
+   ],
+   "ko": [
+    "아스피린",
+    "아세틸살리실산"
+   ],
+   "abbr": [
+    "ASA"
+   ],
+   "answer": {
+    "inchikey": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N",
+    "formula": "C9H8O4",
+    "smiles": "CC(=O)OC1=CC=CC=C1C(=O)O",
+    "cid": 2244
+   }
+  },
+  {
+   "id": "acetaminophen",
+   "en": [
+    "acetaminophen",
+    "paracetamol",
+    "Tylenol"
+   ],
+   "iupac": [
+    "N-(4-hydroxyphenyl)acetamide",
+    "4-acetamidophenol"
+   ],
+   "ko": [
+    "아세트아미노펜",
+    "파라세타몰",
+    "타이레놀"
+   ],
+   "abbr": [
+    "APAP"
+   ],
+   "answer": {
+    "inchikey": "RZVAJINKPMORJF-UHFFFAOYSA-N",
+    "formula": "C8H9NO2",
+    "smiles": "CC(=O)NC1=CC=C(C=C1)O",
+    "cid": 1983
+   }
+  },
+  {
+   "id": "ibuprofen",
+   "en": [
+    "ibuprofen",
+    "Advil"
+   ],
+   "iupac": [
+    "2-[4-(2-methylpropyl)phenyl]propanoic acid",
+    "(RS)-2-(4-isobutylphenyl)propanoic acid"
+   ],
+   "ko": [
+    "이부프로펜"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "HEFNNWSXXWATRW-UHFFFAOYSA-N",
+    "formula": "C13H18O2",
+    "smiles": "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
+    "cid": 3672
+   }
+  },
+  {
+   "id": "naproxen",
+   "en": [
+    "naproxen"
+   ],
+   "iupac": [
+    "(S)-6-methoxy-alpha-methyl-2-naphthaleneacetic acid",
+    "(2S)-2-(6-methoxynaphthalen-2-yl)propanoic acid"
+   ],
+   "ko": [
+    "나프록센"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "CMWTZPSULFXXJA-VIFPVBQESA-N",
+    "formula": "C14H14O3",
+    "smiles": "C[C@@H](C1=CC2=C(C=C1)C=C(C=C2)OC)C(=O)O",
+    "cid": 156391
+   }
+  },
+  {
+   "id": "caffeine",
+   "en": [
+    "caffeine"
+   ],
+   "iupac": [
+    "1,3,7-trimethylxanthine",
+    "1,3,7-trimethylpurine-2,6-dione"
+   ],
+   "ko": [
+    "카페인"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N",
+    "formula": "C8H10N4O2",
+    "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+    "cid": 2519
+   }
+  },
+  {
+   "id": "nicotine",
+   "en": [
+    "nicotine"
+   ],
+   "iupac": [
+    "3-(1-methylpyrrolidin-2-yl)pyridine",
+    "(S)-3-(1-methylpyrrolidin-2-yl)pyridine"
+   ],
+   "ko": [
+    "니코틴"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "SNICXCGAKADSCV-JTQLQIEISA-N",
+    "formula": "C10H14N2",
+    "smiles": "CN1CCC[C@H]1C2=CN=CC=C2",
+    "cid": 89594
+   }
+  },
+  {
+   "id": "morphine",
+   "en": [
+    "morphine"
+   ],
+   "iupac": [],
+   "ko": [
+    "모르핀",
+    "몰핀"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "BQJCRHHNABKAKU-KBQPJGBKSA-N",
+    "formula": "C17H19NO3",
+    "smiles": "CN1CC[C@]23[C@@H]4[C@H]1CC5=C2C(=C(C=C5)O)O[C@H]3[C@H](C=C4)O",
+    "cid": 5288826
+   }
+  },
+  {
+   "id": "penicillin G",
+   "en": [
+    "penicillin G",
+    "benzylpenicillin"
+   ],
+   "iupac": [],
+   "ko": [
+    "페니실린 G",
+    "페니실린",
+    "벤질페니실린"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "JGSARLDLIJGVTE-MBNYWOFBSA-N",
+    "formula": "C16H18N2O4S",
+    "smiles": "CC1([C@@H](N2[C@H](S1)[C@@H](C2=O)NC(=O)CC3=CC=CC=C3)C(=O)O)C",
+    "cid": 5904
+   }
+  },
+  {
+   "id": "ascorbic acid",
+   "en": [
+    "ascorbic acid",
+    "vitamin C",
+    "L-ascorbic acid"
+   ],
+   "iupac": [],
+   "ko": [
+    "아스코르브산",
+    "비타민 C",
+    "비타민C",
+    "아스코르빈산"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "CIWBSHSKHKDKBQ-JLAZNSOCSA-N",
+    "formula": "C6H8O6",
+    "smiles": "C([C@@H]([C@@H]1C(=C(C(=O)O1)O)O)O)O",
+    "cid": 54670067
+   }
+  },
+  {
+   "id": "retinol",
+   "en": [
+    "retinol",
+    "vitamin A"
+   ],
+   "iupac": [],
+   "ko": [
+    "레티놀",
+    "비타민 A"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "FPIPGXGPPPQFEQ-OVSJKPMPSA-N",
+    "formula": "C20H30O",
+    "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/CO)/C)/C",
+    "cid": 445354
+   }
+  },
+  {
+   "id": "menthol",
+   "en": [
+    "menthol",
+    "L-menthol",
+    "(-)-menthol"
+   ],
+   "iupac": [
+    "(1R,2S,5R)-2-isopropyl-5-methylcyclohexanol",
+    "2-isopropyl-5-methylcyclohexanol"
+   ],
+   "ko": [
+    "멘톨"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "NOOLISFMXDJSKH-UHFFFAOYSA-N",
+    "formula": "C10H20O",
+    "smiles": "CC1CCC(C(C1)O)C(C)C",
+    "cid": 1254
+   }
+  },
+  {
+   "id": "camphor",
+   "en": [
+    "camphor"
+   ],
+   "iupac": [
+    "1,7,7-trimethylbicyclo[2.2.1]heptan-2-one"
+   ],
+   "ko": [
+    "캠퍼",
+    "장뇌",
+    "캄포르"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "DSSYKIVIOFKYAU-UHFFFAOYSA-N",
+    "formula": "C10H16O",
+    "smiles": "CC1(C2CCC1(C(=O)C2)C)C",
+    "cid": 2537
+   }
+  },
+  {
+   "id": "limonene",
+   "en": [
+    "limonene",
+    "D-limonene",
+    "(R)-(+)-limonene"
+   ],
+   "iupac": [
+    "1-methyl-4-(prop-1-en-2-yl)cyclohexene",
+    "4-isopropenyl-1-methylcyclohexene"
+   ],
+   "ko": [
+    "리모넨"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "XMGQYMWWDOXHJM-UHFFFAOYSA-N",
+    "formula": "C10H16",
+    "smiles": "CC1=CCC(CC1)C(=C)C",
+    "cid": 22311
+   }
+  },
+  {
+   "id": "vanillin",
+   "en": [
+    "vanillin"
+   ],
+   "iupac": [
+    "4-hydroxy-3-methoxybenzaldehyde"
+   ],
+   "ko": [
+    "바닐린"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "MWOOGOJBHIARFG-UHFFFAOYSA-N",
+    "formula": "C8H8O3",
+    "smiles": "COC1=C(C=CC(=C1)C=O)O",
+    "cid": 1183
+   }
+  },
+  {
+   "id": "capsaicin",
+   "en": [
+    "capsaicin"
+   ],
+   "iupac": [],
+   "ko": [
+    "캡사이신"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "YKPUWZUDDOIDPM-SOFGYWHQSA-N",
+    "formula": "C18H27NO3",
+    "smiles": "CC(C)/C=C/CCCCC(=O)NCC1=CC(=C(C=C1)O)OC",
+    "cid": 1548943
+   }
+  },
+  {
+   "id": "nitroglycerin",
+   "en": [
+    "nitroglycerin",
+    "glyceryl trinitrate",
+    "nitroglycerine"
+   ],
+   "iupac": [
+    "propane-1,2,3-triyl trinitrate",
+    "1,2,3-propanetriol trinitrate"
+   ],
+   "ko": [
+    "니트로글리세린",
+    "나이트로글리세린"
+   ],
+   "abbr": [
+    "GTN"
+   ],
+   "answer": {
+    "inchikey": "SNIOPGDIGTZGOP-UHFFFAOYSA-N",
+    "formula": "C3H5N3O9",
+    "smiles": "C(C(CO[N+](=O)[O-])O[N+](=O)[O-])O[N+](=O)[O-]",
+    "cid": 4510
+   }
+  },
+  {
+   "id": "testosterone",
+   "en": [
+    "testosterone"
+   ],
+   "iupac": [],
+   "ko": [
+    "테스토스테론"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "MUMGGOZAMZWBJJ-DYKIIFRCSA-N",
+    "formula": "C19H28O2",
+    "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=CC(=O)CC[C@]34C",
+    "cid": 6013
+   }
+  },
+  {
+   "id": "estradiol",
+   "en": [
+    "estradiol",
+    "oestradiol",
+    "17beta-estradiol"
+   ],
+   "iupac": [],
+   "ko": [
+    "에스트라디올",
+    "에스트라다이올"
+   ],
+   "abbr": [
+    "E2"
+   ],
+   "answer": {
+    "inchikey": "VOXZDWNPVJITMN-ZBRFXRBCSA-N",
+    "formula": "C18H24O2",
+    "smiles": "C[C@]12CC[C@H]3[C@H]([C@@H]1CC[C@@H]2O)CCC4=C3C=CC(=C4)O",
+    "cid": 5757
+   }
+  },
+  {
+   "id": "beta-carotene",
+   "en": [
+    "beta-carotene",
+    "β-carotene",
+    "provitamin A"
+   ],
+   "iupac": [],
+   "ko": [
+    "베타카로틴",
+    "베타-카로틴",
+    "β-카로틴"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "OENHQHLEOONYIE-JLTXGRSLSA-N",
+    "formula": "C40H56",
+    "smiles": "CC1=C(C(CCC1)(C)C)/C=C/C(=C/C=C/C(=C/C=C/C=C(/C=C/C=C(/C=C/C2=C(CCCC2(C)C)C)\\C)\\C)/C)/C",
+    "cid": 5280489
+   }
+  },
+  {
+   "id": "quinine",
+   "en": [
+    "quinine"
+   ],
+   "iupac": [],
+   "ko": [
+    "퀴닌",
+    "키니네"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "LOUPRKONTZGTKE-WZBLMQSHSA-N",
+    "formula": "C20H24N2O2",
+    "smiles": "COC1=CC2=C(C=CN=C2C=C1)[C@H]([C@@H]3C[C@@H]4CCN3C[C@@H]4C=C)O",
+    "cid": 3034034
+   }
+  },
+  {
+   "id": "DDT",
+   "en": [
+    "DDT",
+    "dichlorodiphenyltrichloroethane"
+   ],
+   "iupac": [
+    "1,1,1-trichloro-2,2-bis(4-chlorophenyl)ethane"
+   ],
+   "ko": [
+    "디디티"
+   ],
+   "abbr": [],
+   "answer": {
+    "inchikey": "YVGGHNCTFXOJCH-UHFFFAOYSA-N",
+    "formula": "C14H9Cl5",
+    "smiles": "C1=CC(=CC=C1C(C2=CC=C(C=C2)Cl)C(Cl)(Cl)Cl)Cl",
+    "cid": 3036
+   }
+  }
+ ]
+}
