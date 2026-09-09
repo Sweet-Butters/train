@@ -58,6 +58,14 @@ CORPUS: list[Case] = [
 ]
 
 
+def pick(name: str, truth: Truth) -> Case:
+    """코퍼스에서 케이스 하나를 집는다. 번호로 집으면 코퍼스가 늘 때 조용히 어긋난다."""
+    for case in CORPUS:
+        if case.name == name and case.truth is truth:
+            return case
+    raise KeyError(f"코퍼스에 없는 케이스: {name} / {truth.value}")
+
+
 def draw(smiles: str, dest: Path) -> None:
     """SMILES 를 그림으로. scripts/make_demo.py 와 같은 렌더 경로를 쓴다."""
     from rdkit import Chem
