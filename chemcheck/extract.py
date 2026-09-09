@@ -37,6 +37,9 @@ MIN_PDF_VECTOR_POINTS = 6
 # 벤젠 고리를 선 도형으로 그리면 결합선만 6개가 된다.
 MIN_PPTX_VECTOR_SHAPES = 6
 
+# pptx를 pdf로 바꾸는 데 줄 시간(초). 장수가 많으면 오래 걸린다.
+PPTX_CONVERT_TIMEOUT_S = 180
+
 # 흩어진 조각을 한 구조로 묶을 때의 최대 간격(포인트).
 CLUSTER_GAP_PT = 12.0
 
@@ -52,14 +55,18 @@ Box = tuple[float, float, float, float]
 
 @dataclass
 class VectorRegion:
-    """도형으로 그려졌지만 아직 이미지로 만들지 못한 구조 후보.
+    """PPT 도형으로 그린 구조 후보와 그 자리.
 
-    PPTX 경로에서만 채워진다. PDF는 실제로 오려내므로 images 로 들어간다.
+    box 는 슬라이드 크기에 대한 비율 (왼쪽, 위, 오른쪽, 아래) 이다.
+    슬라이드를 그려낼 수단이 있으면 이 자리를 오려내고, 없으면 못 뽑았다는
+    기록으로 남는다. 비율로 두는 이유는 렌더 배율과 무관하게 쓰기 위해서다.
     """
 
     slide_index: int
     part_count: int
     grouped: bool
+    box: Box = (0.0, 0.0, 1.0, 1.0)
+    image: Path | None = None
 
 
 @dataclass
@@ -69,10 +76,6 @@ class Slide:
     images: list[Path] = field(default_factory=list)
     # 뽑지 못한 벡터 구조 후보. pipeline 은 읽지 않고 리포트가 쓴다.
     vector_regions: list[VectorRegion] = field(default_factory=list)
-
-
-def _keep(width: int, height: int, size: int) -> bool:
-    return size >= MIN_IMAGE_BYTES and min(width, height) >= MIN_IMAGE_SIDE
 
 
 def _keep_blob(blob: bytes) -> bool:
@@ -256,20 +259,23 @@ def from_pdf(path: Path, out_dir: Path) -> list[Slide]:
 # --------------------------------------------------------------------- PPTX
 
 
-def _flatten(shapes, group_id: int | None = None):
-    """그룹 안까지 평탄화한다. (도형, 최상위 그룹 id) 를 낸다.
+def _flatten(shapes, group=None):
+    """그룹 안까지 평탄화한다. (도형, 최상위 그룹 도형) 을 낸다.
 
     강의자료의 그림은 대개 설명 상자와 함께 그룹으로 묶여 있다.
     그룹을 안 들어가면 그 장은 통째로 그림 0개가 된다.
+
+    최상위 그룹을 함께 내는 이유: 그룹 안 도형의 좌표는 그룹의 자식
+    좌표계라 슬라이드 좌표로 바로 못 쓴다. 그룹 자신의 좌표는 슬라이드
+    좌표이므로 자리를 잡을 때는 그쪽을 쓴다.
     """
     from pptx.enum.shapes import MSO_SHAPE_TYPE
 
     for shape in shapes:
         if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
-            top = group_id if group_id is not None else id(shape)
-            yield from _flatten(shape.shapes, top)
+            yield from _flatten(shape.shapes, group if group is not None else shape)
         else:
-            yield shape, group_id
+            yield shape, group
 
 
 def _shape_text(shape) -> str:
@@ -318,20 +324,123 @@ def _is_vector_part(shape) -> bool:
     return not _shape_text(shape)
 
 
+def _shape_box(shape, width: int, height: int) -> Box | None:
+    """도형의 자리를 슬라이드 크기 대비 비율로 준다. 좌표가 없으면 None."""
+    if not width or not height:
+        return None
+    try:
+        left, top, size_x, size_y = shape.left, shape.top, shape.width, shape.height
+    except (AttributeError, ValueError):
+        return None
+    if None in (left, top, size_x, size_y):
+        return None
+    return (
+        left / width,
+        top / height,
+        (left + size_x) / width,
+        (top + size_y) / height,
+    )
+
+
+def _union(boxes: list[Box]) -> Box:
+    return (
+        min(b[0] for b in boxes),
+        min(b[1] for b in boxes),
+        max(b[2] for b in boxes),
+        max(b[3] for b in boxes),
+    )
+
+
+def _pptx_to_pdf(path: Path, out_dir: Path) -> Path | None:
+    """LibreOffice 로 pptx 를 pdf 로 바꾼다. 없거나 실패하면 None.
+
+    도형으로 그린 구조를 이미지로 만들려면 실제로 그려 주는 프로그램이
+    있어야 한다. python-pptx 에는 렌더 기능이 없다. 변환된 pdf 에서는
+    그 구조가 벡터 경로가 되므로 PDF 쪽 경로를 그대로 재사용한다.
+
+    없으면 조용히 포기한다. 구조를 못 뽑았다는 사실은 vector_regions 에
+    남으므로 침묵이 되지는 않는다.
+    """
+    import shutil
+    import subprocess
+
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if soffice is None:
+        return None
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        subprocess.run(
+            [
+                soffice,
+                "--headless",
+                "--convert-to",
+                "pdf",
+                "--outdir",
+                str(out_dir),
+                str(path),
+            ],
+            check=True,
+            capture_output=True,
+            timeout=PPTX_CONVERT_TIMEOUT_S,
+        )
+    except (subprocess.SubprocessError, OSError):
+        return None
+
+    converted = out_dir / f"{path.stem}.pdf"
+    return converted if converted.exists() else None
+
+
+def _fill_vector_images(deck_pdf: Path, slides: list[Slide], out_dir: Path) -> None:
+    """변환된 pdf 에서 구조 자리를 오려내 각 region.image 를 채운다.
+
+    슬라이드 n 장은 pdf n 쪽으로 1:1 대응한다. 자리는 이미 비율로 알고
+    있으므로 다시 찾지 않고 그대로 오려낸다.
+    """
+    import pypdfium2 as pdfium
+
+    document = pdfium.PdfDocument(str(deck_pdf))
+    try:
+        for slide in slides:
+            index = slide.index - 1
+            if index >= len(document):
+                continue
+            page = document[index]
+            width, height = page.get_size()
+            for region_no, region in enumerate(slide.vector_regions, start=1):
+                # 비율(왼쪽 위 기준) -> 포인트(왼쪽 아래 기준)
+                box = (
+                    region.box[0] * width,
+                    (1.0 - region.box[3]) * height,
+                    region.box[2] * width,
+                    (1.0 - region.box[1]) * height,
+                )
+                dest = out_dir / f"s{slide.index:03d}_v{region_no:02d}.png"
+                if _render_region(page, width, height, box, dest):
+                    region.image = dest
+                    slide.images.append(dest)
+    finally:
+        document.close()
+
+
 def from_pptx(path: Path, out_dir: Path) -> list[Slide]:
     from pptx import Presentation
 
     out_dir.mkdir(parents=True, exist_ok=True)
     slides: list[Slide] = []
     deck = Presentation(str(path))
+    deck_w, deck_h = deck.slide_width, deck.slide_height
+
     for slide_no, raw in enumerate(deck.slides, start=1):
         texts: list[str] = []
         images: list[Path] = []
         img_no = 0
         # 그룹별 도형 조각 수. None 키는 그룹에 안 묶인 조각들.
-        parts: dict[int | None, int] = {}
+        counts: dict[int | None, int] = {}
+        loose: list[Box] = []
+        groups: dict[int | None, object] = {}
 
-        for shape, group_id in _flatten(raw.shapes):
+        for shape, group in _flatten(raw.shapes):
             stripped = _shape_text(shape)
             if stripped:
                 texts.append(stripped)
@@ -347,15 +456,39 @@ def from_pptx(path: Path, out_dir: Path) -> list[Slide]:
                 images.append(dest)
                 continue
 
-            if _is_vector_part(shape):
-                parts[group_id] = parts.get(group_id, 0) + 1
+            if not _is_vector_part(shape):
+                continue
 
-        regions = [
-            VectorRegion(slide_no, count, group_id is not None)
-            for group_id, count in parts.items()
-            if count >= MIN_PPTX_VECTOR_SHAPES
-        ]
+            key = id(group) if group is not None else None
+            groups.setdefault(key, group)
+            counts[key] = counts.get(key, 0) + 1
+            if group is None:
+                # 그룹 안 도형의 좌표는 자식 좌표계라 못 쓴다. 낱개 조각만
+                # 스스로의 자리를 쓰고, 묶인 것은 그룹의 자리를 쓴다.
+                box = _shape_box(shape, deck_w, deck_h)
+                if box is not None:
+                    loose.append(box)
+
+        regions: list[VectorRegion] = []
+        for key, count in counts.items():
+            if count < MIN_PPTX_VECTOR_SHAPES:
+                continue
+            group = groups[key]
+            if group is not None:
+                box = _shape_box(group, deck_w, deck_h)
+            else:
+                box = _union(loose) if loose else None
+            if box is None:
+                continue
+            regions.append(VectorRegion(slide_no, count, group is not None, box))
+
         slides.append(Slide(slide_no, "\n".join(texts), images, regions))
+
+    if any(slide.vector_regions for slide in slides):
+        converted = _pptx_to_pdf(path, out_dir / "_converted")
+        if converted is not None:
+            _fill_vector_images(converted, slides, out_dir)
+
     return slides
 
 

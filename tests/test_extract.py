@@ -308,6 +308,141 @@ def test_pptx_few_shapes_are_not_a_structure() -> None:
         assert slides[0].vector_regions == []
 
 
+# ------------------------------------------------- PPTX: 구조 자리 잡기
+
+
+def test_pptx_region_box_matches_group_position() -> None:
+    """구조의 자리가 슬라이드 대비 비율로 맞게 나온다.
+
+    기본 슬라이드는 10 x 7.5 인치다. 결합선을 가로 2.0~3.8, 세로 2.0~2.5
+    인치에 놓았으니 비율은 각각 0.20~0.38, 0.267~0.333 이 되어야 한다.
+    """
+    from pptx.enum.shapes import MSO_CONNECTOR
+    from pptx.util import Inches
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+
+        def build(slide):
+            group = slide.shapes.add_group_shape()
+            for i in range(6):
+                x = Inches(2 + i * 0.3)
+                group.shapes.add_connector(
+                    MSO_CONNECTOR.STRAIGHT, x, Inches(2), x + Inches(0.3), Inches(2.5)
+                )
+
+        deck = _deck(work / "placed.pptx", build)
+        slides = from_pptx(deck, work / "out")
+
+        left, top, right, bottom = slides[0].vector_regions[0].box
+        assert abs(left - 0.20) < 0.02, left
+        assert abs(right - 0.38) < 0.02, right
+        assert abs(top - 0.267) < 0.02, top
+        assert abs(bottom - 0.333) < 0.02, bottom
+
+
+def test_pptx_region_image_is_none_without_renderer() -> None:
+    """그려 줄 프로그램이 없으면 이미지는 안 만들지만 기록은 남는다."""
+    from pptx.enum.shapes import MSO_CONNECTOR
+    from pptx.util import Inches
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+
+        def build(slide):
+            group = slide.shapes.add_group_shape()
+            for i in range(6):
+                x = Inches(2 + i * 0.3)
+                group.shapes.add_connector(
+                    MSO_CONNECTOR.STRAIGHT, x, Inches(2), x + Inches(0.3), Inches(2.5)
+                )
+
+        deck = _deck(work / "norender.pptx", build)
+        slides = from_pptx(deck, work / "out")
+
+        assert len(slides[0].vector_regions) == 1
+        region = slides[0].vector_regions[0]
+        # 렌더가 됐든 안 됐든 앞뒤가 맞아야 한다.
+        assert region.image is None or region.image.exists()
+        assert (region.image in slides[0].images) == (region.image is not None)
+
+
+def test_vector_region_crop_targets_the_right_place() -> None:
+    """비율(왼쪽 위 기준)을 포인트(왼쪽 아래 기준)로 뒤집는 계산 검증.
+
+    구조가 있는 자리를 가리키면 잉크가 나오고, 빈 자리를 가리키면 안 나온다.
+    뒤집기를 틀리면 둘이 바뀌므로 이 두 개를 같이 봐야 의미가 있다.
+    """
+    from chemcheck.extract import Slide, VectorRegion
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        # 고리를 (200, 500) 에 반지름 40 으로 그린다 -> x 160~240, y 460~540
+        deck = _pdf(work / "one.pdf", [_ring(200, 500)])
+        out = work / "out"
+        out.mkdir()
+
+        on_structure = (160 / PAGE_W, (PAGE_H - 540) / PAGE_H, 240 / PAGE_W, (PAGE_H - 460) / PAGE_H)
+        empty = (0.70, 0.70, 0.95, 0.95)
+
+        slides = [
+            Slide(1, "", [], [
+                VectorRegion(1, 6, True, on_structure),
+                VectorRegion(1, 6, True, empty),
+            ])
+        ]
+        extract._fill_vector_images(deck, slides, out)
+
+        hit, miss = slides[0].vector_regions
+        assert hit.image is not None, "구조 자리를 오려내지 못했다"
+        assert _ink(hit.image) > 0, "구조 자리인데 비어 있다 - 좌표 뒤집기 오류"
+        assert miss.image is None or _ink(miss.image) == 0, "빈 자리에서 잉크가 나왔다"
+
+
+# ------------------------------------------- 변환기가 없거나 실패할 때
+
+
+def test_convert_returns_none_without_libreoffice(monkeypatch) -> None:
+    """LibreOffice 가 없으면 조용히 포기한다. 예외를 던지면 안 된다."""
+    import shutil
+
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        assert extract._pptx_to_pdf(work / "deck.pptx", work / "conv") is None
+
+
+def test_convert_returns_none_when_it_fails(monkeypatch) -> None:
+    """변환이 실패해도 추출 전체가 죽지 않는다."""
+    import shutil
+    import subprocess
+
+    monkeypatch.setattr(shutil, "which", lambda _name: "soffice")
+
+    def boom(*_args, **_kwargs):
+        raise subprocess.CalledProcessError(1, "soffice")
+
+    monkeypatch.setattr(subprocess, "run", boom)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        assert extract._pptx_to_pdf(work / "deck.pptx", work / "conv") is None
+
+
+def test_convert_returns_none_when_output_missing(monkeypatch) -> None:
+    """변환기가 성공했다고 해도 결과 파일이 없으면 없는 것이다."""
+    import shutil
+    import subprocess
+
+    monkeypatch.setattr(shutil, "which", lambda _name: "soffice")
+    monkeypatch.setattr(subprocess, "run", lambda *a, **k: None)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        assert extract._pptx_to_pdf(work / "deck.pptx", work / "conv") is None
+
+
 # ------------------------------------------------------------------- 공통
 
 
