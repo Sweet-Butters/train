@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>crop.js demo</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 700px; margin: 30px auto; padding: 0 16px; }
+  #log { white-space: pre-wrap; font-family: ui-monospace, Consolas, monospace; font-size: 12px; background: #f4f4f5; padding: 10px; border-radius: 6px; margin-top: 16px; min-height: 3em; }
+</style>
+</head>
+<body>
+<h1>crop.js 데모</h1>
+<p>이미지를 붙여넣거나(Ctrl+V) 드래그하거나 파일을 선택하세요. 크롭을 확정하면 아래 로그에 onCrop 결과가 찍힙니다.</p>
+<div id="mount"></div>
+<div id="log">(대기 중)</div>
+<script type="module">
+  import { mountCropper } from "./crop.js";
+  const log = document.getElementById("log");
+  mountCropper(document.getElementById("mount"), {
+    onCrop(blob, meta) {
+      log.textContent =
+        `onCrop 호출\n` +
+        `  cropped: ${blob.type}, ${blob.size} bytes\n` +
+        `  full:    ${meta.full.type}, ${meta.full.size} bytes`;
+      window.__lastCrop = { blob, meta };
+    },
+  });
+</script>
+</body>
+</html>
