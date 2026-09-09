@@ -74,3 +74,35 @@ Modal 판은 그대로 두어도 된다 - 둘 중 하나가 죽어도 다른 쪽
 - **끝나면 `--min-instances 0`.** 상주는 크레딧을 계속 먹는다.
 - 프로젝트 이름은 전역 고유다. `chemcheck-demo` 가 이미 있으면 뒤에 숫자를 붙인다.
 - 리전은 `asia-northeast3`(서울)이 지연이 가장 낮다.
+
+## 미해결 — 2026-09-10 05:00, 아침에 이어서
+
+`chemcheck-00003-vul` (build `cloudrun-3-two-engines`) 은 **빌드에 성공했지만
+DECIMER 가 안 올라온다.** 트래픽은 0% 로 두었고 라이브는 옛 리비전 그대로다.
+
+```
+/api/health  ->  {"engines":["molscribe"], "build":"cloudrun-3-two-engines"}
+런타임 로그  ->  "Downloading trained model to /opt/decimer-data/DECIMER-V2"
+                 "인식기 준비: ['molscribe']"
+```
+
+런타임에 가중치를 내려받으려 한다는 것은 **빌드 단계의 `python -m server.bake`
+가 실패했다**는 뜻이다 (`|| true` 라 빌드는 통과했다). Modal 쪽도 같은 자리에서
+두 번 끊겼고 재시도를 붙여 해결했다 (`server/modal_app.py` 의 `_fetch`).
+
+아침에 볼 것, 순서대로:
+1. Cloud Build 로그에서 `BAKE:` 줄을 찾아 실패 사유 확인
+2. `server/bake.py` 의 재시도가 modal_app.py 수준인지 (zenodo 는 큰 파일에서 자주 끊긴다)
+3. 굽기가 계속 실패하면 Dockerfile 에서 `curl` 로 직접 받아 제자리에 두는 방식으로
+   바꾼다 - MolScribe 체크포인트를 그렇게 받고 있고 그건 성공했다
+4. 고친 뒤 `/api/health` 의 engines 가 둘인지 확인하고 나서 트래픽을 옮긴다:
+   `gcloud run services update-traffic chemcheck --to-latest --region asia-northeast3`
+5. 그다음 `web/config.js` 를 Cloud Run 으로 바꾼다
+
+**그때까지 `web/config.js` 는 Modal 을 가리킨다** - 거기는 두 엔진이 확인됐다
+(`build: two-engines-1`, `engines: ["decimer","molscribe"]`).
+
+심사 끝나면 과금을 멈춘다:
+```
+gcloud run services update chemcheck --min-instances 0 --region asia-northeast3
+```
