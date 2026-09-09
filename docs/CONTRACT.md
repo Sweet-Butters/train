@@ -44,10 +44,26 @@ class Engine:
 
 부분 소유는 두지 않는다. 한 파일은 한 트랙이 통째로 갖는다.
 
-`tests/` 는 디렉터리를 D가 갖되, 각 트랙은 **자기 모듈의 테스트 파일 하나**를
-`tests/test_<모듈>.py` 로 직접 추가한다(예: C의 `tests/test_names.py`).
-파일이 겹치지 않으므로 충돌하지 않고, 트랙이 자기 변경을 스스로 증명하지 못하면
-D가 다른 트랙의 내부까지 알아야 하는 문제가 생긴다.
+### `tests/` 는 디렉터리를 공유하되 파일은 배타 소유 (D 제기, 채택)
+
+`tests/` 를 D가 통째로 갖는다는 처음 안은 유지하지 않는다. 트랙이 자기 변경을
+스스로 증명하지 못하면 D 가 다른 트랙의 내부까지 알아야 하기 때문이다.
+실제로 A 가 `tests/test_pipeline.py` 에 엔진 테스트를 커밋했고(`28ce62f`),
+지금 충돌이 없는 것은 계약이 지켜져서가 아니라 D 가 그 파일을 피했기 때문이다.
+
+| 파일 | 소유 |
+|---|---|
+| `tests/test_pipeline.py` | D — 심어둔 오류를 잡는가 = 파이프라인 전체의 계약 |
+| `tests/test_engines.py` (신규) | A — 인식기 구성·적재·프로토콜 |
+| `tests/test_extract.py` | B |
+| `tests/test_names.py`, `tests/test_keys.py` | C |
+| `tests/test_cli_summary.py`, `tests/test_score.py` | D |
+
+"한 파일은 한 트랙이 통째로 갖는다"는 원칙은 그대로다. 디렉터리만 공유한다.
+
+A 가 옮길 대상은 `test_self_consistency_only_when_decimer_is_alone`,
+`test_broken_engine_does_not_crash`, `test_subprocess_bridge_speaks_the_protocol`
+셋이다. 옮기는 일은 A 가 한다 - 남의 트랙 파일을 대신 건드리지 않는다.
 
 ## D 트랙의 범위 — 장치이지 숫자가 아니다
 
