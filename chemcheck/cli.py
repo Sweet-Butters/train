@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 import tempfile
 from collections import Counter
@@ -129,10 +130,14 @@ def summary_lines(results: list) -> list[str]:
 def check_main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(
         prog="chemcheck check",
-        description="슬라이드·PDF 속 화학 구조 그림이 옆에 적힌 이름과 맞는지 검사합니다.",
+        description="슬라이드·PDF 속(또는 --name 과 함께 그림 한 장) 화학 구조가 이름과 맞는지 검사합니다.",
     )
-    parser.add_argument("file", type=Path, help="검사할 .pdf 또는 .pptx")
-    parser.add_argument("--keep", type=Path, default=None, help="추출한 그림을 남길 폴더")
+    parser.add_argument("file", type=Path, help="검사할 .pdf/.pptx, 또는 --name 과 함께 쓸 그림 한 장")
+    parser.add_argument("--name", type=str, default=None,
+                        help="화합물 이름. 주면 file 을 그림 한 장으로 보고 이 이름과 대조합니다")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="--name 모드: 정본·diff 그림을 남길 폴더 (기본: 현재 폴더)")
+    parser.add_argument("--keep", type=Path, default=None, help="추출한 그림을 남길 폴더 (.pdf/.pptx 모드)")
     parser.add_argument(
         "--molscribe",
         type=Path,
@@ -144,6 +149,9 @@ def check_main(argv: list[str]) -> int:
     if not args.file.exists():
         print(f"파일이 없습니다: {args.file}", file=sys.stderr)
         return 2
+
+    if args.name is not None:
+        return check_name_main(args)
 
     checkpoint = args.molscribe or DEFAULT_CHECKPOINT
     engines = load_engines(checkpoint if checkpoint.exists() else None)
@@ -182,6 +190,121 @@ def check_main(argv: list[str]) -> int:
 
     counts = summarize(results)
     return 1 if counts[Verdict.ERROR] else 0
+
+# ── check --name: 그림 한 장 + 이름 ──────────────────────────────────────────
+
+VERDICT_HEADLINE = {
+    Verdict.OK: "이름과 그림이 같은 분자입니다",
+    Verdict.ERROR: "이름과 그림이 다릅니다",
+    Verdict.WARN: "골격은 같습니다",
+    Verdict.ABSTAIN: "판정할 수 없습니다",
+}
+
+_FORMULA_ELEMENT = re.compile(r"([A-Z][a-z]?)(\d*)")
+_ELEMENT_KO = {
+    "C": "탄소", "N": "질소", "O": "산소", "S": "황", "P": "인", "H": "수소",
+    "F": "플루오린", "Cl": "염소", "Br": "브롬", "I": "아이오딘", "Na": "나트륨",
+}
+
+
+def _parse_formula(formula: str) -> dict[str, int]:
+    return {sym: int(n) if n else 1 for sym, n in _FORMULA_ELEMENT.findall(formula) if sym}
+
+
+def _formula_diff_note(reference: str, read: str) -> str:
+    """참조 대비 읽은 조성이 어떻게 다른지. 임의의 두 조성식에 대해 일반적으로 돈다."""
+    ref_counts, read_counts = _parse_formula(reference), _parse_formula(read)
+    parts = []
+    for sym in sorted(set(ref_counts) | set(read_counts)):
+        d = read_counts.get(sym, 0) - ref_counts.get(sym, 0)
+        if d != 0:
+            label = _ELEMENT_KO.get(sym, sym)
+            parts.append(f"{label} {abs(d)}개 {'많음' if d > 0 else '적음'}")
+    return ", ".join(parts)
+
+
+def check_name_main(args) -> int:
+    """그림 한 장 + 이름. 이름 대조를 1순위로 삼는 판정(결정 6·8)을 그대로 쓴다.
+
+    카페인이든 다른 무엇이든 특수 취급하지 않는다 - names.PubChemResolver 로
+    이름을, ocsr.load_engines() + inputs.prepare_image 로 그림을 그대로 흐른다.
+    """
+    from .inputs import UnreadableImage, prepare_image
+    from .keys import heavy_atom_formula, principal_smiles, smiles_to_inchikey
+    from .names import PubChemResolver
+    from .render import draw_diff, draw_png
+    from .structure import lookup_name
+    from .verdict import judge
+
+    resolver = PubChemResolver()
+    query = lookup_name(args.name)
+    ref = resolver.resolve(query)
+    if ref is None:
+        print(f"찾지 못함: '{args.name}'" + (f" ('{query}' 로 조회)" if query != args.name else ""))
+        print("      PubChem 이 이 이름을 화합물로 해석하지 못했습니다. 대조할 정본이 없습니다.")
+        return 2
+
+    checkpoint = args.molscribe or DEFAULT_CHECKPOINT
+    engines = load_engines(checkpoint if checkpoint.exists() else None)
+    if not engines:
+        print("경고: 구조 인식기(OCSR)를 쓸 수 없습니다.")
+        for line in LAST_DIAGNOSTICS:
+            print(f"      {line}")
+    else:
+        print(f"인식기: {', '.join(e.name for e in engines)}")
+
+    out_dir = args.out or Path(".")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        prep = prepare_image(args.file, out_dir / "prepared")
+    except (UnreadableImage, FileNotFoundError, OSError) as exc:
+        print(f"그림을 읽을 수 없습니다 - {exc}", file=sys.stderr)
+        return 2
+    for note in prep.notes:
+        print(f"  입력  {note}")
+    for warning in prep.warnings:
+        print(f"  경고  {warning}")
+
+    predictions = []
+    for engine in engines:
+        try:
+            predictions.extend(engine.recognize_all(prep.path))
+        except Exception as exc:  # 인식기 하나가 죽어도 나머지는 본다
+            print(f"  {engine.name} 실패: {type(exc).__name__}: {exc}")
+
+    finding = judge([ref], predictions)
+
+    print()
+    print(f"{MARK[finding.verdict]} {VERDICT_HEADLINE[finding.verdict]}")
+    ref_formula = heavy_atom_formula(ref.smiles)
+    print(f"  이름 \"{args.name}\" 정본   {ref.inchikey[:14]}  {ref_formula or '(조성 없음)'}")
+    for p in predictions:
+        key = smiles_to_inchikey(p.smiles)
+        formula = heavy_atom_formula(p.smiles)
+        tag = key[:14] if key else "(구조로 읽지 못함)"
+        note = ""
+        if ref_formula and formula and formula != ref_formula:
+            diff = _formula_diff_note(ref_formula, formula)
+            note = f"   <- {diff}" if diff else ""
+        print(f"  {p.engine} 이 읽은 것   {tag}  {formula or '(조성 없음)'}{note}")
+    if finding.reason:
+        print(f"  근거  {finding.reason}")
+
+    ref_png = draw_png(ref.smiles, out_dir / "reference.png", legend=f"{args.name} 정본")
+    print(f"  정본은 이것입니다 -> {ref_png}" if ref_png else "  정본 그림을 그리지 못했습니다")
+
+    if finding.is_actionable and finding.predicted_key:
+        match = next((p for p in predictions if smiles_to_inchikey(p.smiles) == finding.predicted_key), None)
+        if match is not None:
+            # 짝이온을 뗀 주성분으로 그린다 - DECIMER 가 지어낸 요오드화물 같은
+            # 것이 diff 를 흐리면 안 된다 (결정 6).
+            diff_png, _ = draw_diff(ref.smiles, principal_smiles(match.smiles), out_dir / "diff.png",
+                                    (f"정본: {args.name}", f"그림: {match.engine}"))
+            if diff_png is not None:
+                print(f"  정본과 그림의 다른 곳 -> {diff_png}")
+
+    return 1 if finding.verdict is Verdict.ERROR else 0
 
 # ── 양방향 구조 도구 ────────────────────────────────────────────────────────
 
