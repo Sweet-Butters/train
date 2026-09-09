@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT))
 from chemcheck.keys import (  # noqa: E402
     Match,
     compare,
+    heavy_atom_formula,
     principal_smiles,
     smiles_to_inchikey,
 )
@@ -90,6 +91,35 @@ def test_real_error_is_still_caught() -> None:
     print("통과: 골격이 다르면 여전히 오류다.")
 
 
+def test_heavy_atom_formula_counts_even_broken_valence() -> None:
+    """결정 6·7: 원자가가 깨진 답(실측 6 의 5가 질소 같은 것)도 중원자를 셀 수 있어야 한다.
+
+    N,N,N,N-테트라메틸아민(5가 질소, sanitize=True 로는 파싱조차 안 됨) - 메틸이
+    정상(3개, trimethylamine)보다 하나 더 붙은 상황을 흉내낸다.
+    """
+    normal = "CN(C)C"           # 정상 - 트리메틸아민, C3N
+    broken = "CN(C)(C)(C)C"     # 원자가 깨짐 - 메틸 하나 더, C5N
+
+    assert heavy_atom_formula(normal) == "C3N"
+    assert heavy_atom_formula(broken) == "C5N"
+    print(f"  정상 {heavy_atom_formula(normal)} vs 원자가 깨짐 {heavy_atom_formula(broken)}")
+    print("통과: 원자가가 깨져도 중원자는 셀 수 있다.")
+
+
+def test_heavy_atom_formula_drops_counterions() -> None:
+    """짝이온은 뗀다(principal_smiles) - DECIMER 가 지어낸 요오드화물이 조성을 흐리면 안 된다."""
+    salt = "CC(=O)Oc1ccccc1C(=O)O.[I-].[I-]"
+    assert heavy_atom_formula(salt) == heavy_atom_formula("CC(=O)Oc1ccccc1C(=O)O")
+    print(f"  {salt} -> {heavy_atom_formula(salt)} (요오드 제외)")
+    print("통과: 짝이온이 조성에 섞이지 않는다.")
+
+
+def test_heavy_atom_formula_unparseable_is_none() -> None:
+    assert heavy_atom_formula("") is None
+    assert heavy_atom_formula("(((") is None
+    print("통과: 파싱조차 안 되면 조성을 지어내지 않는다.")
+
+
 def test_unreadable_structure_is_none_not_a_guess() -> None:
     assert smiles_to_inchikey("이건 SMILES 가 아니다") is None
     assert smiles_to_inchikey("") is None
@@ -106,6 +136,9 @@ if __name__ == "__main__":
         test_protonation_only_is_not_a_structural_error,
         test_stereochemistry_difference_is_only_a_warning,
         test_real_error_is_still_caught,
+        test_heavy_atom_formula_counts_even_broken_valence,
+        test_heavy_atom_formula_drops_counterions,
+        test_heavy_atom_formula_unparseable_is_none,
         test_unreadable_structure_is_none_not_a_guess,
     ]:
         test()
