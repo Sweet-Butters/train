@@ -15,6 +15,7 @@ InChIKey 구조:  AAAAAAAAAAAAAA-BBBBBBBBCC-D
 """
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from enum import Enum
 
@@ -84,6 +85,36 @@ def smiles_to_inchikey(smiles: str) -> str | None:
     except Exception:
         return None
     return key or None
+
+
+def heavy_atom_formula(smiles: str) -> str | None:
+    """중원자 조성(C 먼저, 나머지는 알파벳 순). 원자가 검사 없이 파싱한다.
+
+    `sanitize=False` 로 읽는다 - 원자가가 깨진 그림(결정 6·7 의 5가 질소 같은
+    것)도 세야 하기 때문이다. 암시적 수소는 원자가 규칙에서 나오는데 그게 깨진
+    상황이니 중원자만 센다. 염·짝이온은 `principal_smiles` 로 먼저 뗀다.
+
+    파싱조차 안 되면 None - 조성을 지어내지 않는다.
+
+    일방향 신호다: 다르면 구조가 다른 것이 확실하다. 같다고 구조가 같은 것은
+    아니다. 판정(`verdict.judge`)에는 쓰지 않는다 - 표시에만 곁들인다.
+    """
+    if not smiles or not smiles.strip():
+        return None
+    mol = Chem.MolFromSmiles(principal_smiles(smiles.strip()), sanitize=False)
+    if mol is None:
+        return None
+    counts = Counter(atom.GetSymbol() for atom in mol.GetAtoms())
+    if not counts:
+        return None
+
+    def part(symbol: str) -> str:
+        n = counts[symbol]
+        return symbol if n == 1 else f"{symbol}{n}"
+
+    parts = [part("C")] if "C" in counts else []
+    parts += [part(sym) for sym in sorted(counts) if sym != "C"]
+    return "".join(parts)
 
 
 def molblock_to_inchikey(molblock: str) -> str | None:
