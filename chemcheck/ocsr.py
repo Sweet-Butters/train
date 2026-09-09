@@ -7,10 +7,11 @@
 from __future__ import annotations
 
 import contextlib
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from .bridge import Worker
+from .bridge import Worker, venv_python
 
 
 @dataclass(frozen=True)
@@ -279,7 +280,9 @@ LAST_DIAGNOSTICS: list[str] = []
 
 # MolScribe 전용 환경. torch<2.0 고정 때문에 py3.10 으로 따로 만든다.
 # scripts/setup_ocsr.sh 가 여기에 깐다.
-VENV310_PYTHON = Path(__file__).resolve().parents[1] / ".venv310" / "Scripts" / "python.exe"
+# 컨테이너에서는 venv 위치가 다를 수 있다. 환경변수가 있으면 그걸 쓴다.
+_ENV_VENV310 = os.environ.get("CHEMCHECK_VENV310_PYTHON")
+VENV310_PYTHON = Path(_ENV_VENV310) if _ENV_VENV310 else venv_python(".venv310")
 
 
 def load_engines(molscribe_checkpoint: Path | None = None) -> list[Engine]:
