@@ -37,7 +37,7 @@ class Engine:
 
 | 트랙 | 영역 | 소유 파일 |
 |---|---|---|
-| **A** 인식기·정확도 | DECIMER/MolScribe 결판, 실제 정확도·오탐률, 신뢰도 게이트 | `ocsr.py` 구현부(`MolScribeEngine`·`DecimerEngine`·`SelfConsistent`·`load_engines`), `scripts/setup_*.sh`, `scripts/fetch_*`, 환경 전부(`.venv`, `.venv310`, `models/`, `.wheels/`) |
+| **A** 인식기·정확도 | DECIMER/MolScribe 결판, 실제 정확도·오탐률, 신뢰도 게이트 | `ocsr.py` 구현부(`MolScribeEngine`·`DecimerEngine`·`SelfConsistent`·`load_engines`), `scripts/setup_ocsr.sh`, `scripts/fetch_*`, 환경 전부(`.venv`, `.venv310`, `models/`, `.wheels/`) |
 | **B** 입력 추출 | PPTX 도형·PDF 벡터로 그린 구조, 장당 다중 그림 | `chemcheck/extract.py` |
 | **C** 이름 해석 | 동의어·IUPAC명·약어, PubChem 캐시와 레이트리밋, 오프라인 폴백 | `chemcheck/names.py`, `chemcheck/keys.py`, `chemcheck/data/`, `scripts/build_offline_table.py` |
 | **D** 평가·리포트 | 벤치마크 덱, 스코어링, 리포트 | `tests/test_pipeline.py`, `bench/`(신규), `scripts/make_demo.py`, `chemcheck/cli.py` 전체 |
@@ -67,3 +67,22 @@ bash scripts/setup_lite.sh      # 무거운 것 없이 파이프라인 의존성
 ```
 
 무거운 환경은 A 트랙 안에만 존재한다.
+
+`scripts/setup_lite.sh` 는 어느 트랙의 것도 아닌 베이스 인프라다. 처음에 A 소유를
+`scripts/setup_*.sh` 로 적었더니 와일드카드가 이 스크립트까지 삼켜서, 필요한 트랙이
+만들지 못하고 각자 환경을 우회로 세우는 일이 벌어졌다. 공용 인프라는 소유자를 두지
+않고 베이스에 둔다.
+
+## 테스트는 pytest 로 돌린다
+
+```bash
+.venv/Scripts/python -m pytest tests/ -q     # 네 트랙 전부
+```
+
+`tests/` 안에 실행 방식이 두 가지 섞여 있다. `__main__` 블록을 두고 직접 실행하는
+파일과 pytest 로만 도는 파일이 함께 있어서, `python tests/test_x.py` 로 돌리면
+후자가 **조용히 건너뛰어지고 초록불이 난다**. 통합 시점에 B 의 추출 테스트 20건이
+그렇게 한 번도 돌지 않은 채 통과로 잡혔다.
+
+새 테스트를 어느 방식으로 쓰든 상관없지만, "통과했다"고 말하기 전에는 반드시
+`pytest tests/` 로 확인한다.

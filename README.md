@@ -45,7 +45,7 @@ OCSR 정확도는 76~93%라 오탐이 납니다. 확신이 없으면 반드시 *
 ## 사용
 
 ```bash
-pip install rdkit pymupdf python-pptx requests
+bash scripts/setup_lite.sh      # 인식기 없이 파이프라인만
 python -m chemcheck 슬라이드.pdf      # .pptx 도 가능
 ```
 
