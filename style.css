@@ -88,12 +88,14 @@ dl.facts dd { margin: 0; font-family: ui-monospace, Consolas, monospace; word-br
 .wildcatch { margin-top: 34px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
 .wildcatch h2 { margin: 0 0 4px; }
 .wildcatch .sub2 { color: var(--mute); font-size: 13px; margin: 0 0 14px; }
-.wildcatch-body { display: grid; grid-template-columns: minmax(180px, 260px) 1fr; gap: 18px; }
 .wildcatch-img { max-width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; }
-.wildcatch-facts .why { color: var(--mute); font-size: 13px; margin: 10px 0 0; }
+.wildcatch-sample-btn { display: block; width: 100%; max-width: 320px; margin: 0 auto; padding: 10px; border: 2px solid var(--accent); border-radius: 10px; background: #f5f8ff; cursor: pointer; font: inherit; text-align: center; }
+.wildcatch-sample-btn:hover { background: #eaf1ff; }
+.wildcatch-sample-btn span { display: block; margin-top: 8px; color: var(--accent); font-weight: 600; font-size: 14px; }
+.wildcatch-footnote { margin: 14px 0 0; padding: 8px 0 8px 14px; border-left: 3px solid var(--line); color: var(--mute); font-size: 12px; font-style: italic; }
 
 footer { color: var(--mute); font-size: 12px; margin-top: 34px; border-top: 1px solid var(--line); padding-top: 12px; }
 
 @media (max-width: 640px) {
-  .fields, .canon-card, .wildcatch-body { grid-template-columns: 1fr; }
+  .fields, .canon-card { grid-template-columns: 1fr; }
 }
