@@ -9,8 +9,28 @@
 <body>
 <main>
   <h1>chemcheck</h1>
-  <p class="sub">LLM 이 화합물이라며 준 SMILES 를 이름의 정본과 대조합니다 - InChIKey 가 같으면 🟢, 다르면 🔴.
-    이름만 넣어도 정본은 곧바로 뜹니다. 이미지를 붙이면 서버가 그림 자체도 읽어 대조합니다(처음엔 최대 1분).</p>
+  <p class="tagline">LLM 이 그린 화학 구조는 그럴듯하고, 자주 틀립니다.<br>
+    <strong>틀렸다는 걸 아무도 모른 채 강의자료·논문·제품에 들어갑니다.</strong></p>
+
+  <section class="hero">
+    <img class="hero-img" src="evidence/caffeine_gemini.jpeg"
+         alt="Gemini Pro 가 생성한 카페인 구조 슬라이드 - 이름·화학식·IUPAC명은 맞고 구조만 틀렸다">
+    <div class="hero-text">
+      <p>Gemini Pro 에게 <em>"카페인 분자구조"</em> 를 요청해 받은 그림입니다.
+        제목도, 화학식(C<sub>8</sub>H<sub>10</sub>N<sub>4</sub>O<sub>2</sub>)도, IUPAC 이름(1,3,7-트리메틸퓨린-2,6-디온)도
+        <strong>전부 맞습니다.</strong> 구조만 틀렸습니다 - N9 에 메틸이 하나 더 붙어 중성 분자로 존재할 수 없습니다.</p>
+      <p class="hero-claim">우리는 판정에 LLM 을 쓰지 않습니다. 이름과 그림을 각각 <strong>InChIKey</strong> 로 바꿔
+        문자열로 비교합니다 - 추론이 없으므로 환각이 끼어들 자리가 없습니다.</p>
+      <button type="button" id="heroCta" class="cta">이 그림으로 직접 확인해보기 →</button>
+      <p class="hero-note">버튼을 누르면 아래 파이프라인이 실제로 돕니다. 미리 만든 결과가 아닙니다.</p>
+    </div>
+  </section>
+
+  <ol class="steps">
+    <li><span>1</span> 그림을 붙여넣고 구조 영역을 지정합니다</li>
+    <li><span>2</span> 인식기 둘이 읽고, 이름의 정본과 InChIKey 로 대조합니다</li>
+    <li><span>3</span> 틀렸으면 정본 구조를 복사해 그대로 씁니다</li>
+  </ol>
 
   <section class="image-drop">
     <div class="dropzone" id="dropzone" tabindex="0">
@@ -81,6 +101,74 @@
         </div>
         <p class="why">Gemini 가 그린 카페인은 N9 에 메틸이 하나 더 붙어 있다 - 그릴 수 없는 구조라 두 인식기 중 하나는 파싱조차 못 했다.
           그런데도 이미지 자신이 적어 둔 화학식(C8H10N4O2)과도 맞지 않는다. 이름·인식기 둘·인쇄된 화학식, 넷 중 셋이 "탄소 8 대 9" 를 가리켰다.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="pitch" id="apiSection">
+    <h2>개발자용 API - 지금 이 순간 살아 있습니다</h2>
+    <p class="sub2">이 페이지가 부르는 그 엔드포인트입니다. 별도 서버 없이 CORS 가 열려 있어 어디서든 부릅니다.</p>
+    <pre class="code">curl -X POST https://pxh7yp--chemcheck.modal.run/api/check   -F "image=@structure.png" -F "name=caffeine"</pre>
+    <pre class="code out">{
+  "verdict": "mismatch",          // match | mismatch | unreadable
+  "grade":   "weak",              // strong = 인식기 둘 합의
+  "reference": { "inchikey": "RYYVLZVUVIJVGH-UHFFFAOYSA-N", "formula": "C8H10N4O2" },
+  "read":      { "inchikey": "CSXLFNRQOLIQAN-UHFFFAOYSA-N", "heavy_formula": "C9N4O2" },
+  "reasons": [ "골격이 다릅니다 (CSXLFNRQOLIQAN vs RYYVLZVUVIJVGH)",
+               "중원자 조성 C9N4O2 vs C8N4O2" ]
+}</pre>
+    <p class="sub2">LLM 파이프라인에 세 줄로 들어갑니다 - 검증 안 된 구조가 사용자에게 도달하기 전에 막습니다.</p>
+    <pre class="code">r = requests.post(CHEMCHECK, files={"image": img}, data={"name": name})
+if r.json()["verdict"] == "mismatch":
+    block(r.json()["reasons"])      # 정본으로 교체하거나 보류</pre>
+    <p class="hero-note">API 키 발급은 문의 - 지금은 인증 없이 열려 있는 데모 엔드포인트입니다.</p>
+  </section>
+
+  <section class="pitch">
+    <h2>요금제 <span class="tag">계획</span></h2>
+    <p class="sub2">아직 결제를 받지 않습니다. 아래는 측정된 원가 위에 세운 계획입니다.</p>
+    <div class="tiers">
+      <div class="tier">
+        <h3>Free</h3><p class="price">₩0</p>
+        <p>하루 10건. 교육·개인 사용.</p>
+        <p class="tier-why">쐐기입니다 - 강의자료를 만드는 사람이 먼저 씁니다.</p>
+      </div>
+      <div class="tier hi">
+        <h3>Pro</h3><p class="price">월 $29</p>
+        <p>2,000건 / 배치 업로드 / PDF·PPTX(예정).</p>
+        <p class="tier-why">강의자료·논문·포스터를 정기적으로 만드는 개인과 연구실.</p>
+      </div>
+      <div class="tier">
+        <h3>Enterprise</h3><p class="price">건당 과금</p>
+        <p>전용 엔드포인트 / SLA / 온프레미스.</p>
+        <p class="tier-why">화학을 다루는 LLM 제품에 넣는 <strong>출력 가드레일</strong>. 여기가 본 시장입니다.</p>
+      </div>
+    </div>
+    <p class="unit">단위 원가 <strong>판정 1건당 약 $0.002</strong> (Modal 실측: CPU 2코어, 인식기 둘 병렬, 따뜻할 때 2~5초).
+      추론 모델을 호출하지 않으므로 토큰 비용이 없고, 원가가 트래픽에 선형입니다.</p>
+  </section>
+
+  <section class="pitch">
+    <h2>지금 / 다음 / 그다음</h2>
+    <div class="road">
+      <div class="road-col now">
+        <h3>지금 <span class="tag ok">동작</span></h3>
+        <p>그림 한 장 + 이름 → 판정. 인식기 둘(DECIMER·MolScribe)이 골격에 합의해야 <code>strong</code>.
+          판정 단계에 추론이 0 입니다.</p>
+        <p class="road-num">합성 50장에서 <strong>자신 있게 틀림 0건</strong>. 실제 AI 이미지 4장 중 2장에서 오류를 잡았습니다.</p>
+      </div>
+      <div class="road-col">
+        <h3>다음 <span class="tag">개발 중</span></h3>
+        <p>PDF·PPTX 를 통째로 검사합니다. 병목은 인식이 아니라 <strong>자료에서 구조를 찾아내는 분할</strong>입니다.</p>
+        <p class="road-num">실측: 398장 덱의 그림 371건 중 구조식은 두세 개, 나머지는 클립아트였습니다.
+          그래서 지금은 사람이 영역을 지정합니다.</p>
+      </div>
+      <div class="road-col">
+        <h3>그다음 <span class="tag">계획</span></h3>
+        <p>LLM 출력 게이트웨이. 검증되지 않은 구조가 사용자에게 <strong>도달하지 못하게</strong> 합니다.</p>
+        <p class="road-num">MolErr2Fix: LLM 은 자기 화학 오류를 감지 66.6% F1, 수정 11.1% BLEU 에 그칩니다 -
+          LLM 이 LLM 을 검사하는 방식으로는 안 됩니다.</p>
       </div>
     </div>
   </section>

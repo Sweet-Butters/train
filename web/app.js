@@ -772,6 +772,15 @@ async function runExample(ex) {
     }
     box.appendChild(row);
   }
+  // 히어로의 CTA 는 첫 예제(Gemini 카페인 - 야생에서 잡은 오류)를 그대로 돌린다.
+  const cta = $("heroCta");
+  if (cta) {
+    cta.addEventListener("click", () => {
+      runExample(EXAMPLES[0].items[0]);
+      const dz = $("dropzone");
+      if (dz && dz.scrollIntoView) dz.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 })();
 
 
