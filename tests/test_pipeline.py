@@ -91,7 +91,40 @@ def test_self_consistency_forces_abstain() -> None:
     print("통과: 인식이 스스로 합의하지 못하면 오류로 단정하지 않는다.")
 
 
+def test_broken_engine_does_not_crash() -> None:
+    """인식기 적재가 깨져도 도구가 죽으면 안 된다. 없는 것으로 보고하고 보류한다.
+
+    DECIMER는 import 시점에 가중치를 내려받는다. 배포처(Zenodo)가 죽어 있거나
+    받다 만 zip이 남아 있으면 ImportError가 아닌 예외(DownloadError, BadZipFile)로
+    죽는데, 그게 그대로 올라오면 이름 검사까지 같이 멈춘다.
+    """
+    import builtins
+
+    from chemcheck.ocsr import DecimerEngine
+
+    real_import = builtins.__import__
+
+    def exploding_import(name, *args, **kwargs):
+        if name == "DECIMER":
+            raise RuntimeError("가중치 압축 파일이 깨졌다 (BadZipFile 흉내)")
+        return real_import(name, *args, **kwargs)
+
+    engine = DecimerEngine()
+    builtins.__import__ = exploding_import
+    try:
+        available = engine.available()
+    finally:
+        builtins.__import__ = real_import
+
+    assert available is False, "깨진 인식기를 쓸 수 있다고 보고했다"
+    assert engine.unavailable_reason, "못 쓰는 이유를 남기지 않았다"
+    print(f"  깨진 인식기 -> 사용 불가로 보고: {engine.unavailable_reason}")
+    print("통과: 인식기가 깨져도 터지지 않고 판정만 보류한다.")
+
+
 if __name__ == "__main__":
     test_detects_planted_errors()
     print()
     test_self_consistency_forces_abstain()
+    print()
+    test_broken_engine_does_not_crash()

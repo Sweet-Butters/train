@@ -71,21 +71,27 @@ class DecimerEngine(Engine):
 
     def __init__(self):
         self._predict = None
+        self.unavailable_reason: str | None = None
 
     def available(self) -> bool:
-        try:
-            from DECIMER import predict_SMILES  # noqa: F401
-        except ImportError:
+        if self._predict is not None:
+            return True
+        if self.unavailable_reason is not None:
             return False
+        try:
+            from DECIMER import predict_SMILES
+        except Exception as exc:
+            # DECIMER 는 import 시점에 가중치를 내려받는다. 배포처가 죽어 있거나
+            # 받다 만 zip 이 남아 있으면 ImportError 가 아닌 예외로 죽는다.
+            # 그대로 터뜨리면 도구 전체가 멈춘다. 인식기가 없는 것으로 본다.
+            self.unavailable_reason = f"{type(exc).__name__}: {exc}"
+            return False
+        self._predict = predict_SMILES
         return True
 
     def recognize(self, image_path: Path) -> Prediction | None:
         if not self.available():
             return None
-        if self._predict is None:
-            from DECIMER import predict_SMILES
-
-            self._predict = predict_SMILES
         smiles = self._predict(str(image_path))
         if not smiles:
             return None
@@ -93,12 +99,19 @@ class DecimerEngine(Engine):
         return Prediction(smiles, float("nan"), self.name)
 
 
+# 인식기를 못 쓴 이유. 조용히 사라지면 사용자가 원인을 알 수 없다.
+LAST_DIAGNOSTICS: list[str] = []
+
+
 def load_engines(molscribe_checkpoint: Path | None = None) -> list[Engine]:
     """설치돼 있고 실제로 쓸 수 있는 인식기만 돌려준다."""
+    LAST_DIAGNOSTICS.clear()
     engines: list[Engine] = [MolScribeEngine(molscribe_checkpoint)]
     decimer = DecimerEngine()
     # DECIMER는 신뢰도를 주지 않으므로 자체 일관성 검사로 감싼다.
     engines.append(SelfConsistent(decimer) if decimer.available() else decimer)
+    if decimer.unavailable_reason:
+        LAST_DIAGNOSTICS.append(f"decimer: {decimer.unavailable_reason}")
     return [e for e in engines if e.available()]
 
 

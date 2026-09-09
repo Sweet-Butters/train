@@ -6,7 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from .ocsr import load_engines
+from .ocsr import LAST_DIAGNOSTICS, load_engines
 from .pipeline import run, summarize
 from .verdict import Verdict
 
@@ -45,9 +45,9 @@ def main(argv: list[str] | None = None) -> int:
     engines = load_engines(checkpoint if checkpoint.exists() else None)
     if not engines:
         print("경고: 구조 인식기(OCSR)를 쓸 수 없습니다.")
-        if not checkpoint.exists():
-            print(f"      가중치가 없습니다: {checkpoint}")
-            print("      python scripts/fetch_models.py 로 먼저 받으세요.")
+        for line in LAST_DIAGNOSTICS:
+            print(f"      {line}")
+        print("      bash scripts/fetch_decimer.sh 로 가중치를 먼저 받으세요.")
         print("      그림 판정은 전부 '판정불가'로 나옵니다. 이름 추출은 정상 동작합니다.\n")
     else:
         print(f"인식기: {', '.join(e.name for e in engines)}\n")
