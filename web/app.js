@@ -712,10 +712,19 @@ setupImageInput();
 // web/evidence/crops 의 실제 AI 생성 그림을 사용자가 올린 것과 **같은 경로**로 통과시킨다.
 // 미리 채우는 것은 입력(그림·이름)뿐이고, 판정은 서버가 그때 낸다 - 결과를 심어두지 않는다.
 const EXAMPLES = [
-  { file: "caffeine_gemini_crop.png", name: "Caffeine",  label: "Gemini 카페인" },
-  { file: "caffeine_gpt_crop.png",    name: "Caffeine",  label: "GPT 카페인" },
-  { file: "alanine_gemini_crop.png",  name: "L-alanine", label: "Gemini 알라닌" },
-  { file: "alanine_gpt_crop.png",     name: "L-alanine", label: "GPT 알라닌" },
+  { group: "AI 가 그린 그림 - 이름과 대조합니다",
+    items: [
+      { file: "caffeine_gemini_crop.png", name: "Caffeine",  label: "Gemini 카페인" },
+      { file: "caffeine_gpt_crop.png",    name: "Caffeine",  label: "GPT 카페인" },
+      { file: "alanine_gemini_crop.png",  name: "L-alanine", label: "Gemini 알라닌" },
+      { file: "alanine_gpt_crop.png",     name: "L-alanine", label: "GPT 알라닌" },
+    ] },
+  { group: "처음 보는 분자 - PubChem 에도 내장 표 423 개에도 없습니다. 그림에서만 읽습니다",
+    items: [
+      { file: "novel_a.png", name: "", label: "신규 A" },
+      { file: "novel_b.png", name: "", label: "신규 B" },
+      { file: "novel_c.png", name: "", label: "신규 C" },
+    ] },
 ];
 
 async function runExample(ex) {
@@ -725,7 +734,7 @@ async function runExample(ex) {
     const res = await fetch("evidence/crops/" + ex.file);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const blob = await res.blob();
-    $("nameInput").value = ex.name;   // OCR 이 못 읽어도 이름은 있다
+    $("nameInput").value = ex.name || "";   // 신규 분자는 이름을 비운다 - 읽기만 하는 경로
     await evaluate();
     await handleImage(blob);
   } catch (e) {
@@ -738,13 +747,23 @@ async function runExample(ex) {
 (function setupExamples() {
   const box = $("examples");
   if (!box) return;
-  for (const ex of EXAMPLES) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.textContent = ex.label;
-    b.style.cssText = "margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;font-size:.85rem;cursor:pointer";
-    b.addEventListener("click", () => runExample(ex));
-    box.appendChild(b);
+  for (const g of EXAMPLES) {
+    const row = document.createElement("div");
+    row.style.cssText = "margin:.35rem 0";
+    const lab = document.createElement("span");
+    lab.className = "examples-label";
+    lab.textContent = g.group + " ";
+    lab.style.cssText = "font-size:.82rem;opacity:.8;display:block;margin-bottom:.2rem";
+    row.appendChild(lab);
+    for (const ex of g.items) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.textContent = ex.label;
+      b.style.cssText = "margin:.15rem .3rem .15rem 0;padding:.3rem .6rem;font-size:.85rem;cursor:pointer";
+      b.addEventListener("click", () => runExample(ex));
+      row.appendChild(b);
+    }
+    box.appendChild(row);
   }
 })();
 
