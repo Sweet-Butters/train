@@ -21,10 +21,12 @@ class Prediction:
       - molscribe: 모델이 내는 전체 점수(overall_score). verdict 의 0.8 문턱은 이 자로
         정한 숫자다.
       - decimer: 디코더가 토큰마다 낸 softmax 확률의 평균 (decimer_confidence).
-        MolScribe 의 0.8 과 견줄 수 없는 다른 자다. 이 값의 분포는 아직 실측하지
-        않았다 - D 의 50장 결과에서 엔진별로 보고 문턱을 따로 정한다. 그 전에는
-        이 값을 문턱에 태우지 않는다 (verdict.judge 의 max(confidence) 는 엔진을
-        가리지 않으므로 거기서 decimer 를 빼야 한다).
+        MolScribe 의 0.8 과 견줄 수 없는 다른 자다. 첫 실측 6장 (2026-09-09):
+        정답 4장은 평균 0.955~0.996 / 최소 0.78~0.98, 구조식이 아닌 그림 2장은
+        평균 0.71·0.84 / 최소 0.27·0.18 (300토큰짜리 헛 SMILES 를 지어냈다).
+        문턱은 D 의 50장 결과에서 엔진별로 보고 따로 정한다. 그 전에는 이 값을
+        문턱에 태우지 않는다 (verdict.judge 의 max(confidence) 는 엔진을 가리지
+        않으므로 거기서 decimer 를 빼야 한다).
       - 신뢰도를 주지 않는 인식기는 NaN. 없는 값을 지어내지 않는다.
     """
     smiles: str
@@ -35,9 +37,10 @@ class Prediction:
 def decimer_confidence(tokens_with_confidence) -> float:
     """DECIMER 의 토큰별 신뢰도 [(토큰, 확률), ...] 를 값 하나로. 토큰이 없으면 NaN.
 
-    평균이다 - 최솟값이 아니다. 긴 SMILES 에서 토큰 하나가 흔들린 것과 짧은 SMILES
-    전체가 흔들린 것을 구분하려면 분포를 봐야 하는데, 그 분포는 D 의 50장 결과에서
-    본다. 그 전까지는 가장 단순한 요약을 둔다.
+    평균이다 - 최솟값이 아니다 (코디네이터 결정). 첫 실측 6장에서는 최솟값이 더
+    크게 갈랐다 (정답 >=0.78, 헛 인식 <=0.27; 평균은 >=0.955 대 0.71~0.84). 긴
+    SMILES 에서 토큰 하나가 흔들린 것과 전체가 흔들린 것을 구분하려면 분포를 봐야
+    하고, 그 분포는 D 의 50장 결과에서 본다. 그 전까지는 가장 단순한 요약을 둔다.
     """
     confs = [float(c) for _tok, c in tokens_with_confidence]
     if not confs:
